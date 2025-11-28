@@ -4,7 +4,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 import { resolve } from 'path'
 
 export default defineConfig({
-  base: process.env.CI ? '/tilkerman-project/' : '/',
+  base: process.env.CI ? '/project-pwa/' : '/',
   build: {
     outDir: 'public'
   },
