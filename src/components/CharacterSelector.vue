@@ -48,7 +48,7 @@ function getPreviewPhrase(characterId: CharacterType): string {
 .selector-title {
   font-size: 1.125rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--text-primary);
   margin-bottom: 1rem;
 }
 
@@ -65,13 +65,13 @@ function getPreviewPhrase(characterId: CharacterType): string {
 }
 
 .character-option {
-  border: 2px solid #e5e7eb;
+  border: 2px solid var(--border-color);
   border-radius: 12px;
   padding: 1.5rem;
   text-align: center;
   cursor: pointer;
   transition: all 0.2s;
-  background: white;
+  background: var(--bg-secondary);
 }
 
 .character-option:hover {
@@ -95,13 +95,13 @@ function getPreviewPhrase(characterId: CharacterType): string {
 .character-name {
   font-size: 1.125rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--text-primary);
   margin-bottom: 0.75rem;
 }
 
 .character-preview {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--text-secondary);
   font-style: italic;
   line-height: 1.4;
 }

@@ -57,16 +57,16 @@ const chartData = computed(() => {
 
 <style scoped>
 .stats-chart {
-  background: white;
+  background: var(--bg-secondary);
   border-radius: 12px;
   padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-sm);
 }
 
 .chart-title {
   font-size: 1.125rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--text-primary);
   margin-bottom: 1.5rem;
 }
 
@@ -104,7 +104,7 @@ const chartData = computed(() => {
 
 .bar-label {
   font-size: 0.75rem;
-  color: #6b7280;
+  color: var(--text-secondary);
   margin-top: 0.5rem;
   text-align: center;
   writing-mode: horizontal-tb;

@@ -45,8 +45,8 @@ const progressPercentage = computed(() => {
 
 <style scoped>
 .achievement-badge {
-  background: white;
-  border: 2px solid #e5e7eb;
+  background: var(--bg-secondary);
+  border: 2px solid var(--border-color);
   border-radius: 12px;
   padding: 1.5rem;
   display: flex;
@@ -78,13 +78,13 @@ const progressPercentage = computed(() => {
   margin: 0 0 0.5rem 0;
   font-size: 1.125rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--text-primary);
 }
 
 .badge-description {
   margin: 0 0 0.75rem 0;
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--text-secondary);
 }
 
 .badge-progress {
@@ -109,7 +109,7 @@ const progressPercentage = computed(() => {
 
 .progress-text {
   font-size: 0.75rem;
-  color: #6b7280;
+  color: var(--text-secondary);
   font-weight: 600;
   min-width: 60px;
   text-align: right;

@@ -250,13 +250,13 @@ async function confirmDelete() {
   margin: 0;
   font-size: 2rem;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--text-primary);
 }
 
 .character-name {
   margin: 0.5rem 0 0 0;
   font-size: 1rem;
-  color: #6b7280;
+  color: var(--text-secondary);
 }
 
 .header-actions {
@@ -274,7 +274,7 @@ async function confirmDelete() {
   border-radius: 12px;
   padding: 1.5rem;
   font-size: 1.125rem;
-  color: #1f2937;
+  color: var(--text-primary);
   line-height: 1.6;
 }
 
@@ -302,11 +302,11 @@ async function confirmDelete() {
 }
 
 .stat-card {
-  background: white;
+  background: var(--bg-secondary);
   border-radius: 12px;
   padding: 1.5rem;
   text-align: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-sm);
 }
 
 .stat-card.streak {
@@ -326,7 +326,7 @@ async function confirmDelete() {
 
 .stat-label {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -348,7 +348,7 @@ async function confirmDelete() {
   padding: 1rem 1.5rem;
   font-size: 1rem;
   font-weight: 600;
-  color: #6b7280;
+  color: var(--text-secondary);
   cursor: pointer;
   border-bottom: 3px solid transparent;
   margin-bottom: -2px;
@@ -388,7 +388,7 @@ async function confirmDelete() {
 }
 
 .modal-content {
-  background: white;
+  background: var(--bg-secondary);
   border-radius: 12px;
   max-width: 600px;
   width: 100%;
@@ -417,7 +417,7 @@ async function confirmDelete() {
 
 .btn-secondary {
   background: #f3f4f6;
-  color: #374151;
+  color: var(--text-primary);
 }
 
 .btn-secondary:hover {
