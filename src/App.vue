@@ -10,10 +10,14 @@
           <router-link to="/" class="nav-link">Главная</router-link>
           <router-link to="/stats" class="nav-link">Статистика</router-link>
           <router-link to="/achievements" class="nav-link">Достижения</router-link>
-          <button class="theme-toggle" @click="themeStore.toggleTheme" :title="themeStore.isDark ? 'Светлая тема' : 'Темная тема'">
-            <span v-if="themeStore.isDark">☀️</span>
-            <span v-else>🌙</span>
-          </button>
+          <div class="theme-toggle-container">
+            <span class="theme-label">🌙</span>
+            <label class="ios-toggle">
+              <input type="checkbox" :checked="!themeStore.isDark" @change="themeStore.toggleTheme">
+              <span class="ios-toggle-slider"></span>
+            </label>
+            <span class="theme-label">☀️</span>
+          </div>
         </div>
       </div>
     </nav>
@@ -109,25 +113,72 @@ onMounted(async () => {
   border-radius: 2px;
 }
 
-.theme-toggle {
-  background: var(--bg-tertiary);
-  border: 2px solid var(--border-color);
-  border-radius: 8px;
-  width: 2.5rem;
-  height: 2.5rem;
+.theme-toggle-container {
   display: flex;
   align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-size: 1.25rem;
-  transition: all 0.3s ease;
+  gap: 0.5rem;
   margin-left: 1rem;
 }
 
-.theme-toggle:hover {
-  background: var(--bg-hover);
+.theme-label {
+  font-size: 1.125rem;
+  user-select: none;
+}
+
+.ios-toggle {
+  position: relative;
+  display: inline-block;
+  width: 51px;
+  height: 31px;
+}
+
+.ios-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.ios-toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--bg-tertiary);
+  transition: 0.3s;
+  border-radius: 34px;
+  border: 1px solid var(--border-color);
+}
+
+.ios-toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 27px;
+  width: 27px;
+  left: 2px;
+  bottom: 1px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.ios-toggle input:checked + .ios-toggle-slider {
+  background-color: var(--primary-color);
   border-color: var(--primary-color);
-  transform: scale(1.1);
+}
+
+.ios-toggle input:checked + .ios-toggle-slider:before {
+  transform: translateX(20px);
+}
+
+.ios-toggle input:focus + .ios-toggle-slider {
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+}
+
+.ios-toggle:hover .ios-toggle-slider {
+  border-color: var(--primary-color);
 }
 
 .main-content {
