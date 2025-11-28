@@ -1,0 +1,17 @@
+image: node:20
+
+cache:
+  paths:
+    - node_modules/
+
+pages:
+  stage: deploy
+  script:
+    - npm ci
+    - CI=true npm run build
+  artifacts:
+    paths:
+      - public
+  only:
+    - main
+

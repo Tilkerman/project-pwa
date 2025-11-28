@@ -5,7 +5,7 @@ import StatsView from '../views/StatsView.vue'
 import AchievementsView from '../views/AchievementsView.vue'
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/',
