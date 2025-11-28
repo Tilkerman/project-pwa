@@ -50,7 +50,7 @@ const stats = computed(() => store.getHabitStats(props.habit))
 
 <style scoped>
 .habit-card {
-  background: white;
+  background: var(--bg-secondary);
   border-radius: 12px;
   padding: 1.5rem;
   box-shadow: var(--shadow-sm);
@@ -58,6 +58,7 @@ const stats = computed(() => store.getHabitStats(props.habit))
   transition: var(--transition);
   margin-bottom: 1rem;
   animation: fadeIn 0.3s ease-out;
+  border: 1px solid var(--border-color);
 }
 
 .habit-card:hover {
@@ -85,13 +86,13 @@ const stats = computed(() => store.getHabitStats(props.habit))
   margin: 0;
   font-size: 1.25rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--text-primary);
 }
 
 .character-name {
   margin: 0.25rem 0 0 0;
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--text-secondary);
 }
 
 .habit-stats {
@@ -118,7 +119,7 @@ const stats = computed(() => store.getHabitStats(props.habit))
 
 .stat-label {
   font-size: 0.75rem;
-  color: #9ca3af;
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }

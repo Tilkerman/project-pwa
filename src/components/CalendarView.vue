@@ -192,10 +192,11 @@ watch(selectedDate, (newDate) => {
 
 <style scoped>
 .calendar-view {
-  background: white;
+  background: var(--bg-secondary);
   border-radius: 12px;
   padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
 }
 
 .calendar-header {
@@ -223,7 +224,7 @@ watch(selectedDate, (newDate) => {
 .month-year {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--text-primary);
   margin: 0;
   text-transform: capitalize;
 }
@@ -254,7 +255,7 @@ watch(selectedDate, (newDate) => {
   text-align: center;
   font-size: 0.875rem;
   font-weight: 600;
-  color: #6b7280;
+  color: var(--text-secondary);
   padding: 0.5rem;
 }
 
@@ -269,12 +270,12 @@ watch(selectedDate, (newDate) => {
   cursor: pointer;
   transition: var(--transition);
   position: relative;
-  background: white;
+  background: var(--bg-secondary);
 }
 
 .calendar-day:hover {
-  border-color: #4f46e5;
-  background: #f3f4f6;
+  border-color: var(--primary-color);
+  background: var(--bg-tertiary);
 }
 
 .calendar-day.other-month {
@@ -302,7 +303,7 @@ watch(selectedDate, (newDate) => {
 .day-number {
   font-size: 1rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--text-primary);
 }
 
 .day-actions {
@@ -313,7 +314,7 @@ watch(selectedDate, (newDate) => {
 
 .selected-date {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--text-secondary);
   margin-bottom: 1rem;
 }
 
@@ -346,12 +347,12 @@ watch(selectedDate, (newDate) => {
 }
 
 .btn-secondary {
-  background: #f3f4f6;
-  color: #374151;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
 }
 
 .btn-secondary:hover {
-  background: #e5e7eb;
+  background: var(--bg-hover);
 }
 
 .note-dialog-overlay {
@@ -368,35 +369,38 @@ watch(selectedDate, (newDate) => {
 }
 
 .note-dialog {
-  background: white;
+  background: var(--bg-secondary);
   border-radius: 12px;
   padding: 2rem;
   max-width: 500px;
   width: 90%;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-color);
 }
 
 .note-dialog h3 {
   margin: 0 0 1rem 0;
   font-size: 1.25rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--text-primary);
 }
 
 .note-textarea {
   width: 100%;
   padding: 0.75rem;
-  border: 2px solid #e5e7eb;
+  border: 2px solid var(--border-color);
   border-radius: 8px;
   font-size: 1rem;
   font-family: inherit;
   resize: vertical;
   margin-bottom: 1.5rem;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
 }
 
 .note-textarea:focus {
   outline: none;
-  border-color: #4f46e5;
+  border-color: var(--primary-color);
 }
 
 .dialog-actions {
