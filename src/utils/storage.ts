@@ -33,17 +33,33 @@ export async function getDB(): Promise<IDBPDatabase<HabitsDB>> {
 
 export async function getAllHabits(): Promise<Habit[]> {
   const db = await getDB()
-  return db.getAll('habits')
+  const habits = await db.getAll('habits')
+  // Восстанавливаем Date объекты из строк
+  return habits.map(habit => ({
+    ...habit,
+    createdAt: habit.createdAt instanceof Date ? habit.createdAt : new Date(habit.createdAt)
+  }))
 }
 
 export async function getHabit(id: string): Promise<Habit | undefined> {
   const db = await getDB()
-  return db.get('habits', id)
+  const habit = await db.get('habits', id)
+  if (!habit) return undefined
+  // Восстанавливаем Date объект из строки
+  return {
+    ...habit,
+    createdAt: habit.createdAt instanceof Date ? habit.createdAt : new Date(habit.createdAt)
+  }
 }
 
 export async function saveHabit(habit: Habit): Promise<void> {
   const db = await getDB()
-  await db.put('habits', habit)
+  // Убеждаемся, что данные сериализуются правильно
+  const habitToSave = {
+    ...habit,
+    createdAt: habit.createdAt instanceof Date ? habit.createdAt : new Date(habit.createdAt)
+  }
+  await db.put('habits', habitToSave)
 }
 
 export async function deleteHabit(id: string): Promise<void> {

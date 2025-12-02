@@ -120,15 +120,27 @@ export const useHabitsStore = defineStore('habits', () => {
   }
 
   async function updateHabit(habit: Habit): Promise<void> {
-    await saveHabit(habit)
-    const index = habits.value.findIndex((h) => h.id === habit.id)
-    if (index !== -1) {
-      habits.value[index] = habit
-    }
+    try {
+      // Создаем копию объекта для сохранения
+      const habitToSave = {
+        ...habit,
+        markedDays: [...habit.markedDays],
+        notes: { ...habit.notes }
+      }
+      await saveHabit(habitToSave)
+      
+      const index = habits.value.findIndex((h) => h.id === habit.id)
+      if (index !== -1) {
+        habits.value[index] = habitToSave
+      }
 
-    if (habit.notificationEnabled) {
-      await requestNotificationPermission()
-      scheduleNotifications(habit)
+      if (habit.notificationEnabled) {
+        await requestNotificationPermission()
+        scheduleNotifications(habit)
+      }
+    } catch (error) {
+      console.error('Failed to update habit:', error)
+      throw error
     }
   }
 
@@ -146,8 +158,9 @@ export const useHabitsStore = defineStore('habits', () => {
       return // Already marked
     }
 
-    habit.markedDays.push(dateStr)
-    habit.markedDays.sort()
+    // Создаем новый массив для избежания мутаций
+    const updatedMarkedDays = [...habit.markedDays, dateStr].sort()
+    habit.markedDays = updatedMarkedDays
 
     // Check for new achievements
     const newAchievements = achievements.filter(
@@ -157,7 +170,7 @@ export const useHabitsStore = defineStore('habits', () => {
     )
 
     if (newAchievements.length > 0) {
-      habit.achievements.push(...newAchievements.map((a) => a.id))
+      habit.achievements = [...habit.achievements, ...newAchievements.map((a) => a.id)]
     }
 
     await updateHabit(habit)
@@ -168,6 +181,7 @@ export const useHabitsStore = defineStore('habits', () => {
     if (!habit) return
 
     const dateStr = date.toISOString().split('T')[0]
+    // Создаем новый массив для избежания мутаций
     habit.markedDays = habit.markedDays.filter((d) => d !== dateStr)
 
     await updateHabit(habit)

@@ -403,11 +403,15 @@ function handleSubmit() {
 
 .color-option {
   width: 40px;
+  min-width: 40px;
   height: 40px;
+  min-height: 40px;
   border-radius: 50%;
   cursor: pointer;
   border: 3px solid transparent;
   transition: all 0.2s;
+  flex-shrink: 0;
+  aspect-ratio: 1;
 }
 
 .color-option:hover {
