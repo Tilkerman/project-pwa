@@ -40,7 +40,7 @@
           <input
             v-model="formData.notificationEnabled"
             type="checkbox"
-            @change="handleNotificationToggle"
+            @click="handleNotificationToggle"
           >
           <span class="ios-toggle-slider"></span>
         </label>
@@ -218,9 +218,13 @@ function selectIcon(icon: string) {
   showIconPicker.value = false
 }
 
-function handleNotificationToggle() {
-  if (formData.value.notificationEnabled) {
-    // Если включаем оповещения, показываем модалку для выбора времени
+function handleNotificationToggle(event: Event) {
+  const target = event.target as HTMLInputElement
+  const willBeEnabled = target.checked
+  
+  if (willBeEnabled) {
+    // Если включаем оповещения, предотвращаем включение и показываем модалку
+    event.preventDefault()
     pendingNotificationEnabled.value = true
     showTimePicker.value = true
   } else {
