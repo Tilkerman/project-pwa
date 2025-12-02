@@ -80,6 +80,7 @@ const showSettings = ref(false)
 const touchStartY = ref(0)
 const touchStartX = ref(0)
 const touchEndY = ref(0)
+const touchEndX = ref(0)
 const touchStartTime = ref(0)
 const minSwipeDistance = 50 // Минимальное расстояние для свайпа
 const maxSwipeTime = 300 // Максимальное время для свайпа (мс)
@@ -115,6 +116,7 @@ function handleTouchEnd(e: TouchEvent) {
   }
   
   touchEndY.value = e.changedTouches[0].clientY
+  touchEndX.value = e.changedTouches[0].clientX
   const touchEndTime = Date.now()
   const touchDuration = touchEndTime - touchStartTime.value
   
@@ -132,7 +134,7 @@ function handleSwipe() {
   if (touchStartY.value === 0) return
   
   const distanceY = touchStartY.value - touchEndY.value
-  const distanceX = Math.abs(touchStartX.value - (touchEndY.value === 0 ? touchStartX.value : touchStartX.value))
+  const distanceX = Math.abs(touchStartX.value - touchEndX.value)
   
   // Проверяем, что это вертикальный свайп (вертикальное движение больше горизонтального)
   if (Math.abs(distanceY) < minSwipeDistance || Math.abs(distanceY) < distanceX) {
