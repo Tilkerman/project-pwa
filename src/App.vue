@@ -24,6 +24,9 @@
     <main class="main-content">
       <router-view />
     </main>
+    <footer class="app-footer">
+      © {{ currentYear }} Трекер Привычек · v{{ appVersion }}
+    </footer>
   </div>
 </template>
 
@@ -34,6 +37,8 @@ import { useThemeStore } from './stores/themeStore'
 
 const store = useHabitsStore()
 const themeStore = useThemeStore()
+const currentYear = new Date().getFullYear()
+const appVersion = '1.0.0'
 
 onMounted(async () => {
   themeStore.initTheme()
@@ -183,6 +188,15 @@ onMounted(async () => {
 
 .main-content {
   min-height: calc(100vh - 80px);
+}
+
+.app-footer {
+  border-top: 1px solid var(--border-color);
+  padding: 1rem 2rem;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
 }
 
 /* Адаптивность */
