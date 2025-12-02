@@ -58,16 +58,29 @@ export async function getHabit(id: string): Promise<Habit | undefined> {
 
 export async function saveHabit(habit: Habit): Promise<void> {
   const db = await getDB()
-  // Преобразуем Date в строку для сериализации в IndexedDB
-  const habitToSave = {
-    ...habit,
-    createdAt: habit.createdAt instanceof Date 
-      ? habit.createdAt.toISOString() 
-      : (typeof habit.createdAt === 'string' ? habit.createdAt : new Date(habit.createdAt).toISOString()),
-    markedDays: Array.isArray(habit.markedDays) ? [...habit.markedDays] : [],
-    notes: habit.notes && typeof habit.notes === 'object' ? { ...habit.notes } : {},
-    achievements: Array.isArray(habit.achievements) ? [...habit.achievements] : []
-  }
+  // Создаем полностью сериализуемый объект для IndexedDB
+  // Преобразуем Date в строку и создаем чистый объект без прототипов
+  const createdAtValue = habit.createdAt instanceof Date 
+    ? habit.createdAt.toISOString() 
+    : (typeof habit.createdAt === 'string' ? habit.createdAt : new Date(habit.createdAt).toISOString())
+  
+  const habitToSave = JSON.parse(JSON.stringify({
+    id: String(habit.id),
+    name: String(habit.name),
+    character: habit.character,
+    createdAt: createdAtValue,
+    markedDays: Array.isArray(habit.markedDays) ? habit.markedDays.map(String) : [],
+    notes: habit.notes && typeof habit.notes === 'object' 
+      ? Object.fromEntries(Object.entries(habit.notes).map(([k, v]) => [String(k), String(v)]))
+      : {},
+    achievements: Array.isArray(habit.achievements) ? habit.achievements.map(String) : [],
+    notificationTime: habit.notificationTime ? String(habit.notificationTime) : undefined,
+    notificationEnabled: Boolean(habit.notificationEnabled),
+    color: habit.color || undefined,
+    icon: habit.icon || undefined,
+    additionalMotivation: habit.additionalMotivation !== undefined ? Boolean(habit.additionalMotivation) : undefined
+  }))
+  
   await db.put('habits', habitToSave)
 }
 
