@@ -221,16 +221,18 @@ function selectIcon(icon: string) {
 function handleNotificationToggle(event: Event) {
   const target = event.target as HTMLInputElement
   const willBeEnabled = target.checked
+  const wasEnabled = formData.value.notificationEnabled
   
-  if (willBeEnabled) {
-    // Если включаем оповещения, предотвращаем включение и показываем модалку
+  if (willBeEnabled && !wasEnabled) {
+    // Если включаем оповещения (были выключены), предотвращаем включение и показываем модалку
     event.preventDefault()
     pendingNotificationEnabled.value = true
     showTimePicker.value = true
-  } else {
+  } else if (!willBeEnabled && wasEnabled) {
     // Если выключаем, просто отключаем
     formData.value.notificationEnabled = false
   }
+  // Если уже включены и кликаем снова - ничего не делаем (можно будет добавить редактирование времени)
 }
 
 function confirmTimePicker() {
