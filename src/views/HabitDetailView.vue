@@ -150,6 +150,10 @@ async function handleUpdate(data: {
   }
 }
 
+function closeSettings() {
+  showSettings.value = false
+}
+
 function sendMessage() {
   if (messageText.value.trim()) {
     // Здесь можно добавить логику отправки сообщения
