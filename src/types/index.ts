@@ -12,6 +12,7 @@ export interface Habit {
   achievements: string[]
   notificationTime?: string // HH:mm format
   notificationEnabled: boolean
+  customNotificationMessage?: string // Пользовательский текст напоминания
   color?: ProjectColor // Цвет проекта
   icon?: string // Иконка проекта (emoji или путь к изображению)
   additionalMotivation?: boolean // Дополнительная мотивация

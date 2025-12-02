@@ -203,6 +203,7 @@ async function handleUpdate(data: {
   character: Habit['character']
   notificationTime?: string
   notificationEnabled: boolean
+  customNotificationMessage?: string
   color?: Habit['color']
   icon?: string
   additionalMotivation?: boolean
@@ -230,6 +231,7 @@ async function handleUpdate(data: {
       character: data.character,
       notificationTime: data.notificationEnabled ? (data.notificationTime || '09:00') : undefined,
       notificationEnabled: data.notificationEnabled,
+      customNotificationMessage: data.customNotificationMessage,
       color: data.color || 'blue',
       icon: data.icon || '🚫',
       additionalMotivation: data.additionalMotivation !== undefined ? data.additionalMotivation : true

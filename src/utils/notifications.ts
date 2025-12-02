@@ -66,7 +66,8 @@ function showNotification(habit: Habit): void {
                         character === 'teacher' ? 'Строгий Учитель' :
                         character === 'grandpa' ? 'Старый Дед' : 'Друг'
   
-  const message = getCharacterMessage(habit.character, habit, 'daily')
+  // Используем пользовательское сообщение, если оно есть, иначе - сообщение персонажа
+  const message = habit.customNotificationMessage || getCharacterMessage(habit.character, habit, 'daily')
   const notification = new Notification(`${characterName} напоминает: ${habit.name}`, {
     body: message,
     icon: '/icons/icon-192x192.png',

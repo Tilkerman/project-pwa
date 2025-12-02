@@ -91,7 +91,8 @@ export const useHabitsStore = defineStore('habits', () => {
     notificationTime?: string,
     color: Habit['color'] = 'blue',
     icon?: string,
-    additionalMotivation: boolean = true
+    additionalMotivation: boolean = true,
+    customNotificationMessage?: string
   ): Promise<Habit> {
     const newHabit: Habit = {
       id: crypto.randomUUID(),
@@ -103,6 +104,7 @@ export const useHabitsStore = defineStore('habits', () => {
       achievements: [],
       notificationTime,
       notificationEnabled: !!notificationTime,
+      customNotificationMessage,
       color,
       icon,
       additionalMotivation

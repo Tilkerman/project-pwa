@@ -66,8 +66,25 @@
               class="time-input"
             />
           </div>
-          <div class="time-picker-message">
-            {{ selectedCharacterMessage }}
+          <div class="message-input-container">
+            <label class="message-label">Текст напоминания</label>
+            <textarea
+              v-model="formData.customNotificationMessage"
+              class="message-textarea"
+              placeholder="Введите текст напоминания..."
+              rows="3"
+            ></textarea>
+            <div class="message-hint">
+              <span class="hint-icon">💡</span>
+              <span>Или используйте текст по умолчанию от {{ selectedCharacterName }}</span>
+              <button 
+                class="btn-use-default" 
+                @click="useDefaultMessage"
+                type="button"
+              >
+                Использовать
+              </button>
+            </div>
           </div>
         </div>
         <div class="time-picker-actions">
@@ -151,6 +168,7 @@ const emit = defineEmits<{
     character: CharacterType
     notificationTime?: string
     notificationEnabled: boolean
+    customNotificationMessage?: string
     color?: ProjectColor
     icon?: string
     additionalMotivation?: boolean
@@ -165,6 +183,7 @@ const formData = ref({
   character: (props.habit?.character || 'gopnik') as CharacterType,
   notificationTime: props.habit?.notificationTime || '09:00',
   notificationEnabled: props.habit?.notificationEnabled || false,
+  customNotificationMessage: props.habit?.customNotificationMessage || '',
   color: (props.habit?.color || 'blue') as ProjectColor,
   icon: props.habit?.icon || '🚫',
   additionalMotivation: props.habit?.additionalMotivation !== undefined ? props.habit.additionalMotivation : true
@@ -197,6 +216,7 @@ watch(() => props.habit, (newHabit) => {
       character: newHabit.character,
       notificationTime: newHabit.notificationTime || '09:00',
       notificationEnabled: newHabit.notificationEnabled || false,
+      customNotificationMessage: newHabit.customNotificationMessage || '',
       color: newHabit.color || 'blue',
       icon: newHabit.icon || '🚫',
       additionalMotivation: newHabit.additionalMotivation !== undefined ? newHabit.additionalMotivation : true
@@ -237,10 +257,18 @@ function handleNotificationToggle(event: Event) {
 
 function confirmTimePicker() {
   if (formData.value.notificationTime) {
+    // Если текст не заполнен, используем текст по умолчанию от персонажа
+    if (!formData.value.customNotificationMessage?.trim()) {
+      formData.value.customNotificationMessage = selectedCharacterMessage.value
+    }
     formData.value.notificationEnabled = true
     showTimePicker.value = false
     pendingNotificationEnabled.value = false
   }
+}
+
+function useDefaultMessage() {
+  formData.value.customNotificationMessage = selectedCharacterMessage.value
 }
 
 function cancelTimePicker() {
@@ -275,6 +303,7 @@ function handleSubmit(event?: Event) {
     character: formData.value.character,
     notificationTime: formData.value.notificationEnabled ? formData.value.notificationTime : undefined,
     notificationEnabled: formData.value.notificationEnabled,
+    customNotificationMessage: formData.value.customNotificationMessage?.trim() || undefined,
     color: formData.value.color,
     icon: formData.value.icon,
     additionalMotivation: formData.value.additionalMotivation
@@ -651,15 +680,75 @@ function handleSubmit(event?: Event) {
   background: white;
 }
 
-.time-picker-message {
-  padding: 1rem;
+.message-input-container {
+  margin-top: 1.5rem;
+}
+
+.message-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.5rem;
+}
+
+.message-textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 80px;
+  background: #f9fafb;
+  color: #1f2937;
+  transition: border-color 0.2s;
+}
+
+.message-textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  background: white;
+}
+
+.message-textarea::placeholder {
+  color: #9ca3af;
+}
+
+.message-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding: 0.75rem;
   background: #f0f9ff;
   border-left: 4px solid #3b82f6;
   border-radius: 8px;
+  font-size: 0.75rem;
   color: #1e40af;
-  font-size: 0.875rem;
-  font-style: italic;
-  line-height: 1.5;
+  flex-wrap: wrap;
+}
+
+.hint-icon {
+  font-size: 1rem;
+}
+
+.btn-use-default {
+  margin-left: auto;
+  padding: 0.25rem 0.75rem;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-use-default:hover {
+  background: #2563eb;
 }
 
 .time-picker-actions {

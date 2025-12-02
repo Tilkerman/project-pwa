@@ -76,6 +76,7 @@ async function handleSubmit(data: {
   character: Habit['character']
   notificationTime?: string
   notificationEnabled: boolean
+  customNotificationMessage?: string
   color?: Habit['color']
   icon?: string
   additionalMotivation?: boolean
@@ -86,7 +87,8 @@ async function handleSubmit(data: {
     data.notificationTime,
     data.color || 'blue',
     data.icon,
-    data.additionalMotivation !== undefined ? data.additionalMotivation : true
+    data.additionalMotivation !== undefined ? data.additionalMotivation : true,
+    data.customNotificationMessage
   )
   closeForm()
 }
