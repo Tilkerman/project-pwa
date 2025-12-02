@@ -93,7 +93,7 @@
 
     <div class="form-actions">
       <button
-        type="submit"
+        type="button"
         class="btn btn-primary"
         :disabled="!formData.name.trim()"
         @click="handleSubmit"
@@ -176,10 +176,18 @@ function selectIcon(icon: string) {
   showIconPicker.value = false
 }
 
-function handleSubmit() {
-  if (!formData.value.name.trim()) return
+function handleSubmit(event?: Event) {
+  if (event) {
+    event.preventDefault()
+    event.stopPropagation()
+  }
+  
+  if (!formData.value.name.trim()) {
+    console.warn('Habit name is empty')
+    return
+  }
 
-  emit('submit', {
+  const submitData = {
     name: formData.value.name.trim(),
     character: formData.value.character,
     notificationTime: formData.value.notificationEnabled ? formData.value.notificationTime : undefined,
@@ -187,7 +195,10 @@ function handleSubmit() {
     color: formData.value.color,
     icon: formData.value.icon,
     additionalMotivation: formData.value.additionalMotivation
-  })
+  }
+
+  console.log('Emitting submit event with data:', submitData)
+  emit('submit', submitData)
 }
 </script>
 

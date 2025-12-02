@@ -104,15 +104,22 @@ async function handleUpdate(data: {
   icon?: string
   additionalMotivation?: boolean
 }) {
-  if (!habit.value) return
+  console.log('handleUpdate called with data:', data)
+  
+  if (!habit.value) {
+    console.error('habit.value is null')
+    return
+  }
 
   try {
     // Получаем актуальную привычку из store и создаем обновленную копию
     const currentHabit = store.getHabitById(habit.value.id)
     if (!currentHabit) {
-      console.error('Habit not found')
+      console.error('Habit not found in store')
       return
     }
+
+    console.log('Current habit:', currentHabit)
 
     const updatedHabit: Habit = {
       ...currentHabit,
@@ -125,13 +132,21 @@ async function handleUpdate(data: {
       additionalMotivation: data.additionalMotivation !== undefined ? data.additionalMotivation : true
     }
 
+    console.log('Updated habit:', updatedHabit)
+
     await store.updateHabit(updatedHabit)
+    console.log('Habit updated successfully')
+    
     // Перезагружаем привычки для обновления UI
     await store.loadHabits()
+    console.log('Habits reloaded')
+    
     // Закрываем модальное окно
     showSettings.value = false
+    console.log('Modal closed')
   } catch (error) {
     console.error('Failed to update habit:', error)
+    alert('Ошибка при сохранении: ' + (error instanceof Error ? error.message : String(error)))
   }
 }
 
