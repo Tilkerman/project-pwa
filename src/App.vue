@@ -39,7 +39,7 @@ import { useThemeStore } from './stores/themeStore'
 const store = useHabitsStore()
 const themeStore = useThemeStore()
 const currentYear = new Date().getFullYear()
-const appVersion = (window as any).__APP_VERSION__ ?? '1.0.0'
+const appVersion = __APP_VERSION__ ?? '1.0.0'
 
 onMounted(async () => {
   themeStore.initTheme()
