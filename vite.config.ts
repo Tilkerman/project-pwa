@@ -2,6 +2,7 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { VitePWA } from 'vite-plugin-pwa'
 import { resolve } from 'path'
+import packageJson from './package.json'
 
 export default defineConfig({
   base: process.env.CI ? '/project-pwa/' : '/',
@@ -40,6 +41,9 @@ export default defineConfig({
     alias: {
       '@': resolve(__dirname, './src')
     }
+  },
+  define: {
+    __APP_VERSION__: JSON.stringify(packageJson.version)
   }
 })
 
