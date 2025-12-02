@@ -15,13 +15,10 @@
         <button class="back-btn" @click="$router.push('/')">
           ← Назад
         </button>
-        <div class="header-top">
-          <div class="header-profile">👤</div>
-        </div>
       </div>
 
       <div class="main-section">
-        <div class="arrow-up">↑</div>
+        <button class="arrow-up" @click="navigateToPreviousHabit">▲</button>
         <h1 class="habit-title">{{ habit.name }}</h1>
         <p class="habit-days">уже {{ stats.totalDays }} дней</p>
 
@@ -32,18 +29,7 @@
 
       <div class="footer-section">
         <div class="settings-link" @click="showSettings = true">настройки</div>
-        <div class="arrow-down">↓</div>
-        <div class="message-input-container">
-          <input
-            v-model="messageText"
-            type="text"
-            placeholder="Напишите сооб...."
-            class="message-input"
-            @keyup.enter="sendMessage"
-          />
-          <button class="attach-btn">📎</button>
-          <button class="send-btn" @click="sendMessage">➤</button>
-        </div>
+        <button class="arrow-down" @click="navigateToNextHabit">▼</button>
       </div>
     </div>
 
@@ -75,12 +61,39 @@ const store = useHabitsStore()
 
 const loading = ref(true)
 const showSettings = ref(false)
-const messageText = ref('')
 
 const habit = computed(() => {
   const id = route.params.id as string
   return store.getHabitById(id)
 })
+
+const allHabits = computed(() => store.habits)
+
+function navigateToPreviousHabit() {
+  if (allHabits.value.length === 0 || !habit.value) return
+  
+  const currentIndex = allHabits.value.findIndex(h => h.id === habit.value!.id)
+  if (currentIndex === -1) return
+  
+  // Переходим к предыдущей привычке, если достигли начала - переходим к последней (циклически)
+  const previousIndex = currentIndex === 0 ? allHabits.value.length - 1 : currentIndex - 1
+  const previousHabit = allHabits.value[previousIndex]
+  
+  router.push(`/habit/${previousHabit.id}`)
+}
+
+function navigateToNextHabit() {
+  if (allHabits.value.length === 0 || !habit.value) return
+  
+  const currentIndex = allHabits.value.findIndex(h => h.id === habit.value!.id)
+  if (currentIndex === -1) return
+  
+  // Переходим к следующей привычке, если достигли конца - переходим к первой (циклически)
+  const nextIndex = currentIndex === allHabits.value.length - 1 ? 0 : currentIndex + 1
+  const nextHabit = allHabits.value[nextIndex]
+  
+  router.push(`/habit/${nextHabit.id}`)
+}
 
 const stats = computed(() => {
   if (!habit.value) return { totalDays: 0, streak: 0, successRate: 0, daysSinceCreation: 0 }
@@ -154,14 +167,6 @@ async function handleUpdate(data: {
 function closeSettings() {
   showSettings.value = false
 }
-
-function sendMessage() {
-  if (messageText.value.trim()) {
-    // Здесь можно добавить логику отправки сообщения
-    console.log('Message:', messageText.value)
-    messageText.value = ''
-  }
-}
 </script>
 
 <style scoped>
@@ -197,33 +202,36 @@ function sendMessage() {
   opacity: 1;
 }
 
-.header-top {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  padding: 0.5rem 0;
-}
-
-.header-profile {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.25rem;
-}
-
 .main-section {
-  padding: 2rem 1rem;
+  padding: 1rem 1rem 0;
   text-align: center;
 }
 
 .arrow-up {
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
-  opacity: 0.6;
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin: 0 auto 0.5rem;
+  transition: all 0.2s;
+  opacity: 0.9;
+}
+
+.arrow-up:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.arrow-up:active {
+  transform: scale(0.95);
 }
 
 .habit-title {
@@ -236,11 +244,11 @@ function sendMessage() {
 .habit-days {
   font-size: 1rem;
   opacity: 0.9;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
 }
 
 .calendar-section {
-  margin-top: 2rem;
+  margin-top: 1rem;
 }
 
 .footer-section {
@@ -261,48 +269,30 @@ function sendMessage() {
 }
 
 .arrow-down {
-  text-align: center;
-  font-size: 1.5rem;
-  opacity: 0.6;
-  margin-bottom: 0.5rem;
-}
-
-.message-input-container {
+  font-size: 2.5rem;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
   display: flex;
-  gap: 0.5rem;
   align-items: center;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 24px;
-  padding: 0.5rem 1rem;
-}
-
-.message-input {
-  flex: 1;
-  background: transparent;
-  border: none;
-  color: inherit;
-  font-size: 1rem;
-  outline: none;
-}
-
-.message-input::placeholder {
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.attach-btn,
-.send-btn {
-  background: none;
-  border: none;
-  color: inherit;
-  font-size: 1.25rem;
+  justify-content: center;
   cursor: pointer;
-  padding: 0.25rem;
-  opacity: 0.8;
+  margin: 0.5rem auto;
+  transition: all 0.2s;
+  opacity: 0.9;
+  color: inherit;
 }
 
-.attach-btn:hover,
-.send-btn:hover {
+.arrow-down:hover {
   opacity: 1;
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.arrow-down:active {
+  transform: scale(0.95);
 }
 
 .settings-modal {
