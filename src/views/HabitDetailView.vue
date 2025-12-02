@@ -47,12 +47,13 @@
       </div>
     </div>
 
-    <div v-if="showSettings" class="settings-modal" @click.self="showSettings = false">
-      <div class="settings-content">
+    <div v-if="showSettings" class="settings-modal" @click.self="closeSettings">
+      <div class="settings-content" @click.stop>
         <HabitForm
-          :habit="habit"
+          :key="habit?.id || 'new'"
+          :habit="habit || undefined"
           @submit="handleUpdate"
-          @cancel="showSettings = false"
+          @cancel="closeSettings"
         />
       </div>
     </div>
