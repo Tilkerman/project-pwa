@@ -84,7 +84,9 @@ const calendarDays = computed(() => {
   }> = []
   
   const today = new Date()
-  today.setHours(0, 0, 0, 0)
+  const todayYear = today.getFullYear()
+  const todayMonth = today.getMonth()
+  const todayDate = today.getDate()
   
   for (let i = 0; i < 42; i++) {
     const date = new Date(startDate)
@@ -92,11 +94,18 @@ const calendarDays = computed(() => {
     
     const dateStr = date.toISOString().split('T')[0]
     const isCurrentMonth = date.getMonth() === month
+    
+    const dateYear = date.getFullYear()
+    const dateMonth = date.getMonth()
+    const dateDay = date.getDate()
+    
+    // Используем локальное время для определения сегодня и будущих дней
+    const isToday = dateYear === todayYear && dateMonth === todayMonth && dateDay === todayDate
+    const isFuture = dateYear > todayYear || 
+                     (dateYear === todayYear && dateMonth > todayMonth) ||
+                     (dateYear === todayYear && dateMonth === todayMonth && dateDay > todayDate)
+    
     const isMarked = currentHabit.markedDays.includes(dateStr)
-    const dateForToday = new Date(date)
-    dateForToday.setHours(0, 0, 0, 0)
-    const isToday = dateForToday.getTime() === today.getTime()
-    const isFuture = dateForToday.getTime() > today.getTime()
     
     days.push({ date, isCurrentMonth, isMarked, isToday, isFuture })
   }
@@ -117,16 +126,24 @@ function nextMonth() {
 }
 
 async function toggleDay(date: Date) {
-  const dateStr = date.toISOString().split('T')[0]
+  // Используем локальное время для корректной работы с часовыми поясами
   const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const dateForCheck = new Date(date)
-  dateForCheck.setHours(0, 0, 0, 0)
+  const todayYear = today.getFullYear()
+  const todayMonth = today.getMonth()
+  const todayDate = today.getDate()
   
-  // Не позволяем отмечать будущие дни
-  if (dateForCheck.getTime() > today.getTime()) {
+  const dateYear = date.getFullYear()
+  const dateMonth = date.getMonth()
+  const dateDay = date.getDate()
+  
+  // Не позволяем отмечать будущие дни (сравниваем по локальному времени)
+  if (dateYear > todayYear || 
+      (dateYear === todayYear && dateMonth > todayMonth) ||
+      (dateYear === todayYear && dateMonth === todayMonth && dateDay > todayDate)) {
     return
   }
+  
+  const dateStr = date.toISOString().split('T')[0]
   
   // Получаем актуальную привычку из store
   const currentHabit = store.getHabitById(props.habit.id)

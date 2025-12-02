@@ -16,7 +16,6 @@
           ← Назад
         </button>
         <div class="header-top">
-          <div class="header-center">bot</div>
           <div class="header-profile">👤</div>
         </div>
       </div>
@@ -107,23 +106,33 @@ async function handleUpdate(data: {
 }) {
   if (!habit.value) return
 
-  // Получаем актуальную привычку из store и создаем обновленную копию
-  const currentHabit = store.getHabitById(habit.value.id)
-  if (!currentHabit) return
+  try {
+    // Получаем актуальную привычку из store и создаем обновленную копию
+    const currentHabit = store.getHabitById(habit.value.id)
+    if (!currentHabit) {
+      console.error('Habit not found')
+      return
+    }
 
-  const updatedHabit: Habit = {
-    ...currentHabit,
-    name: data.name,
-    character: data.character,
-    notificationTime: data.notificationTime,
-    notificationEnabled: data.notificationEnabled,
-    color: data.color || 'blue',
-    icon: data.icon || '🚫',
-    additionalMotivation: data.additionalMotivation !== undefined ? data.additionalMotivation : true
+    const updatedHabit: Habit = {
+      ...currentHabit,
+      name: data.name.trim(),
+      character: data.character,
+      notificationTime: data.notificationEnabled ? (data.notificationTime || '09:00') : undefined,
+      notificationEnabled: data.notificationEnabled,
+      color: data.color || 'blue',
+      icon: data.icon || '🚫',
+      additionalMotivation: data.additionalMotivation !== undefined ? data.additionalMotivation : true
+    }
+
+    await store.updateHabit(updatedHabit)
+    // Перезагружаем привычки для обновления UI
+    await store.loadHabits()
+    // Закрываем модальное окно
+    showSettings.value = false
+  } catch (error) {
+    console.error('Failed to update habit:', error)
   }
-
-  await store.updateHabit(updatedHabit)
-  showSettings.value = false
 }
 
 function sendMessage() {
