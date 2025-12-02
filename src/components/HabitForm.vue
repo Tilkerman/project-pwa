@@ -40,10 +40,41 @@
           <input
             v-model="formData.notificationEnabled"
             type="checkbox"
+            @change="handleNotificationToggle"
           >
           <span class="ios-toggle-slider"></span>
         </label>
       </label>
+    </div>
+
+    <!-- Модальное окно для выбора времени оповещения -->
+    <div v-if="showTimePicker" class="time-picker-modal" @click.self="closeTimePicker">
+      <div class="time-picker-content" @click.stop>
+        <div class="time-picker-header">
+          <div class="character-preview">
+            <div class="character-icon-large">{{ selectedCharacterIcon }}</div>
+            <div class="character-name-text">{{ selectedCharacterName }}</div>
+          </div>
+          <button class="close-btn" @click="closeTimePicker">×</button>
+        </div>
+        <div class="time-picker-body">
+          <h3 class="time-picker-title">Выберите время для напоминания</h3>
+          <div class="time-input-container">
+            <input
+              v-model="formData.notificationTime"
+              type="time"
+              class="time-input"
+            />
+          </div>
+          <div class="time-picker-message">
+            {{ selectedCharacterMessage }}
+          </div>
+        </div>
+        <div class="time-picker-actions">
+          <button class="btn btn-secondary" @click="cancelTimePicker">Отмена</button>
+          <button class="btn btn-primary" @click="confirmTimePicker">Сохранить</button>
+        </div>
+      </div>
     </div>
 
     <div class="form-group">
@@ -141,11 +172,22 @@ const formData = ref({
 
 const showCharacterDropdown = ref(false)
 const showIconPicker = ref(false)
+const showTimePicker = ref(false)
+const pendingNotificationEnabled = ref(false)
 
 const availableCharacters = computed(() => Object.values(characters))
 
 const selectedCharacterName = computed(() => {
   return characters[formData.value.character].name.toUpperCase()
+})
+
+const selectedCharacterIcon = computed(() => {
+  return characters[formData.value.character].icon
+})
+
+const selectedCharacterMessage = computed(() => {
+  const character = characters[formData.value.character]
+  return character.phrases.daily[0] || 'Не забывай о своей цели!'
 })
 
 watch(() => props.habit, (newHabit) => {
@@ -174,6 +216,41 @@ function selectColor(color: ProjectColor) {
 function selectIcon(icon: string) {
   formData.value.icon = icon
   showIconPicker.value = false
+}
+
+function handleNotificationToggle() {
+  if (formData.value.notificationEnabled) {
+    // Если включаем оповещения, показываем модалку для выбора времени
+    pendingNotificationEnabled.value = true
+    showTimePicker.value = true
+  } else {
+    // Если выключаем, просто отключаем
+    formData.value.notificationEnabled = false
+  }
+}
+
+function confirmTimePicker() {
+  if (formData.value.notificationTime) {
+    formData.value.notificationEnabled = true
+    showTimePicker.value = false
+    pendingNotificationEnabled.value = false
+  }
+}
+
+function cancelTimePicker() {
+  // Отменяем включение оповещений
+  formData.value.notificationEnabled = false
+  showTimePicker.value = false
+  pendingNotificationEnabled.value = false
+}
+
+function closeTimePicker() {
+  // Если закрыли модалку без сохранения, отменяем включение
+  if (pendingNotificationEnabled.value) {
+    formData.value.notificationEnabled = false
+    pendingNotificationEnabled.value = false
+  }
+  showTimePicker.value = false
 }
 
 function handleSubmit(event?: Event) {
@@ -462,5 +539,151 @@ function handleSubmit(event?: Event) {
 .btn-primary:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.time-picker-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 1rem;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.time-picker-content {
+  background: white;
+  border-radius: 16px;
+  max-width: 400px;
+  width: 100%;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.3s ease-out;
+}
+
+.time-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.character-preview {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.character-icon-large {
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.character-name-text {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.close-btn:hover {
+  background: #f3f4f6;
+  color: #1f2937;
+}
+
+.time-picker-body {
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.time-picker-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 1.5rem 0;
+}
+
+.time-input-container {
+  margin-bottom: 1.5rem;
+}
+
+.time-input {
+  width: 100%;
+  padding: 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  font-size: 1.5rem;
+  text-align: center;
+  background: #f9fafb;
+  color: #1f2937;
+  transition: border-color 0.2s;
+}
+
+.time-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  background: white;
+}
+
+.time-picker-message {
+  padding: 1rem;
+  background: #f0f9ff;
+  border-left: 4px solid #3b82f6;
+  border-radius: 8px;
+  color: #1e40af;
+  font-size: 0.875rem;
+  font-style: italic;
+  line-height: 1.5;
+}
+
+.time-picker-actions {
+  display: flex;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.time-picker-actions .btn {
+  flex: 1;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 </style>
