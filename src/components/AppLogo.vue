@@ -36,14 +36,27 @@
       </defs>
       
       <!-- Красное свечение (фон) -->
-      <g opacity="0.6">
-        <!-- Левая сторона - прямоугольные полосы -->
-        <rect x="20" y="60" width="8" height="30" fill="#ef4444" filter="url(#redGlow)" opacity="0.8"/>
-        <rect x="30" y="55" width="6" height="40" fill="#dc2626" filter="url(#redGlow)" opacity="0.7"/>
-        <rect x="38" y="70" width="5" height="25" fill="#ef4444" filter="url(#redGlow)" opacity="0.6"/>
+      <g opacity="0.7">
+        <!-- Левая сторона - прямоугольные полосы с эффектом глитча -->
+        <rect x="20" y="60" width="8" height="30" fill="#ef4444" filter="url(#redGlow)" opacity="0.9">
+          <animate attributeName="opacity" values="0.9;0.6;0.9" dur="2s" repeatCount="indefinite"/>
+        </rect>
+        <rect x="30" y="55" width="6" height="40" fill="#dc2626" filter="url(#redGlow)" opacity="0.8">
+          <animate attributeName="opacity" values="0.8;0.5;0.8" dur="1.5s" repeatCount="indefinite"/>
+        </rect>
+        <rect x="38" y="70" width="5" height="25" fill="#ef4444" filter="url(#redGlow)" opacity="0.7">
+          <animate attributeName="opacity" values="0.7;0.4;0.7" dur="1.8s" repeatCount="indefinite"/>
+        </rect>
+        
+        <!-- Дополнительные полосы для эффекта -->
+        <rect x="25" y="65" width="4" height="20" fill="#f87171" opacity="0.5">
+          <animate attributeName="x" values="25;27;25" dur="0.3s" repeatCount="indefinite"/>
+        </rect>
         
         <!-- Правая сторона - мягкое свечение -->
-        <ellipse cx="140" cy="150" rx="25" ry="15" fill="url(#redGlowGradient)"/>
+        <ellipse cx="140" cy="150" rx="25" ry="15" fill="url(#redGlowGradient)">
+          <animate attributeName="opacity" values="0.6;0.4;0.6" dur="3s" repeatCount="indefinite"/>
+        </ellipse>
       </g>
       
       <!-- Полумесяц (луна) -->
@@ -87,9 +100,20 @@
       </g>
       
       <!-- Глитч-эффекты на поверхности луны -->
-      <rect x="55" y="85" width="3" height="8" fill="#0e7490" opacity="0.5"/>
-      <rect x="60" y="90" width="2" height="6" fill="#0e7490" opacity="0.4"/>
-      <rect x="65" y="88" width="2.5" height="5" fill="#0e7490" opacity="0.5"/>
+      <g opacity="0.6">
+        <rect x="55" y="85" width="3" height="8" fill="#0e7490" opacity="0.5">
+          <animate attributeName="x" values="55;57;55" dur="0.2s" repeatCount="indefinite"/>
+        </rect>
+        <rect x="60" y="90" width="2" height="6" fill="#0e7490" opacity="0.4">
+          <animate attributeName="x" values="60;62;60" dur="0.25s" repeatCount="indefinite"/>
+        </rect>
+        <rect x="65" y="88" width="2.5" height="5" fill="#0e7490" opacity="0.5">
+          <animate attributeName="x" values="65;67;65" dur="0.3s" repeatCount="indefinite"/>
+        </rect>
+        <rect x="58" y="92" width="1.5" height="4" fill="#155e75" opacity="0.4">
+          <animate attributeName="opacity" values="0.4;0.7;0.4" dur="0.5s" repeatCount="indefinite"/>
+        </rect>
+      </g>
     </svg>
   </div>
 </template>
