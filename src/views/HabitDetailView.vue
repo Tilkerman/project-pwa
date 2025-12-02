@@ -78,8 +78,11 @@ const showSettings = ref(false)
 
 // Для обработки свайпов
 const touchStartY = ref(0)
+const touchStartX = ref(0)
 const touchEndY = ref(0)
+const touchStartTime = ref(0)
 const minSwipeDistance = 50 // Минимальное расстояние для свайпа
+const maxSwipeTime = 300 // Максимальное время для свайпа (мс)
 
 const habit = computed(() => {
   const id = route.params.id as string
@@ -89,12 +92,10 @@ const habit = computed(() => {
 const allHabits = computed(() => store.habits)
 
 function handleTouchStart(e: TouchEvent) {
-  // Сохраняем начальную позицию только если не кликаем по интерактивным элементам
-  const target = e.target as HTMLElement
-  if (target.closest('.calendar-section') || target.closest('button') || target.closest('.settings-link')) {
-    return
-  }
+  // Сохраняем начальную позицию и время для всех касаний
   touchStartY.value = e.touches[0].clientY
+  touchStartX.value = e.touches[0].clientX
+  touchStartTime.value = Date.now()
 }
 
 function handleTouchMove(e: TouchEvent) {
@@ -104,28 +105,50 @@ function handleTouchMove(e: TouchEvent) {
 
 function handleTouchEnd(e: TouchEvent) {
   const target = e.target as HTMLElement
-  // Игнорируем свайп если кликнули по интерактивным элементам
-  if (target.closest('.calendar-section') || target.closest('button') || target.closest('.settings-link')) {
+  
+  // Проверяем, не был ли это клик по кнопке или ссылке
+  if (target.closest('button') || target.closest('a') || target.closest('.settings-link')) {
+    // Если это был клик по интерактивному элементу, игнорируем свайп
+    touchStartY.value = 0
+    touchEndY.value = 0
     return
   }
   
   touchEndY.value = e.changedTouches[0].clientY
+  const touchEndTime = Date.now()
+  const touchDuration = touchEndTime - touchStartTime.value
+  
+  // Проверяем, что это был быстрый жест (не долгое удержание)
+  if (touchDuration > maxSwipeTime) {
+    touchStartY.value = 0
+    touchEndY.value = 0
+    return
+  }
+  
   handleSwipe()
 }
 
 function handleSwipe() {
-  const distance = touchStartY.value - touchEndY.value
+  if (touchStartY.value === 0) return
+  
+  const distanceY = touchStartY.value - touchEndY.value
+  const distanceX = Math.abs(touchStartX.value - (touchEndY.value === 0 ? touchStartX.value : touchStartX.value))
+  
+  // Проверяем, что это вертикальный свайп (вертикальное движение больше горизонтального)
+  if (Math.abs(distanceY) < minSwipeDistance || Math.abs(distanceY) < distanceX) {
+    touchStartY.value = 0
+    touchEndY.value = 0
+    return
+  }
   
   // Свайп вверх (палец движется вверх, touchStartY > touchEndY) - следующая привычка
   // Свайп вниз (палец движется вниз, touchStartY < touchEndY) - предыдущая привычка
-  if (Math.abs(distance) > minSwipeDistance) {
-    if (distance > 0) {
-      // Свайп вверх - следующая привычка
-      navigateToNextHabit()
-    } else {
-      // Свайп вниз - предыдущая привычка
-      navigateToPreviousHabit()
-    }
+  if (distanceY > 0) {
+    // Свайп вверх - следующая привычка
+    navigateToNextHabit()
+  } else {
+    // Свайп вниз - предыдущая привычка
+    navigateToPreviousHabit()
   }
   
   // Сбрасываем значения
