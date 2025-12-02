@@ -1,5 +1,9 @@
 <template>
   <div class="home-view">
+    <div class="header-logo">
+      <AppLogo size="80px" />
+    </div>
+    
     <div v-if="store.loading" class="loading">Загрузка...</div>
 
     <div v-else-if="store.habits.length === 0" class="empty-state fade-in">
@@ -47,6 +51,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import HabitForm from '@/components/HabitForm.vue'
+import AppLogo from '@/components/AppLogo.vue'
 import { useHabitsStore } from '@/stores/habitsStore'
 import { getProjectColorStyles } from '@/utils/projectColors'
 import type { Habit } from '@/types'
@@ -103,6 +108,14 @@ function closeForm() {
   max-width: 600px;
   margin: 0 auto;
   padding: 2rem 1rem;
+}
+
+.header-logo {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-top: 1rem;
 }
 
 .loading {
