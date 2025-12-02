@@ -37,7 +37,9 @@ export async function getAllHabits(): Promise<Habit[]> {
   // Восстанавливаем Date объекты из строк
   return habits.map(habit => ({
     ...habit,
-    createdAt: habit.createdAt instanceof Date ? habit.createdAt : new Date(habit.createdAt)
+    createdAt: habit.createdAt instanceof Date 
+      ? habit.createdAt 
+      : (typeof habit.createdAt === 'string' ? new Date(habit.createdAt) : new Date(habit.createdAt))
   }))
 }
 
@@ -48,16 +50,23 @@ export async function getHabit(id: string): Promise<Habit | undefined> {
   // Восстанавливаем Date объект из строки
   return {
     ...habit,
-    createdAt: habit.createdAt instanceof Date ? habit.createdAt : new Date(habit.createdAt)
+    createdAt: habit.createdAt instanceof Date 
+      ? habit.createdAt 
+      : (typeof habit.createdAt === 'string' ? new Date(habit.createdAt) : new Date(habit.createdAt))
   }
 }
 
 export async function saveHabit(habit: Habit): Promise<void> {
   const db = await getDB()
-  // Убеждаемся, что данные сериализуются правильно
+  // Преобразуем Date в строку для сериализации в IndexedDB
   const habitToSave = {
     ...habit,
-    createdAt: habit.createdAt instanceof Date ? habit.createdAt : new Date(habit.createdAt)
+    createdAt: habit.createdAt instanceof Date 
+      ? habit.createdAt.toISOString() 
+      : (typeof habit.createdAt === 'string' ? habit.createdAt : new Date(habit.createdAt).toISOString()),
+    markedDays: Array.isArray(habit.markedDays) ? [...habit.markedDays] : [],
+    notes: habit.notes && typeof habit.notes === 'object' ? { ...habit.notes } : {},
+    achievements: Array.isArray(habit.achievements) ? [...habit.achievements] : []
   }
   await db.put('habits', habitToSave)
 }

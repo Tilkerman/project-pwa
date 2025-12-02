@@ -121,12 +121,20 @@ export const useHabitsStore = defineStore('habits', () => {
 
   async function updateHabit(habit: Habit): Promise<void> {
     try {
-      // Создаем копию объекта для сохранения
-      const habitToSave = {
-        ...habit,
-        markedDays: [...habit.markedDays],
-        notes: { ...habit.notes },
-        createdAt: habit.createdAt instanceof Date ? habit.createdAt : new Date(habit.createdAt)
+      // Создаем полностью сериализуемую копию объекта для сохранения
+      const habitToSave: Habit = {
+        id: habit.id,
+        name: String(habit.name),
+        character: habit.character,
+        createdAt: habit.createdAt instanceof Date ? habit.createdAt : new Date(habit.createdAt),
+        markedDays: Array.isArray(habit.markedDays) ? [...habit.markedDays] : [],
+        notes: habit.notes && typeof habit.notes === 'object' ? { ...habit.notes } : {},
+        achievements: Array.isArray(habit.achievements) ? [...habit.achievements] : [],
+        notificationTime: habit.notificationTime || undefined,
+        notificationEnabled: Boolean(habit.notificationEnabled),
+        color: habit.color || undefined,
+        icon: habit.icon || undefined,
+        additionalMotivation: habit.additionalMotivation !== undefined ? Boolean(habit.additionalMotivation) : undefined
       }
       
       // Сохраняем в IndexedDB
