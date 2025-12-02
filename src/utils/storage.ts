@@ -4,8 +4,8 @@ import type { Habit } from '@/types'
 interface HabitsDB extends DBSchema {
   habits: {
     key: string
-    value: Habit
-    indexes: { 'by-created': Date }
+    value: Habit & { createdAt: string | Date } // createdAt может быть строкой при сохранении
+    indexes: { 'by-created': string | Date }
   }
 }
 
