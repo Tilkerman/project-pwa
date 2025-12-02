@@ -88,7 +88,10 @@ export const useHabitsStore = defineStore('habits', () => {
   async function createHabit(
     name: string,
     character: Habit['character'],
-    notificationTime?: string
+    notificationTime?: string,
+    color: Habit['color'] = 'blue',
+    icon?: string,
+    additionalMotivation: boolean = true
   ): Promise<Habit> {
     const newHabit: Habit = {
       id: crypto.randomUUID(),
@@ -99,7 +102,10 @@ export const useHabitsStore = defineStore('habits', () => {
       notes: {},
       achievements: [],
       notificationTime,
-      notificationEnabled: !!notificationTime
+      notificationEnabled: !!notificationTime,
+      color,
+      icon,
+      additionalMotivation
     }
 
     await saveHabit(newHabit)

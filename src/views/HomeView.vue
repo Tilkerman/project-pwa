@@ -1,12 +1,5 @@
 <template>
   <div class="home-view">
-    <div class="header">
-      <h1 class="page-title">Мои привычки</h1>
-      <button class="btn btn-primary add-btn" @click="showForm = true">
-        + Новая привычка
-      </button>
-    </div>
-
     <div v-if="store.loading" class="loading">Загрузка...</div>
 
     <div v-else-if="store.habits.length === 0" class="empty-state fade-in">
@@ -18,14 +11,30 @@
       </button>
     </div>
 
-    <div v-else class="habits-list">
-      <HabitCard
-        v-for="(habit, index) in store.habits"
-        :key="habit.id"
-        :habit="habit"
-        :style="{ animationDelay: `${index * 0.1}s` }"
-        @click="goToHabit(habit.id)"
-      />
+    <div v-else class="habits-container">
+      <div class="habits-card">
+        <h2 class="habits-title">Привычки</h2>
+        <div class="habits-list">
+          <div
+            v-for="habit in store.habits"
+            :key="habit.id"
+            class="habit-item"
+            @click="goToHabit(habit.id)"
+          >
+            <div class="habit-icon">{{ habit.icon || '🚫' }}</div>
+            <div class="habit-name">{{ habit.name }}</div>
+            <button
+              class="habit-toggle"
+              :class="{ active: isTodayMarked(habit) }"
+              @click.stop="toggleToday(habit)"
+            >
+            </button>
+          </div>
+        </div>
+        <button class="btn-add-habit" @click="showForm = true">
+          Добавить привычку
+        </button>
+      </div>
     </div>
 
     <div v-if="showForm" class="modal-overlay" @click.self="closeForm">
@@ -40,11 +49,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import HabitCard from '@/components/HabitCard.vue'
 import HabitForm from '@/components/HabitForm.vue'
 import { useHabitsStore } from '@/stores/habitsStore'
+import type { Habit } from '@/types'
 
 const router = useRouter()
 const store = useHabitsStore()
@@ -58,13 +67,37 @@ function goToHabit(id: string) {
   router.push(`/habit/${id}`)
 }
 
+function isTodayMarked(habit: Habit): boolean {
+  const today = new Date().toISOString().split('T')[0]
+  return habit.markedDays.includes(today)
+}
+
+async function toggleToday(habit: Habit) {
+  const today = new Date()
+  if (isTodayMarked(habit)) {
+    await store.unmarkDay(habit.id, today)
+  } else {
+    await store.markDay(habit.id, today)
+  }
+}
+
 async function handleSubmit(data: {
   name: string
-  character: 'babushka' | 'gopnik'
+  character: Habit['character']
   notificationTime?: string
   notificationEnabled: boolean
+  color?: Habit['color']
+  icon?: string
+  additionalMotivation?: boolean
 }) {
-  await store.createHabit(data.name, data.character, data.notificationTime)
+  await store.createHabit(
+    data.name,
+    data.character,
+    data.notificationTime,
+    data.color || 'blue',
+    data.icon,
+    data.additionalMotivation !== undefined ? data.additionalMotivation : true
+  )
   closeForm()
 }
 
@@ -75,29 +108,9 @@ function closeForm() {
 
 <style scoped>
 .home-view {
-  max-width: 800px;
+  max-width: 600px;
   margin: 0 auto;
   padding: 2rem 1rem;
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.page-title {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0;
-}
-
-.add-btn {
-  white-space: nowrap;
 }
 
 .loading {
@@ -132,10 +145,126 @@ function closeForm() {
   margin: 0 0 2rem 0;
 }
 
+.habits-container {
+  display: flex;
+  justify-content: center;
+}
+
+.habits-card {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 500px;
+}
+
+.habits-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 1.5rem 0;
+}
+
 .habits-list {
   display: flex;
   flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.habit-item {
+  display: flex;
+  align-items: center;
   gap: 1rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.habit-item:hover {
+  background-color: #f9fafb;
+}
+
+.habit-icon {
+  font-size: 1.5rem;
+  width: 2rem;
+  text-align: center;
+}
+
+.habit-name {
+  flex: 1;
+  font-size: 1rem;
+  color: #1f2937;
+  font-weight: 500;
+}
+
+.habit-toggle {
+  width: 24px;
+  height: 24px;
+  border: 2px solid #e5e7eb;
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.habit-toggle:hover {
+  border-color: #9ca3af;
+}
+
+.habit-toggle.active {
+  background: #10b981;
+  border-color: #10b981;
+}
+
+.habit-toggle.active::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 0.875rem;
+  font-weight: bold;
+}
+
+.btn-add-habit {
+  width: 100%;
+  padding: 0.875rem;
+  background: #e0f2fe;
+  color: #0369a1;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-add-habit:hover {
+  background: #bae6fd;
+}
+
+.btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background: #4f46e5;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #4338ca;
 }
 
 .modal-overlay {
@@ -164,23 +293,14 @@ function closeForm() {
   border: 1px solid var(--border-color);
 }
 
-.btn {
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-primary {
-  background: #4f46e5;
-  color: white;
-}
-
-.btn-primary:hover {
-  background: #4338ca;
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 </style>
-

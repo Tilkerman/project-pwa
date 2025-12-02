@@ -18,46 +18,11 @@
           'other-month': !day.isCurrentMonth,
           'marked': day.isMarked,
           'today': day.isToday,
-          'has-note': day.hasNote
+          'future': day.isFuture
         }"
         @click="toggleDay(day.date)"
       >
         <span class="day-number">{{ day.date.getDate() }}</span>
-        <span v-if="day.hasNote" class="note-indicator">📝</span>
-      </div>
-    </div>
-
-    <div v-if="selectedDate" class="day-actions">
-      <div class="selected-date">
-        Выбран: {{ formatDate(selectedDate) }}
-      </div>
-      <div class="action-buttons">
-        <button
-          class="btn btn-primary"
-          :class="{ 'btn-marked': isMarked(selectedDate) }"
-          @click="toggleMarkDay"
-        >
-          {{ isMarked(selectedDate) ? '✓ Отмечено' : 'Отметить день' }}
-        </button>
-        <button class="btn btn-secondary" @click="showNoteDialog = true">
-          {{ getNote(selectedDate) ? 'Изменить заметку' : 'Добавить заметку' }}
-        </button>
-      </div>
-    </div>
-
-    <div v-if="showNoteDialog" class="note-dialog-overlay" @click.self="closeNoteDialog">
-      <div class="note-dialog">
-        <h3>Заметка на {{ formatDate(selectedDate || new Date()) }}</h3>
-        <textarea
-          v-model="noteText"
-          class="note-textarea"
-          placeholder="Как прошел день?"
-          rows="4"
-        ></textarea>
-        <div class="dialog-actions">
-          <button class="btn btn-secondary" @click="closeNoteDialog">Отмена</button>
-          <button class="btn btn-primary" @click="saveNote">Сохранить</button>
-        </div>
       </div>
     </div>
   </div>
@@ -65,27 +30,30 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import type { Habit } from '@/types'
+import type { Habit, ProjectColor } from '@/types'
 import { useHabitsStore } from '@/stores/habitsStore'
+import { getProjectColorStyles } from '@/utils/projectColors'
 
 const props = defineProps<{
   habit: Habit
+  projectColor?: ProjectColor
 }>()
 
 const store = useHabitsStore()
 
 const currentDate = ref(new Date())
-const selectedDate = ref<Date | null>(null)
-const showNoteDialog = ref(false)
-const noteText = ref('')
 
-const dayLabels = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
+const dayLabels = ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС']
 
 const monthYear = computed(() => {
   return currentDate.value.toLocaleDateString('ru-RU', {
     month: 'long',
     year: 'numeric'
   })
+})
+
+const projectColorStyles = computed(() => {
+  return getProjectColorStyles(props.projectColor || 'blue')
 })
 
 const calendarDays = computed(() => {
@@ -103,7 +71,7 @@ const calendarDays = computed(() => {
     isCurrentMonth: boolean
     isMarked: boolean
     isToday: boolean
-    hasNote: boolean
+    isFuture: boolean
   }> = []
   
   const today = new Date()
@@ -119,9 +87,9 @@ const calendarDays = computed(() => {
     const dateForToday = new Date(date)
     dateForToday.setHours(0, 0, 0, 0)
     const isToday = dateForToday.getTime() === today.getTime()
-    const hasNote = !!props.habit.notes[dateStr]
+    const isFuture = dateForToday.getTime() > today.getTime()
     
-    days.push({ date, isCurrentMonth, isMarked, isToday, hasNote })
+    days.push({ date, isCurrentMonth, isMarked, isToday, isFuture })
   }
   
   return days
@@ -139,64 +107,29 @@ function nextMonth() {
   currentDate.value = newDate
 }
 
-function toggleDay(date: Date) {
-  selectedDate.value = date
-}
-
-function isMarked(date: Date): boolean {
+async function toggleDay(date: Date) {
   const dateStr = date.toISOString().split('T')[0]
-  return props.habit.markedDays.includes(dateStr)
-}
-
-function getNote(date: Date): string | undefined {
-  const dateStr = date.toISOString().split('T')[0]
-  return props.habit.notes[dateStr]
-}
-
-async function toggleMarkDay() {
-  if (!selectedDate.value) return
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const dateForCheck = new Date(date)
+  dateForCheck.setHours(0, 0, 0, 0)
   
-  if (isMarked(selectedDate.value)) {
-    await store.unmarkDay(props.habit.id, selectedDate.value)
+  // Не позволяем отмечать будущие дни
+  if (dateForCheck.getTime() > today.getTime()) {
+    return
+  }
+  
+  if (props.habit.markedDays.includes(dateStr)) {
+    await store.unmarkDay(props.habit.id, date)
   } else {
-    await store.markDay(props.habit.id, selectedDate.value)
+    await store.markDay(props.habit.id, date)
   }
 }
-
-function formatDate(date: Date): string {
-  return date.toLocaleDateString('ru-RU', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric'
-  })
-}
-
-function closeNoteDialog() {
-  showNoteDialog.value = false
-  noteText.value = ''
-}
-
-async function saveNote() {
-  if (!selectedDate.value) return
-  
-  await store.addNote(props.habit.id, selectedDate.value, noteText.value)
-  closeNoteDialog()
-}
-
-watch(selectedDate, (newDate) => {
-  if (newDate) {
-    noteText.value = getNote(newDate) || ''
-  }
-})
 </script>
 
 <style scoped>
 .calendar-view {
-  background: var(--bg-secondary);
-  border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--border-color);
+  background: transparent;
 }
 
 .calendar-header {
@@ -207,7 +140,7 @@ watch(selectedDate, (newDate) => {
 }
 
 .nav-btn {
-  background: #f3f4f6;
+  background: rgba(255, 255, 255, 0.1);
   border: none;
   border-radius: 8px;
   width: 2.5rem;
@@ -215,16 +148,16 @@ watch(selectedDate, (newDate) => {
   font-size: 1.5rem;
   cursor: pointer;
   transition: background 0.2s;
+  color: inherit;
 }
 
 .nav-btn:hover {
-  background: #e5e7eb;
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .month-year {
-  font-size: 1.25rem;
+  font-size: 1.125rem;
   font-weight: 600;
-  color: var(--text-primary);
   margin: 0;
   text-transform: capitalize;
 }
@@ -233,7 +166,58 @@ watch(selectedDate, (newDate) => {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 0.5rem;
-  margin-bottom: 1.5rem;
+}
+
+.day-label {
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  opacity: 0.7;
+  padding: 0.5rem;
+}
+
+.calendar-day {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  background: transparent;
+}
+
+.calendar-day.other-month {
+  opacity: 0.3;
+}
+
+.calendar-day.marked {
+  background: #10b981;
+  color: white;
+}
+
+.calendar-day.future {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.calendar-day.today {
+  border: 2px solid rgba(255, 255, 255, 0.5);
+}
+
+.calendar-day:not(.other-month):not(.future):not(.marked) {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.calendar-day:hover:not(.other-month) {
+  transform: scale(1.1);
+}
+
+.day-number {
+  font-size: 0.875rem;
+  font-weight: 600;
 }
 
 @media (max-width: 480px) {
@@ -242,171 +226,12 @@ watch(selectedDate, (newDate) => {
   }
   
   .day-label {
-    font-size: 0.75rem;
+    font-size: 0.625rem;
     padding: 0.25rem;
   }
   
   .day-number {
-    font-size: 0.875rem;
+    font-size: 0.75rem;
   }
 }
-
-.day-label {
-  text-align: center;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  padding: 0.5rem;
-}
-
-.calendar-day {
-  aspect-ratio: 1;
-  border: 2px solid var(--border-color);
-  border-radius: 8px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: var(--transition);
-  position: relative;
-  background: var(--bg-secondary);
-}
-
-.calendar-day:hover {
-  border-color: var(--primary-color);
-  background: var(--bg-tertiary);
-}
-
-.calendar-day.other-month {
-  opacity: 0.3;
-}
-
-.calendar-day.marked {
-  background: #eef2ff;
-  border-color: var(--primary-color);
-  animation: pulse 0.5s ease-out;
-}
-
-.calendar-day.today {
-  border-color: #f59e0b;
-  border-width: 3px;
-}
-
-.calendar-day.has-note .note-indicator {
-  position: absolute;
-  top: 0.25rem;
-  right: 0.25rem;
-  font-size: 0.75rem;
-}
-
-.day-number {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.day-actions {
-  margin-top: 1.5rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid #e5e7eb;
-}
-
-.selected-date {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  margin-bottom: 1rem;
-}
-
-.action-buttons {
-  display: flex;
-  gap: 1rem;
-}
-
-.btn {
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-primary {
-  background: #4f46e5;
-  color: white;
-}
-
-.btn-primary:hover {
-  background: #4338ca;
-}
-
-.btn-primary.btn-marked {
-  background: #10b981;
-}
-
-.btn-secondary {
-  background: var(--bg-tertiary);
-  color: var(--text-primary);
-}
-
-.btn-secondary:hover {
-  background: var(--bg-hover);
-}
-
-.note-dialog-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.note-dialog {
-  background: var(--bg-secondary);
-  border-radius: 12px;
-  padding: 2rem;
-  max-width: 500px;
-  width: 90%;
-  box-shadow: var(--shadow-md);
-  border: 1px solid var(--border-color);
-}
-
-.note-dialog h3 {
-  margin: 0 0 1rem 0;
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.note-textarea {
-  width: 100%;
-  padding: 0.75rem;
-  border: 2px solid var(--border-color);
-  border-radius: 8px;
-  font-size: 1rem;
-  font-family: inherit;
-  resize: vertical;
-  margin-bottom: 1.5rem;
-  background: var(--bg-secondary);
-  color: var(--text-primary);
-}
-
-.note-textarea:focus {
-  outline: none;
-  border-color: var(--primary-color);
-}
-
-.dialog-actions {
-  display: flex;
-  gap: 1rem;
-  justify-content: flex-end;
-}
 </style>
-

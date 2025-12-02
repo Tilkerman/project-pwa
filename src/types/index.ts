@@ -1,4 +1,6 @@
-export type CharacterType = 'babushka' | 'gopnik'
+export type CharacterType = 'babushka' | 'gopnik' | 'teacher' | 'grandpa'
+
+export type ProjectColor = 'blue' | 'red' | 'green' | 'purple' | 'pink' | 'orange' | 'cyan'
 
 export interface Habit {
   id: string
@@ -10,6 +12,9 @@ export interface Habit {
   achievements: string[]
   notificationTime?: string // HH:mm format
   notificationEnabled: boolean
+  color?: ProjectColor // Цвет проекта
+  icon?: string // Иконка проекта (emoji или путь к изображению)
+  additionalMotivation?: boolean // Дополнительная мотивация
 }
 
 export interface Achievement {
