@@ -121,32 +121,23 @@ export const useHabitsStore = defineStore('habits', () => {
 
   async function updateHabit(habit: Habit): Promise<void> {
     try {
-      // Создаем полностью сериализуемую копию объекта для сохранения
-      const habitToSave: Habit = {
-        id: habit.id,
-        name: String(habit.name),
-        character: habit.character,
+      // Сохраняем в IndexedDB напрямую - saveHabit сам создаст сериализуемый объект
+      await saveHabit(habit)
+      
+      // Обновляем в локальном состоянии - создаем объект с Date для локального использования
+      const index = habits.value.findIndex((h) => h.id === habit.id)
+      const habitForLocal: Habit = {
+        ...habit,
         createdAt: habit.createdAt instanceof Date ? habit.createdAt : new Date(habit.createdAt),
         markedDays: Array.isArray(habit.markedDays) ? [...habit.markedDays] : [],
         notes: habit.notes && typeof habit.notes === 'object' ? { ...habit.notes } : {},
-        achievements: Array.isArray(habit.achievements) ? [...habit.achievements] : [],
-        notificationTime: habit.notificationTime || undefined,
-        notificationEnabled: Boolean(habit.notificationEnabled),
-        color: habit.color || undefined,
-        icon: habit.icon || undefined,
-        additionalMotivation: habit.additionalMotivation !== undefined ? Boolean(habit.additionalMotivation) : undefined
+        achievements: Array.isArray(habit.achievements) ? [...habit.achievements] : []
       }
       
-      // Сохраняем в IndexedDB
-      await saveHabit(habitToSave)
-      
-      // Обновляем в локальном состоянии
-      const index = habits.value.findIndex((h) => h.id === habit.id)
       if (index !== -1) {
-        habits.value[index] = habitToSave
+        habits.value[index] = habitForLocal
       } else {
-        // Если не найдено, добавляем
-        habits.value.push(habitToSave)
+        habits.value.push(habitForLocal)
       }
 
       if (habit.notificationEnabled) {
