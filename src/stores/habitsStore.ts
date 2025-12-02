@@ -125,13 +125,20 @@ export const useHabitsStore = defineStore('habits', () => {
       const habitToSave = {
         ...habit,
         markedDays: [...habit.markedDays],
-        notes: { ...habit.notes }
+        notes: { ...habit.notes },
+        createdAt: habit.createdAt instanceof Date ? habit.createdAt : new Date(habit.createdAt)
       }
+      
+      // Сохраняем в IndexedDB
       await saveHabit(habitToSave)
       
+      // Обновляем в локальном состоянии
       const index = habits.value.findIndex((h) => h.id === habit.id)
       if (index !== -1) {
         habits.value[index] = habitToSave
+      } else {
+        // Если не найдено, добавляем
+        habits.value.push(habitToSave)
       }
 
       if (habit.notificationEnabled) {
@@ -160,20 +167,25 @@ export const useHabitsStore = defineStore('habits', () => {
 
     // Создаем новый массив для избежания мутаций
     const updatedMarkedDays = [...habit.markedDays, dateStr].sort()
-    habit.markedDays = updatedMarkedDays
+    
+    // Создаем обновленную копию привычки
+    const updatedHabit = {
+      ...habit,
+      markedDays: updatedMarkedDays
+    }
 
     // Check for new achievements
     const newAchievements = achievements.filter(
       (achievement) =>
-        !habit.achievements.includes(achievement.id) &&
-        achievement.condition(habit)
+        !updatedHabit.achievements.includes(achievement.id) &&
+        achievement.condition(updatedHabit)
     )
 
     if (newAchievements.length > 0) {
-      habit.achievements = [...habit.achievements, ...newAchievements.map((a) => a.id)]
+      updatedHabit.achievements = [...updatedHabit.achievements, ...newAchievements.map((a) => a.id)]
     }
 
-    await updateHabit(habit)
+    await updateHabit(updatedHabit)
   }
 
   async function unmarkDay(habitId: string, date: Date): Promise<void> {
@@ -181,10 +193,13 @@ export const useHabitsStore = defineStore('habits', () => {
     if (!habit) return
 
     const dateStr = date.toISOString().split('T')[0]
-    // Создаем новый массив для избежания мутаций
-    habit.markedDays = habit.markedDays.filter((d) => d !== dateStr)
+    // Создаем обновленную копию привычки
+    const updatedHabit = {
+      ...habit,
+      markedDays: habit.markedDays.filter((d) => d !== dateStr)
+    }
 
-    await updateHabit(habit)
+    await updateHabit(updatedHabit)
   }
 
   async function addNote(habitId: string, date: Date, note: string): Promise<void> {

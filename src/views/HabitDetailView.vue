@@ -107,15 +107,22 @@ async function handleUpdate(data: {
 }) {
   if (!habit.value) return
 
-  habit.value.name = data.name
-  habit.value.character = data.character
-  habit.value.notificationTime = data.notificationTime
-  habit.value.notificationEnabled = data.notificationEnabled
-  habit.value.color = data.color
-  habit.value.icon = data.icon
-  habit.value.additionalMotivation = data.additionalMotivation
+  // Получаем актуальную привычку из store и создаем обновленную копию
+  const currentHabit = store.getHabitById(habit.value.id)
+  if (!currentHabit) return
 
-  await store.updateHabit(habit.value)
+  const updatedHabit: Habit = {
+    ...currentHabit,
+    name: data.name,
+    character: data.character,
+    notificationTime: data.notificationTime,
+    notificationEnabled: data.notificationEnabled,
+    color: data.color || 'blue',
+    icon: data.icon || '🚫',
+    additionalMotivation: data.additionalMotivation !== undefined ? data.additionalMotivation : true
+  }
+
+  await store.updateHabit(updatedHabit)
   showSettings.value = false
 }
 

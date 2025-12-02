@@ -29,7 +29,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import type { Habit, ProjectColor } from '@/types'
 import { useHabitsStore } from '@/stores/habitsStore'
 import { getProjectColorStyles } from '@/utils/projectColors'
@@ -42,6 +42,11 @@ const props = defineProps<{
 const store = useHabitsStore()
 
 const currentDate = ref(new Date())
+
+// Отслеживаем изменения в store для реактивности
+watch(() => store.habits, () => {
+  // Принудительно обновляем computed при изменении habits
+}, { deep: true })
 
 const dayLabels = ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС']
 
@@ -57,6 +62,10 @@ const projectColorStyles = computed(() => {
 })
 
 const calendarDays = computed(() => {
+  // Получаем актуальную привычку из store для реактивности
+  const currentHabit = store.getHabitById(props.habit.id)
+  if (!currentHabit) return []
+  
   const year = currentDate.value.getFullYear()
   const month = currentDate.value.getMonth()
   
@@ -83,7 +92,7 @@ const calendarDays = computed(() => {
     
     const dateStr = date.toISOString().split('T')[0]
     const isCurrentMonth = date.getMonth() === month
-    const isMarked = props.habit.markedDays.includes(dateStr)
+    const isMarked = currentHabit.markedDays.includes(dateStr)
     const dateForToday = new Date(date)
     dateForToday.setHours(0, 0, 0, 0)
     const isToday = dateForToday.getTime() === today.getTime()
@@ -119,7 +128,11 @@ async function toggleDay(date: Date) {
     return
   }
   
-  if (props.habit.markedDays.includes(dateStr)) {
+  // Получаем актуальную привычку из store
+  const currentHabit = store.getHabitById(props.habit.id)
+  if (!currentHabit) return
+  
+  if (currentHabit.markedDays.includes(dateStr)) {
     await store.unmarkDay(props.habit.id, date)
   } else {
     await store.markDay(props.habit.id, date)
