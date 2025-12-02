@@ -25,7 +25,7 @@
       <router-view />
     </main>
     <footer class="app-footer">
-      © {{ currentYear }} Трекер Привычек · v{{ appVersion }}
+      © {{ currentYear }} Трекер Привычек · October · v{{ appVersion }}
     </footer>
   </div>
 </template>
