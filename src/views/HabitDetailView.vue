@@ -10,7 +10,13 @@
       <router-link to="/" class="btn btn-primary">Вернуться на главную</router-link>
     </div>
 
-    <div v-else class="habit-content">
+    <div 
+      v-else 
+      class="habit-content"
+      @touchstart="handleTouchStart"
+      @touchmove="handleTouchMove"
+      @touchend="handleTouchEnd"
+    >
       <div class="header-section">
         <button class="back-btn" @click="$router.push('/')">
           ← Назад
@@ -18,7 +24,11 @@
       </div>
 
       <div class="main-section">
-        <button class="arrow-up" @click="navigateToPreviousHabit">▲</button>
+        <button class="arrow-up" @click="navigateToPreviousHabit">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 19V5M5 12l7-7 7 7"/>
+          </svg>
+        </button>
         <h1 class="habit-title">{{ habit.name }}</h1>
         <p class="habit-days">уже {{ stats.totalDays }} дней</p>
 
@@ -29,7 +39,11 @@
 
       <div class="footer-section">
         <div class="settings-link" @click="showSettings = true">настройки</div>
-        <button class="arrow-down" @click="navigateToNextHabit">▼</button>
+        <button class="arrow-down" @click="navigateToNextHabit">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 5v14M19 12l-7 7-7-7"/>
+          </svg>
+        </button>
       </div>
     </div>
 
@@ -62,12 +76,45 @@ const store = useHabitsStore()
 const loading = ref(true)
 const showSettings = ref(false)
 
+// Для обработки свайпов
+const touchStartY = ref(0)
+const touchEndY = ref(0)
+const minSwipeDistance = 50 // Минимальное расстояние для свайпа
+
 const habit = computed(() => {
   const id = route.params.id as string
   return store.getHabitById(id)
 })
 
 const allHabits = computed(() => store.habits)
+
+function handleTouchStart(e: TouchEvent) {
+  touchStartY.value = e.touches[0].clientY
+}
+
+function handleTouchMove(e: TouchEvent) {
+  // Предотвращаем скролл страницы при свайпе
+  e.preventDefault()
+}
+
+function handleTouchEnd(e: TouchEvent) {
+  touchEndY.value = e.changedTouches[0].clientY
+  handleSwipe()
+}
+
+function handleSwipe() {
+  const distance = touchStartY.value - touchEndY.value
+  
+  // Свайп вверх (палец движется вверх) - следующая привычка
+  if (Math.abs(distance) > minSwipeDistance) {
+    if (distance > 0) {
+      navigateToNextHabit()
+    } else {
+      // Свайп вниз (палец движется вниз) - предыдущая привычка
+      navigateToPreviousHabit()
+    }
+  }
+}
 
 function navigateToPreviousHabit() {
   if (allHabits.value.length === 0 || !habit.value) return
@@ -208,13 +255,12 @@ function closeSettings() {
 }
 
 .arrow-up {
-  font-size: 2.5rem;
+  width: 40px;
+  height: 40px;
   margin-bottom: 0.5rem;
-  background: rgba(255, 255, 255, 0.2);
-  border: 2px solid rgba(255, 255, 255, 0.4);
-  border-radius: 50%;
-  width: 50px;
-  height: 50px;
+  background: transparent;
+  border: 1.5px solid rgba(255, 255, 255, 0.8);
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -222,16 +268,24 @@ function closeSettings() {
   margin: 0 auto 0.5rem;
   transition: all 0.2s;
   opacity: 0.9;
+  color: rgba(255, 255, 255, 0.9);
+  padding: 0;
+}
+
+.arrow-up svg {
+  width: 20px;
+  height: 20px;
 }
 
 .arrow-up:hover {
   opacity: 1;
-  background: rgba(255, 255, 255, 0.3);
-  transform: scale(1.1);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 1);
 }
 
 .arrow-up:active {
   transform: scale(0.95);
+  background: rgba(255, 255, 255, 0.15);
 }
 
 .habit-title {
@@ -269,12 +323,11 @@ function closeSettings() {
 }
 
 .arrow-down {
-  font-size: 2.5rem;
-  background: rgba(255, 255, 255, 0.2);
-  border: 2px solid rgba(255, 255, 255, 0.4);
-  border-radius: 50%;
-  width: 50px;
-  height: 50px;
+  width: 40px;
+  height: 40px;
+  background: transparent;
+  border: 1.5px solid rgba(255, 255, 255, 0.8);
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -282,17 +335,24 @@ function closeSettings() {
   margin: 0.5rem auto;
   transition: all 0.2s;
   opacity: 0.9;
-  color: inherit;
+  color: rgba(255, 255, 255, 0.9);
+  padding: 0;
+}
+
+.arrow-down svg {
+  width: 20px;
+  height: 20px;
 }
 
 .arrow-down:hover {
   opacity: 1;
-  background: rgba(255, 255, 255, 0.3);
-  transform: scale(1.1);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 1);
 }
 
 .arrow-down:active {
   transform: scale(0.95);
+  background: rgba(255, 255, 255, 0.15);
 }
 
 .settings-modal {
