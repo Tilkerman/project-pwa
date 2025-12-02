@@ -89,15 +89,26 @@ const habit = computed(() => {
 const allHabits = computed(() => store.habits)
 
 function handleTouchStart(e: TouchEvent) {
+  // Сохраняем начальную позицию только если не кликаем по интерактивным элементам
+  const target = e.target as HTMLElement
+  if (target.closest('.calendar-section') || target.closest('button') || target.closest('.settings-link')) {
+    return
+  }
   touchStartY.value = e.touches[0].clientY
 }
 
 function handleTouchMove(e: TouchEvent) {
-  // Предотвращаем скролл страницы при свайпе
-  e.preventDefault()
+  // Не предотвращаем скролл - пусть календарь скроллится нормально
+  // Только отслеживаем движение для определения свайпа
 }
 
 function handleTouchEnd(e: TouchEvent) {
+  const target = e.target as HTMLElement
+  // Игнорируем свайп если кликнули по интерактивным элементам
+  if (target.closest('.calendar-section') || target.closest('button') || target.closest('.settings-link')) {
+    return
+  }
+  
   touchEndY.value = e.changedTouches[0].clientY
   handleSwipe()
 }
@@ -105,15 +116,21 @@ function handleTouchEnd(e: TouchEvent) {
 function handleSwipe() {
   const distance = touchStartY.value - touchEndY.value
   
-  // Свайп вверх (палец движется вверх) - следующая привычка
+  // Свайп вверх (палец движется вверх, touchStartY > touchEndY) - следующая привычка
+  // Свайп вниз (палец движется вниз, touchStartY < touchEndY) - предыдущая привычка
   if (Math.abs(distance) > minSwipeDistance) {
     if (distance > 0) {
+      // Свайп вверх - следующая привычка
       navigateToNextHabit()
     } else {
-      // Свайп вниз (палец движется вниз) - предыдущая привычка
+      // Свайп вниз - предыдущая привычка
       navigateToPreviousHabit()
     }
   }
+  
+  // Сбрасываем значения
+  touchStartY.value = 0
+  touchEndY.value = 0
 }
 
 function navigateToPreviousHabit() {
