@@ -129,13 +129,40 @@
       <label class="form-label">Выберите цвет для проекта</label>
       <div class="color-picker">
         <div
-          v-for="color in availableColors"
+          v-for="color in availableColors.filter(c => c !== 'custom')"
           :key="color"
           class="color-option"
           :class="{ active: formData.color === color }"
           :style="{ backgroundColor: projectColors[color].bg }"
           @click="selectColor(color)"
         ></div>
+        <div
+          class="color-option color-option-custom"
+          :class="{ active: formData.color === 'custom' }"
+          @click="showCustomColorPicker = !showCustomColorPicker"
+          :style="{ backgroundColor: formData.customColor || '#6b7280' }"
+        >
+          <span class="custom-color-icon">🎨</span>
+        </div>
+      </div>
+      <div v-if="showCustomColorPicker || formData.color === 'custom'" class="custom-color-picker">
+        <label class="custom-color-label">Выберите свой цвет:</label>
+        <div class="custom-color-input-wrapper">
+          <input
+            v-model="formData.customColor"
+            type="color"
+            class="custom-color-input"
+            @change="selectCustomColor"
+          />
+          <input
+            v-model="formData.customColor"
+            type="text"
+            class="custom-color-text"
+            placeholder="#000000"
+            pattern="^#[0-9A-Fa-f]{6}$"
+            @input="validateCustomColor"
+          />
+        </div>
       </div>
     </div>
 
@@ -192,6 +219,7 @@ const formData = ref({
 const showCharacterDropdown = ref(false)
 const showIconPicker = ref(false)
 const showTimePicker = ref(false)
+const showCustomColorPicker = ref(false)
 const pendingNotificationEnabled = ref(false)
 
 const availableCharacters = computed(() => Object.values(characters))
@@ -218,8 +246,12 @@ watch(() => props.habit, (newHabit) => {
       notificationEnabled: newHabit.notificationEnabled || false,
       customNotificationMessage: newHabit.customNotificationMessage || '',
       color: newHabit.color || 'blue',
+      customColor: newHabit.customColor || '#3b82f6',
       icon: newHabit.icon || '🚫',
       additionalMotivation: newHabit.additionalMotivation !== undefined ? newHabit.additionalMotivation : true
+    }
+    if (newHabit.color === 'custom') {
+      showCustomColorPicker.value = true
     }
   }
 }, { immediate: true })
@@ -231,6 +263,27 @@ function selectCharacter(characterId: CharacterType) {
 
 function selectColor(color: ProjectColor) {
   formData.value.color = color
+  if (color !== 'custom') {
+    showCustomColorPicker.value = false
+  }
+}
+
+function selectCustomColor() {
+  formData.value.color = 'custom'
+}
+
+function validateCustomColor(event: Event) {
+  const input = event.target as HTMLInputElement
+  const value = input.value.trim()
+  // Проверяем формат hex цвета
+  if (/^#[0-9A-Fa-f]{6}$/.test(value)) {
+    formData.value.customColor = value
+    formData.value.color = 'custom'
+  } else if (value === '') {
+    // Если поле пустое, сбрасываем на стандартный цвет
+    formData.value.color = 'blue'
+    showCustomColorPicker.value = false
+  }
 }
 
 function selectIcon(icon: string) {

@@ -64,7 +64,7 @@ function goToHabit(id: string) {
 }
 
 function getHabitBorderStyle(habit: Habit) {
-  const colorStyles = getProjectColorStyles(habit.color || 'blue')
+  const colorStyles = getProjectColorStyles(habit.color || 'blue', habit.customColor)
   return {
     border: `2px solid ${colorStyles.border}`,
     boxShadow: `0 0 0 1px ${colorStyles.border}20`

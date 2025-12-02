@@ -190,7 +190,7 @@ const stats = computed(() => {
 })
 
 const projectColorStyles = computed(() => {
-  return getProjectColorStyles(habit.value?.color || 'blue')
+  return getProjectColorStyles(habit.value?.color || 'blue', habit.value?.customColor)
 })
 
 onMounted(async () => {

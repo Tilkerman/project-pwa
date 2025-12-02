@@ -58,7 +58,8 @@ const monthYear = computed(() => {
 })
 
 const projectColorStyles = computed(() => {
-  return getProjectColorStyles(props.projectColor || 'blue')
+  const habit = store.getHabitById(props.habit.id)
+  return getProjectColorStyles(props.projectColor || 'blue', habit?.customColor)
 })
 
 const calendarDays = computed(() => {
