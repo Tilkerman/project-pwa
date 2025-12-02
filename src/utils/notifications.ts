@@ -60,12 +60,19 @@ function showNotification(habit: Habit): void {
     return
   }
 
+  const character = habit.character
+  const characterName = character === 'babushka' ? 'Добрая Бабушка' :
+                        character === 'gopnik' ? 'Гопник' :
+                        character === 'teacher' ? 'Строгий Учитель' :
+                        character === 'grandpa' ? 'Старый Дед' : 'Друг'
+  
   const message = getCharacterMessage(habit.character, habit, 'daily')
-  const notification = new Notification(`Напоминание: ${habit.name}`, {
+  const notification = new Notification(`${characterName} напоминает: ${habit.name}`, {
     body: message,
     icon: '/icons/icon-192x192.png',
     badge: '/icons/icon-192x192.png',
-    tag: `habit-${habit.id}`
+    tag: `habit-${habit.id}`,
+    requireInteraction: false
   })
 
   notification.onclick = () => {
