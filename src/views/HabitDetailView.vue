@@ -179,14 +179,9 @@ function sendMessage() {
 
 .header-top {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   padding: 0.5rem 0;
-}
-
-.header-center {
-  font-size: 0.875rem;
-  opacity: 0.8;
 }
 
 .header-profile {
