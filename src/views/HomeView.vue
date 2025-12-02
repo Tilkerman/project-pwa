@@ -19,16 +19,11 @@
             v-for="habit in store.habits"
             :key="habit.id"
             class="habit-item"
+            :style="getHabitBorderStyle(habit)"
             @click="goToHabit(habit.id)"
           >
             <div class="habit-icon">{{ habit.icon || '🚫' }}</div>
             <div class="habit-name">{{ habit.name }}</div>
-            <button
-              class="habit-toggle"
-              :class="{ active: isTodayMarked(habit) }"
-              @click.stop="toggleToday(habit)"
-            >
-            </button>
           </div>
         </div>
         <button class="btn-add-habit" @click="showForm = true">
@@ -49,10 +44,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import HabitForm from '@/components/HabitForm.vue'
 import { useHabitsStore } from '@/stores/habitsStore'
+import { getProjectColorStyles } from '@/utils/projectColors'
 import type { Habit } from '@/types'
 
 const router = useRouter()
@@ -67,17 +63,11 @@ function goToHabit(id: string) {
   router.push(`/habit/${id}`)
 }
 
-function isTodayMarked(habit: Habit): boolean {
-  const today = new Date().toISOString().split('T')[0]
-  return habit.markedDays.includes(today)
-}
-
-async function toggleToday(habit: Habit) {
-  const today = new Date()
-  if (isTodayMarked(habit)) {
-    await store.unmarkDay(habit.id, today)
-  } else {
-    await store.markDay(habit.id, today)
+function getHabitBorderStyle(habit: Habit) {
+  const colorStyles = getProjectColorStyles(habit.color || 'blue')
+  return {
+    border: `2px solid ${colorStyles.border}`,
+    boxShadow: `0 0 0 1px ${colorStyles.border}20`
   }
 }
 
@@ -180,11 +170,13 @@ function closeForm() {
   padding: 0.75rem;
   border-radius: 8px;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.2s;
+  background: white;
 }
 
 .habit-item:hover {
   background-color: #f9fafb;
+  transform: translateY(-1px);
 }
 
 .habit-icon {
@@ -200,36 +192,6 @@ function closeForm() {
   font-weight: 500;
 }
 
-.habit-toggle {
-  width: 24px;
-  height: 24px;
-  border: 2px solid #e5e7eb;
-  border-radius: 4px;
-  background: white;
-  cursor: pointer;
-  transition: all 0.2s;
-  position: relative;
-}
-
-.habit-toggle:hover {
-  border-color: #9ca3af;
-}
-
-.habit-toggle.active {
-  background: #10b981;
-  border-color: #10b981;
-}
-
-.habit-toggle.active::after {
-  content: '✓';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: white;
-  font-size: 0.875rem;
-  font-weight: bold;
-}
 
 .btn-add-habit {
   width: 100%;
