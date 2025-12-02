@@ -24,7 +24,6 @@
     <main class="main-content">
       <router-view />
     </main>
-    <div class="pixel-grandma" aria-hidden="true"></div>
     <footer class="app-footer">
       © {{ currentYear }} Трекер Привычек · October · v{{ appVersion }}
     </footer>
@@ -189,53 +188,6 @@ onMounted(async () => {
 
 .main-content {
   min-height: calc(100vh - 80px);
-}
-
-.pixel-grandma {
-  position: fixed;
-  right: 2rem;
-  bottom: 5rem;
-  width: 8px;
-  height: 8px;
-  pointer-events: none;
-  z-index: 0;
-  opacity: 0.8;
-  image-rendering: pixelated;
-}
-
-.pixel-grandma::before {
-  content: '';
-  display: block;
-  width: 4px;
-  height: 4px;
-  background: transparent;
-  /* Простая пиксельная бабушка: волосы, лицо, платье */
-  box-shadow:
-    /* волосы */ 
-    8px 0 #4b5563,
-    12px 0 #4b5563,
-    4px 4px #4b5563,
-    8px 4px #4b5563,
-    12px 4px #4b5563,
-    16px 4px #4b5563,
-    /* лицо */
-    8px 8px #f9d7b5,
-    12px 8px #f9d7b5,
-    8px 12px #f9d7b5,
-    12px 12px #f9d7b5,
-    /* очки */
-    6px 8px #111827,
-    14px 8px #111827,
-    /* платье */
-    6px 16px var(--primary-color),
-    10px 16px var(--primary-color),
-    14px 16px var(--primary-color),
-    6px 20px var(--primary-color),
-    10px 20px var(--primary-color),
-    14px 20px var(--primary-color),
-    /* ноги */
-    8px 24px #374151,
-    12px 24px #374151;
 }
 
 .app-footer {
