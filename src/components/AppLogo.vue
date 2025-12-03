@@ -119,10 +119,6 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{
-  size?: string
-}>()
-
 withDefaults(defineProps<{
   size?: string
 }>(), {
