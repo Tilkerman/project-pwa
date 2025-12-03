@@ -130,21 +130,29 @@ const botInfo = ref<{ username?: string; firstName?: string } | null>(null)
 const isBotConfigured = computed(() => isTelegramBotConfigured())
 
 onMounted(async () => {
-  const config = getTelegramConfig()
-  if (config) {
-    enabled.value = config.enabled
-    chatId.value = config.chatId
-  }
-  
-  // Показываем информацию о боте, если он настроен
-  if (isBotConfigured.value) {
-    const info = await getBotInfo()
-    if (info.success) {
-      botInfo.value = {
-        username: info.username,
-        firstName: info.firstName,
+  try {
+    const config = getTelegramConfig()
+    if (config) {
+      enabled.value = config.enabled
+      chatId.value = config.chatId
+    }
+    
+    // Показываем информацию о боте, если он настроен
+    if (isBotConfigured.value) {
+      try {
+        const info = await getBotInfo()
+        if (info.success) {
+          botInfo.value = {
+            username: info.username,
+            firstName: info.firstName,
+          }
+        }
+      } catch (error) {
+        console.warn('⚠️ Не удалось получить информацию о боте:', error)
       }
     }
+  } catch (error) {
+    console.error('⚠️ Ошибка при инициализации Telegram настроек:', error)
   }
 })
 
@@ -165,11 +173,17 @@ async function processTelegramInput() {
     const input = telegramInput.value.trim()
     
     // Если это username (начинается с @ или без)
-    if (input.startsWith('@') || !input.startsWith('+') && !/^\d+$/.test(input)) {
+    if (input.startsWith('@') || (!input.startsWith('+') && !/^\d+$/.test(input))) {
       const username = input.startsWith('@') ? input.substring(1) : input
       
       // Отправляем сообщение пользователю через бота с инструкцией
-      const result = await sendSetupMessageToUser(username)
+      let result
+      try {
+        result = await sendSetupMessageToUser(username)
+      } catch (error) {
+        console.error('Ошибка при отправке сообщения:', error)
+        result = { success: false, error: 'Не удалось отправить сообщение' }
+      }
       
       if (result.success && result.botUsername) {
         testResult.value = {
@@ -224,7 +238,13 @@ async function testConnection() {
   testResult.value = null
   
   try {
-    const result = await testTelegramConnection(chatId.value)
+    let result
+    try {
+      result = await testTelegramConnection(chatId.value)
+    } catch (error) {
+      console.error('Ошибка при проверке подключения:', error)
+      result = { success: false, error: 'Не удалось проверить подключение' }
+    }
     if (result.success) {
       testResult.value = {
         success: true,

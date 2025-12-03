@@ -34,10 +34,10 @@
           Добавить привычку
         </button>
       </div>
-      
-      <!-- Telegram настройки -->
-      <TelegramSettings />
     </div>
+    
+    <!-- Telegram настройки - показываем всегда -->
+    <TelegramSettings v-if="!store.loading" />
 
     <div v-if="showForm" class="modal-overlay" @click.self="closeForm">
       <div class="modal-content">
