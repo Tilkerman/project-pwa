@@ -168,7 +168,7 @@
 
     <div class="form-actions">
       <button
-        v-if="props.habit"
+        v-if="isEditing"
         type="button"
         class="btn-delete-icon"
         @click.stop="showDeleteConfirm = true"
@@ -237,7 +237,11 @@ const emit = defineEmits<{
   delete: []
 }>()
 
-const isEditing = computed(() => !!props.habit)
+const isEditing = computed(() => {
+  const hasHabit = !!props.habit
+  console.log('HabitForm isEditing check:', { hasHabit, habit: props.habit })
+  return hasHabit
+})
 
 const formData = ref({
   name: props.habit?.name || '',
