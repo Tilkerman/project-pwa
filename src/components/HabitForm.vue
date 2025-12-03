@@ -168,7 +168,7 @@
 
     <div class="form-actions">
       <button
-        v-if="isEditing"
+        v-if="isEditing && props.habit"
         type="button"
         class="btn-delete-icon"
         @click.stop="showDeleteConfirm = true"

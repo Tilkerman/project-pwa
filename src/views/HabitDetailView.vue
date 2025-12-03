@@ -51,7 +51,7 @@
       <div class="settings-content" @click.stop>
         <HabitForm
           :key="habit?.id || 'new'"
-          :habit="habit || undefined"
+          :habit="habit"
           @submit="handleUpdate"
           @cancel="closeSettings"
           @delete="handleDelete"
