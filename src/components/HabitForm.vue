@@ -145,31 +145,24 @@
         <div
           class="color-option color-option-custom"
           :class="{ active: formData.color === 'custom' }"
-          @click="showCustomColorPicker = !showCustomColorPicker"
-          :style="{ backgroundColor: formData.customColor || '#6b7280' }"
+          @click="openColorPicker"
+          :style="{ 
+            background: formData.color === 'custom' && formData.customColor 
+              ? formData.customColor 
+              : 'linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%)'
+          }"
         >
-          <span class="custom-color-icon">🎨</span>
+          <span class="custom-color-icon">+</span>
         </div>
       </div>
-      <div v-if="showCustomColorPicker || formData.color === 'custom'" class="custom-color-picker">
-        <label class="custom-color-label">Выберите свой цвет:</label>
-        <div class="custom-color-input-wrapper">
-          <input
-            v-model="formData.customColor"
-            type="color"
-            class="custom-color-input"
-            @change="selectCustomColor"
-          />
-          <input
-            v-model="formData.customColor"
-            type="text"
-            class="custom-color-text"
-            placeholder="#000000"
-            pattern="^#[0-9A-Fa-f]{6}$"
-            @input="validateCustomColor"
-          />
-        </div>
-      </div>
+      
+      <!-- Полноценный Color Picker -->
+      <ColorPicker
+        v-if="showColorPickerModal"
+        v-model="formData.customColor"
+        @confirm="handleColorConfirm"
+        @close="showColorPickerModal = false"
+      />
     </div>
 
     <div class="form-actions">
@@ -218,6 +211,7 @@ import { ref, computed, watch } from 'vue'
 import type { Habit, CharacterType, ProjectColor } from '@/types'
 import { characters } from '@/utils/characters'
 import { projectColors, availableColors, projectIcons } from '@/utils/projectColors'
+import ColorPicker from './ColorPicker.vue'
 
 const props = defineProps<{
   habit?: Habit
@@ -259,6 +253,7 @@ const showCharacterDropdown = ref(false)
 const showIconPicker = ref(false)
 const showTimePicker = ref(false)
 const showCustomColorPicker = ref(false)
+const showColorPickerModal = ref(false)
 const pendingNotificationEnabled = ref(false)
 const showDeleteConfirm = ref(false)
 
@@ -310,6 +305,19 @@ function selectColor(color: ProjectColor) {
 
 function selectCustomColor() {
   formData.value.color = 'custom'
+}
+
+function openColorPicker() {
+  if (!formData.value.customColor) {
+    formData.value.customColor = '#3b82f6'
+  }
+  showColorPickerModal.value = true
+}
+
+function handleColorConfirm(color: string) {
+  formData.value.customColor = color
+  formData.value.color = 'custom'
+  showColorPickerModal.value = false
 }
 
 function validateCustomColor(event: Event) {
