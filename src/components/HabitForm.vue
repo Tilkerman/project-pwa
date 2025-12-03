@@ -652,6 +652,8 @@ function handleDelete() {
   padding: 1rem 0;
   position: relative;
   z-index: 1;
+  width: 100%;
+  flex-wrap: wrap;
 }
 
 .btn-delete-icon {
