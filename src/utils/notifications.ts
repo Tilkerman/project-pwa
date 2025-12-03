@@ -101,8 +101,14 @@ function scheduleRecurringNotification(habit: Habit): void {
   notificationIntervals.set(habit.id, intervalId)
 }
 
-function showNotification(habit: Habit): void {
-  if (!('Notification' in window) || Notification.permission !== 'granted') {
+export function showNotification(habit: Habit): void {
+  if (!('Notification' in window)) {
+    console.warn('Браузер не поддерживает уведомления')
+    return
+  }
+
+  if (Notification.permission !== 'granted') {
+    console.warn('Нет разрешения на уведомления')
     return
   }
 
@@ -114,17 +120,72 @@ function showNotification(habit: Habit): void {
   
   // Используем пользовательское сообщение, если оно есть, иначе - сообщение персонажа
   const message = habit.customNotificationMessage || getCharacterMessage(habit.character, habit, 'daily')
-  const notification = new Notification(`${characterName} напоминает: ${habit.name}`, {
-    body: message,
-    icon: '/icons/icon-192x192.png',
-    badge: '/icons/icon-192x192.png',
-    tag: `habit-${habit.id}`,
-    requireInteraction: false
-  })
+  
+  try {
+    const notificationOptions: NotificationOptions = {
+      body: message,
+      icon: '/icons/icon-192x192.png',
+      badge: '/icons/icon-192x192.png',
+      tag: `habit-${habit.id}`,
+      requireInteraction: false,
+      silent: false
+    }
 
-  notification.onclick = () => {
-    window.focus()
-    notification.close()
+    // Добавляем вибрацию для мобильных устройств (если поддерживается)
+    if ('vibrate' in navigator) {
+      notificationOptions.vibrate = [200, 100, 200]
+    }
+
+    const notification = new Notification(`${characterName} напоминает: ${habit.name}`, notificationOptions)
+
+    notification.onclick = () => {
+      window.focus()
+      notification.close()
+    }
+
+    // Автоматически закрываем уведомление через 5 секунд
+    setTimeout(() => {
+      notification.close()
+    }, 5000)
+
+    console.log(`✅ Уведомление отправлено для "${habit.name}"`)
+  } catch (error) {
+    console.error('Ошибка при показе уведомления:', error)
+  }
+}
+
+// Функция для тестирования уведомлений
+export function testNotification(): void {
+  if (!('Notification' in window)) {
+    alert('Ваш браузер не поддерживает уведомления')
+    return
+  }
+
+  if (Notification.permission !== 'granted') {
+    alert('Сначала разрешите уведомления в настройках браузера')
+    return
+  }
+
+  try {
+    const testNotification = new Notification('Тестовое уведомление', {
+      body: 'Если вы видите это сообщение, уведомления работают правильно! 🎉',
+      icon: '/icons/icon-192x192.png',
+      badge: '/icons/icon-192x192.png',
+      tag: 'test-notification',
+      vibrate: [200, 100, 200]
+    })
+
+    testNotification.onclick = () => {
+      window.focus()
+      testNotification.close()
+    }
+
+    setTimeout(() => {
+      testNotification.close()
+    }, 5000)
+  } catch (error) {
+    console.error('Ошибка при тестовом уведомлении:', error)
+    alert('Ошибка при показе тестового уведомления')
   }
 }
 
