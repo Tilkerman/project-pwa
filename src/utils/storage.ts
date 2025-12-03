@@ -98,6 +98,7 @@ export async function saveHabit(habit: Habit): Promise<void> {
     markedDays: markedDaysArray,
     notes: notesObj,
     achievements: achievementsArray,
+    customColor: habit.customColor ? String(habit.customColor) : undefined,
     notificationEnabled: Boolean(habit.notificationEnabled)
   }
   

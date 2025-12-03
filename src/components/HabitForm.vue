@@ -128,14 +128,7 @@
     <div class="form-group">
       <label class="form-label">Выберите цвет для проекта</label>
       <div class="color-picker">
-        <div
-          v-for="color in availableColors.filter(c => c !== 'custom')"
-          :key="color"
-          class="color-option"
-          :class="{ active: formData.color === color }"
-          :style="{ backgroundColor: projectColors[color].bg }"
-          @click="selectColor(color)"
-        ></div>
+        <!-- Кнопка выбора своего цвета - ПЕРВАЯ -->
         <div
           class="color-option color-option-custom"
           :class="{ active: formData.color === 'custom' }"
@@ -150,6 +143,15 @@
         >
           <span class="custom-color-icon" style="font-size: 1.5rem; font-weight: bold; color: white; text-shadow: 0 0 3px rgba(0,0,0,0.5);">+</span>
         </div>
+        <!-- Только 4-5 предустановленных цветов -->
+        <div
+          v-for="color in ['blue', 'red', 'green', 'purple', 'pink']"
+          :key="color"
+          class="color-option"
+          :class="{ active: formData.color === color }"
+          :style="{ backgroundColor: projectColors[color].bg }"
+          @click="selectColor(color)"
+        ></div>
       </div>
       
       <!-- Полноценный Color Picker -->
@@ -630,6 +632,15 @@ function handleDelete() {
   display: flex;
   gap: 0.75rem;
   margin-top: 0.75rem;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.color-picker::-webkit-scrollbar {
+  display: none;
 }
 
 .color-option {

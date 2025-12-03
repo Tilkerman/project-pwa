@@ -83,6 +83,7 @@ async function handleSubmit(data: {
   notificationEnabled: boolean
   customNotificationMessage?: string
   color?: Habit['color']
+  customColor?: string
   icon?: string
   additionalMotivation?: boolean
 }) {
@@ -93,7 +94,8 @@ async function handleSubmit(data: {
     data.color || 'blue',
     data.icon,
     data.additionalMotivation !== undefined ? data.additionalMotivation : true,
-    data.customNotificationMessage
+    data.customNotificationMessage,
+    data.customColor
   )
   closeForm()
 }
