@@ -168,11 +168,11 @@
 
     <div class="form-actions">
       <button
-        v-if="isEditing && props.habit"
         type="button"
         class="btn-delete-icon"
         @click.stop="showDeleteConfirm = true"
         title="Удалить привычку"
+        style="background: red; color: white; border: 2px solid red;"
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M3 6h18"></path>
