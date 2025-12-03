@@ -1,11 +1,5 @@
 <template>
   <div class="habit-form">
-    <!-- ТЕСТОВЫЙ БЛОК В НАЧАЛЕ -->
-    <div style="background: yellow; padding: 20px; margin-bottom: 20px;">
-      <button style="background: red; color: white; padding: 10px;">ТЕСТ УДАЛЕНИЯ</button>
-      <button style="background: blue; color: white; padding: 10px;">СОХРАНИТЬ ТЕСТ</button>
-    </div>
-    
     <h2 class="form-title">{{ isEditing ? 'Название проекта' : 'Название проекта' }}</h2>
     
     <div class="form-group">
