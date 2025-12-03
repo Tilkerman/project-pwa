@@ -55,6 +55,30 @@
           @submit="handleUpdate"
           @cancel="closeSettings"
         />
+        <div v-if="habit" class="settings-footer">
+          <button class="btn-delete" @click="showDeleteConfirm = true">
+            Удалить
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Модальное окно подтверждения удаления -->
+    <div v-if="showDeleteConfirm" class="delete-confirm-modal" @click.self="showDeleteConfirm = false">
+      <div class="delete-confirm-content" @click.stop>
+        <h3 class="delete-confirm-title">Удалить привычку?</h3>
+        <p class="delete-confirm-text">
+          Вы уверены, что хотите удалить привычку "{{ habit?.name }}"? 
+          Это действие нельзя отменить.
+        </p>
+        <div class="delete-confirm-actions">
+          <button class="btn btn-secondary" @click="showDeleteConfirm = false">
+            Отмена
+          </button>
+          <button class="btn btn-danger" @click="handleDelete">
+            Удалить
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -75,6 +99,7 @@ const store = useHabitsStore()
 
 const loading = ref(true)
 const showSettings = ref(false)
+const showDeleteConfirm = ref(false)
 
 // Для обработки свайпов
 const touchStartY = ref(0)
@@ -258,6 +283,20 @@ async function handleUpdate(data: {
 function closeSettings() {
   showSettings.value = false
 }
+
+async function handleDelete() {
+  if (!habit.value) return
+  
+  try {
+    await store.removeHabit(habit.value.id)
+    showDeleteConfirm.value = false
+    showSettings.value = false
+    router.push('/')
+  } catch (error) {
+    console.error('Failed to delete habit:', error)
+    alert('Ошибка при удалении: ' + (error instanceof Error ? error.message : String(error)))
+  }
+}
 </script>
 
 <style scoped>
@@ -420,6 +459,125 @@ function closeSettings() {
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.settings-footer {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1rem;
+  background: white;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  border-radius: 0 0 16px 16px;
+  margin-top: auto;
+}
+
+.btn-delete {
+  padding: 0.75rem 1.5rem;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-delete:hover {
+  background: #dc2626;
+}
+
+.btn-delete:active {
+  transform: scale(0.95);
+  background: #b91c1c;
+}
+
+.delete-confirm-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 1rem;
+}
+
+.delete-confirm-content {
+  background: white;
+  border-radius: 16px;
+  max-width: 400px;
+  width: 100%;
+  padding: 2rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.delete-confirm-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 1rem 0;
+  color: #1f2937;
+}
+
+.delete-confirm-text {
+  font-size: 1rem;
+  color: #6b7280;
+  margin: 0 0 2rem 0;
+  line-height: 1.5;
+}
+
+.delete-confirm-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.btn-secondary {
+  padding: 0.75rem 1.5rem;
+  background: #f3f4f6;
+  color: #374151;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+  background: #e5e7eb;
+}
+
+.btn-danger {
+  padding: 0.75rem 1.5rem;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-danger:hover {
+  background: #dc2626;
+}
+
+.btn-danger:active {
+  transform: scale(0.95);
+  background: #b91c1c;
 }
 
 .btn {
