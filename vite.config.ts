@@ -7,7 +7,7 @@ import packageJson from './package.json'
 export default defineConfig({
   base: process.env.CI ? '/project-pwa/' : '/',
   build: {
-    outDir: 'public'
+    outDir: 'dist'
   },
   plugins: [
     vue(),
@@ -33,7 +33,9 @@ export default defineConfig({
         ]
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}']
+        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        // Импортируем кастомный скрипт для уведомлений
+        importScripts: ['/sw-custom.js']
       }
     })
   ],

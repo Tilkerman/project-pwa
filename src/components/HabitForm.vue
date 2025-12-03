@@ -86,6 +86,39 @@
               </button>
             </div>
           </div>
+          
+          <!-- Форма для ввода номера/никнейма Telegram -->
+          <div class="ios-telegram-info">
+            <div class="info-header">
+              <span class="info-icon">🍎</span>
+              <strong>Для получения уведомлений через Telegram:</strong>
+            </div>
+            <div class="info-text">
+              Введите ваш номер телефона или никнейм Telegram:
+            </div>
+            <div class="ios-contact-form">
+              <input
+                v-model="iosContactInfo"
+                type="text"
+                class="ios-contact-input"
+                placeholder="Номер телефона или никнейм (например: @username или +79991234567)"
+                @input="saveIOSContactInfo"
+              />
+              <p class="ios-contact-hint">
+                Введите ваш номер телефона (например: +79991234567) или никнейм Telegram (например: @username)
+              </p>
+            </div>
+          </div>
+          
+          <div class="test-notification-section">
+            <button 
+              class="btn-test-notification" 
+              @click="testNotification"
+              type="button"
+            >
+              🔔 Проверить уведомления
+            </button>
+          </div>
         </div>
         <div class="time-picker-actions">
           <button class="btn btn-secondary" @click="cancelTimePicker">Отмена</button>
@@ -205,7 +238,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import type { Habit, CharacterType, ProjectColor } from '@/types'
 import { characters } from '@/utils/characters'
 import { projectColors, availableColors, projectIcons } from '@/utils/projectColors'
@@ -256,6 +289,45 @@ const showCustomColorPicker = ref(false)
 const showColorPickerModal = ref(false)
 const pendingNotificationEnabled = ref(false)
 const showDeleteConfirm = ref(false)
+const iosContactInfo = ref('')
+
+// Определение iOS устройства
+const isIOSDevice = computed(() => {
+  const ua = navigator.userAgent
+  const isIOS = /iPad|iPhone|iPod/.test(ua) || 
+                (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+  // Отладочная информация
+  console.log('🔍 iOS Detection:', {
+    userAgent: ua,
+    platform: navigator.platform,
+    maxTouchPoints: navigator.maxTouchPoints,
+    isIOS: isIOS
+  })
+  return isIOS
+})
+
+// Загружаем сохраненный контакт iOS пользователя
+onMounted(() => {
+  const savedContact = localStorage.getItem('ios_telegram_contact')
+  if (savedContact) {
+    iosContactInfo.value = savedContact
+  }
+  
+  // Если редактируем привычку с включенными оповещениями, загружаем контакт
+  if (props.habit?.notificationEnabled) {
+    const savedContactForHabit = localStorage.getItem('ios_telegram_contact')
+    if (savedContactForHabit) {
+      iosContactInfo.value = savedContactForHabit
+    }
+  }
+})
+
+// Сохранение контакта iOS пользователя
+function saveIOSContactInfo() {
+  if (iosContactInfo.value.trim()) {
+    localStorage.setItem('ios_telegram_contact', iosContactInfo.value.trim())
+  }
+}
 
 const availableCharacters = computed(() => Object.values(characters))
 
@@ -371,6 +443,11 @@ async function handleNotificationToggle(event: Event) {
 }
 
 function confirmTimePicker() {
+  // Сохраняем контакт, если он введен (для всех устройств, не только iOS)
+  if (iosContactInfo.value.trim()) {
+    saveIOSContactInfo()
+  }
+  
   if (formData.value.notificationTime) {
     // Если текст не заполнен, используем текст по умолчанию от персонажа
     if (!formData.value.customNotificationMessage?.trim()) {
@@ -379,11 +456,20 @@ function confirmTimePicker() {
     formData.value.notificationEnabled = true
     showTimePicker.value = false
     pendingNotificationEnabled.value = false
+  } else {
+    // Если время не выбрано, все равно закрываем модалку
+    showTimePicker.value = false
+    pendingNotificationEnabled.value = false
   }
 }
 
 function useDefaultMessage() {
   formData.value.customNotificationMessage = selectedCharacterMessage.value
+}
+
+async function testNotification() {
+  const { testNotification: testNotif } = await import('@/utils/notifications')
+  testNotif()
 }
 
 function cancelTimePicker() {
@@ -403,14 +489,35 @@ function closeTimePicker() {
 }
 
 function handleSubmit(event?: Event) {
+  console.log('🔵 handleSubmit вызван', { event, name: formData.value.name, showTimePicker: showTimePicker.value })
+  
   if (event) {
     event.preventDefault()
     event.stopPropagation()
   }
   
+  // Сохраняем контакт, если он введен (для всех устройств)
+  if (iosContactInfo.value.trim()) {
+    saveIOSContactInfo()
+  }
+  
   if (!formData.value.name.trim()) {
-    console.warn('Habit name is empty')
+    console.warn('⚠️ Habit name is empty')
+    alert('Введите название проекта')
     return
+  }
+
+  // Если модальное окно оповещений открыто, закрываем его перед сохранением
+  if (showTimePicker.value) {
+    console.log('⚠️ Модальное окно открыто, закрываем его перед сохранением')
+    showTimePicker.value = false
+    pendingNotificationEnabled.value = false
+    // Подтверждаем настройки оповещений, если они были включены
+    if (pendingNotificationEnabled.value || formData.value.notificationEnabled) {
+      if (formData.value.notificationTime) {
+        formData.value.notificationEnabled = true
+      }
+    }
   }
 
   const submitData = {
@@ -425,7 +532,7 @@ function handleSubmit(event?: Event) {
     additionalMotivation: formData.value.additionalMotivation
   }
 
-  console.log('Emitting submit event with data:', submitData)
+  console.log('✅ Emitting submit event with data:', submitData)
   emit('submit', submitData)
 }
 
@@ -684,7 +791,7 @@ function handleDelete() {
   margin-top: 2rem;
   padding: 1rem 0;
   position: relative;
-  z-index: 1;
+  z-index: 10;
   width: 100%;
   flex-wrap: wrap;
 }
@@ -846,8 +953,14 @@ function handleDelete() {
   border-radius: 16px;
   max-width: 400px;
   width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  overflow-x: hidden;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
   animation: slideUp 0.3s ease-out;
+  display: flex;
+  flex-direction: column;
+  -webkit-overflow-scrolling: touch;
 }
 
 .time-picker-header {
@@ -899,6 +1012,9 @@ function handleDelete() {
 .time-picker-body {
   padding: 1.5rem;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
 .time-picker-title {
@@ -1012,6 +1128,172 @@ function handleDelete() {
   flex: 1;
 }
 
+.ios-telegram-info {
+  margin-top: 0;
+  padding: 1.5rem;
+  background: #e0f2fe;
+  border: 2px solid #0ea5e9;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(14, 165, 233, 0.2);
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.info-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  color: #0369a1;
+}
+
+.info-icon {
+  font-size: 1.25rem;
+}
+
+.info-text {
+  font-size: 0.875rem;
+  color: #0369a1;
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}
+
+.info-steps {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #7dd3fc;
+}
+
+.steps-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #0369a1;
+  margin-bottom: 0.5rem;
+}
+
+.steps-list {
+  margin: 0;
+  padding-left: 1.25rem;
+  font-size: 0.8125rem;
+  color: #0369a1;
+  line-height: 1.6;
+}
+
+.steps-list li {
+  margin-bottom: 0.5rem;
+}
+
+.steps-list code {
+  background: #bae6fd;
+  padding: 0.125rem 0.375rem;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.75rem;
+}
+
+.ios-contact-form {
+  margin-top: 1rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.ios-contact-input {
+  width: 100% !important;
+  padding: 0.75rem !important;
+  border: 2px solid #bae6fd !important;
+  border-radius: 8px !important;
+  font-size: 0.875rem !important;
+  background: white !important;
+  color: #1f2937 !important;
+  transition: border-color 0.2s !important;
+  display: block !important;
+  visibility: visible !important;
+  box-sizing: border-box !important;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.ios-contact-input:focus {
+  outline: none !important;
+  border-color: #0ea5e9 !important;
+}
+
+.ios-contact-hint {
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  color: #0369a1;
+  line-height: 1.4;
+}
+
+.test-notification-section {
+  margin-top: 0;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e5e7eb;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.btn-test-notification {
+  width: 100% !important;
+  padding: 0.875rem 1.5rem !important;
+  background: #f3f4f6 !important;
+  color: #374151 !important;
+  border: 2px solid #e5e7eb !important;
+  border-radius: 8px !important;
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.2s !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.5rem !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.btn-test-notification:hover {
+  background: #e5e7eb;
+  border-color: #d1d5db;
+}
+
+.btn-test-notification:active {
+  transform: scale(0.98);
+}
+
+.ios-contact-section {
+  margin-top: 1rem !important;
+  margin-bottom: 1rem !important;
+  padding: 1.5rem !important;
+  background: #e0f2fe !important;
+  border-radius: 8px !important;
+  border: 3px solid #0ea5e9 !important;
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.4) !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  min-height: 150px !important;
+}
+
+.ios-icon {
+  font-size: 1.25rem;
+  margin-right: 0.5rem;
+}
+
+.form-hint {
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  color: #0369a1;
+  line-height: 1.4;
+}
+
 @keyframes slideUp {
   from {
     opacity: 0;
@@ -1029,6 +1311,33 @@ function handleDelete() {
   }
   to {
     opacity: 1;
+  }
+}
+
+/* Мобильные устройства */
+@media (max-width: 768px) {
+  .time-picker-content {
+    max-height: 95vh;
+    margin: 0.5rem;
+  }
+  
+  .time-picker-body {
+    padding: 1rem;
+    gap: 1rem;
+  }
+  
+  .ios-telegram-info {
+    padding: 1rem !important;
+    margin-top: 0 !important;
+  }
+  
+  .test-notification-section {
+    padding-top: 1rem !important;
+  }
+  
+  .btn-test-notification {
+    padding: 1rem 1.5rem !important;
+    font-size: 1rem !important;
   }
 }
 </style>

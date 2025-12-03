@@ -1,9 +1,71 @@
 import type { Habit } from '@/types'
 import { getCharacterMessage } from './characters'
+import { sendTelegramNotification, isTelegramEnabled } from './telegram'
 
 // Хранилище для timeout ID, чтобы можно было их очищать
 const notificationTimeouts = new Map<string, number>()
 const notificationIntervals = new Map<string, number>()
+
+// Регистрация периодической проверки в Service Worker
+let periodicSyncRegistered = false
+
+// Определение iOS устройства
+function isIOS(): boolean {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+         (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+}
+
+// Определение, установлено ли приложение как PWA
+function isStandalone(): boolean {
+  return (window.matchMedia('(display-mode: standalone)').matches) ||
+         ((window.navigator as any).standalone === true) ||
+         document.referrer.includes('android-app://')
+}
+
+async function registerPeriodicSync(): Promise<void> {
+  if (periodicSyncRegistered) return
+  
+  if ('serviceWorker' in navigator) {
+    try {
+      const registration = await navigator.serviceWorker.ready
+      
+      // Пытаемся зарегистрировать Periodic Background Sync (работает на Android Chrome)
+      // @ts-ignore - PeriodicBackgroundSync может быть не в типах
+      if ('PeriodicBackgroundSync' in window && registration.periodicSync) {
+        try {
+          // @ts-ignore
+          await registration.periodicSync.register('check-notifications', {
+            minInterval: 60 * 1000 // Минимум 1 минута (браузер может увеличить интервал)
+          })
+          periodicSyncRegistered = true
+          console.log('✅ Периодическая фоновая синхронизация зарегистрирована')
+        } catch (error) {
+          console.warn('⚠️ Periodic Background Sync не доступен:', error)
+        }
+      }
+      
+      // Всегда отправляем сообщение Service Worker для запуска проверки
+      // Это работает как fallback и для браузеров без Periodic Background Sync
+      if (registration.active) {
+        registration.active.postMessage({ type: 'START_PERIODIC_CHECK' })
+        periodicSyncRegistered = true
+        console.log('✅ Периодическая проверка запущена в Service Worker')
+      } else if (registration.waiting) {
+        registration.waiting.postMessage({ type: 'START_PERIODIC_CHECK' })
+        periodicSyncRegistered = true
+      } else if (registration.installing) {
+        registration.installing.addEventListener('statechange', () => {
+          if (registration.installing?.state === 'activated') {
+            registration.installing.postMessage({ type: 'START_PERIODIC_CHECK' })
+            periodicSyncRegistered = true
+          }
+        })
+      }
+    } catch (error) {
+      console.warn('⚠️ Ошибка при запуске периодической проверки:', error)
+    }
+  }
+}
 
 export async function requestNotificationPermission(): Promise<boolean> {
   if (!('Notification' in window)) {
@@ -37,7 +99,7 @@ export async function requestNotificationPermission(): Promise<boolean> {
   return false
 }
 
-export function scheduleNotifications(habit: Habit): void {
+export async function scheduleNotifications(habit: Habit): Promise<void> {
   if (!habit.notificationEnabled || !habit.notificationTime) {
     console.log('⏸️ Уведомления отключены для привычки:', habit.name)
     clearNotifications(habit.id)
@@ -49,6 +111,14 @@ export function scheduleNotifications(habit: Habit): void {
     console.warn('⚠️ Нет разрешения на уведомления для привычки:', habit.name)
     return
   }
+
+  // Для iOS показываем предупреждение о ограничениях
+  if (isIOS() && !isStandalone()) {
+    console.warn('⚠️ Для работы уведомлений на iOS необходимо установить приложение на главный экран')
+  }
+
+  // Регистрируем периодическую проверку в Service Worker
+  await registerPeriodicSync()
 
   // Очищаем существующие уведомления для этой привычки
   clearNotifications(habit.id)
@@ -67,17 +137,53 @@ export function scheduleNotifications(habit: Habit): void {
   
   console.log(`📅 Планируем уведомление для "${habit.name}" на ${notificationTime.toLocaleString('ru-RU')} (через ${Math.round(timeUntilNotification / 1000 / 60)} минут)`)
 
-  const timeoutId = window.setTimeout(() => {
+  // Планируем уведомление для случая, когда приложение открыто
+  const timeoutId = window.setTimeout(async () => {
     console.log(`🔔 Время уведомления для "${habit.name}"!`)
-    showNotification(habit)
+    await showNotification(habit)
     // Планируем повторяющееся уведомление
-    scheduleRecurringNotification(habit)
+    await scheduleRecurringNotification(habit)
   }, timeUntilNotification)
 
   notificationTimeouts.set(habit.id, timeoutId)
+  
+  // Также отправляем информацию в Service Worker для фоновой проверки
+  if ('serviceWorker' in navigator) {
+    try {
+      const registration = await navigator.serviceWorker.ready
+      registration.active?.postMessage({
+        type: 'SCHEDULE_NOTIFICATION',
+        habit: {
+          id: habit.id,
+          name: habit.name,
+          notificationTime: habit.notificationTime,
+          notificationEnabled: habit.notificationEnabled,
+          customNotificationMessage: habit.customNotificationMessage,
+          character: habit.character
+        }
+      })
+    } catch (error) {
+      console.warn('⚠️ Ошибка при отправке расписания в Service Worker:', error)
+    }
+  }
+
+  // Для iOS: сохраняем расписание в localStorage для восстановления при следующем открытии
+  if (isIOS()) {
+    try {
+      const schedules = JSON.parse(localStorage.getItem('ios_notification_schedules') || '{}')
+      schedules[habit.id] = {
+        time: habit.notificationTime,
+        enabled: habit.notificationEnabled,
+        lastCheck: new Date().toISOString()
+      }
+      localStorage.setItem('ios_notification_schedules', JSON.stringify(schedules))
+    } catch (error) {
+      console.warn('⚠️ Ошибка при сохранении расписания для iOS:', error)
+    }
+  }
 }
 
-function scheduleRecurringNotification(habit: Habit): void {
+async function scheduleRecurringNotification(habit: Habit): Promise<void> {
   // Очищаем предыдущий интервал, если есть
   const existingInterval = notificationIntervals.get(habit.id)
   if (existingInterval) {
@@ -86,11 +192,11 @@ function scheduleRecurringNotification(habit: Habit): void {
 
   const interval = 24 * 60 * 60 * 1000 // 24 часа
 
-  const intervalId = window.setInterval(() => {
+  const intervalId = window.setInterval(async () => {
     // Проверяем актуальное состояние привычки
     if (habit.notificationEnabled && Notification.permission === 'granted') {
       console.log(`🔔 Повторяющееся уведомление для "${habit.name}"`)
-      showNotification(habit)
+      await showNotification(habit)
     } else {
       // Если уведомления отключены, очищаем интервал
       clearInterval(intervalId)
@@ -101,7 +207,53 @@ function scheduleRecurringNotification(habit: Habit): void {
   notificationIntervals.set(habit.id, intervalId)
 }
 
-export function showNotification(habit: Habit): void {
+export async function showNotification(habit: Habit): Promise<void> {
+  // Пытаемся использовать Service Worker для показа уведомления (работает даже когда приложение закрыто)
+  if ('serviceWorker' in navigator && 'Notification' in window && Notification.permission === 'granted') {
+    try {
+      const registration = await navigator.serviceWorker.ready
+      const character = habit.character
+      const characterName = character === 'babushka' ? 'Добрая Бабушка' :
+                            character === 'gopnik' ? 'Гопник' :
+                            character === 'teacher' ? 'Строгий Учитель' :
+                            character === 'grandpa' ? 'Старый Дед' : 'Друг'
+      
+      // Используем пользовательское сообщение, если оно есть, иначе - сообщение персонажа
+      const message = habit.customNotificationMessage || getCharacterMessage(habit.character, habit, 'daily')
+      
+      const title = `${characterName} напоминает: ${habit.name}`
+      
+      const options: NotificationOptions = {
+        body: message,
+        icon: '/icons/icon-192x192.png',
+        badge: '/icons/icon-192x192.png',
+        tag: `habit-${habit.id}`,
+        requireInteraction: false,
+        silent: false,
+        vibrate: [200, 100, 200],
+        data: {
+          habitId: habit.id,
+          url: '/'
+        }
+      }
+
+      await registration.showNotification(title, options)
+      console.log(`✅ Уведомление отправлено для "${habit.name}" через Service Worker`)
+      
+      // Также отправляем через Telegram, если настроено
+      if (isTelegramEnabled()) {
+        await sendTelegramNotification(title, message).catch(error => {
+          console.warn('⚠️ Ошибка при отправке Telegram уведомления:', error)
+        })
+      }
+      
+      return
+    } catch (error) {
+      console.warn('⚠️ Не удалось показать уведомление через Service Worker, используем обычный способ:', error)
+    }
+  }
+
+  // Fallback: используем обычный способ (работает только когда приложение открыто)
   if (!('Notification' in window)) {
     console.warn('Браузер не поддерживает уведомления')
     return
@@ -149,6 +301,16 @@ export function showNotification(habit: Habit): void {
     }, 5000)
 
     console.log(`✅ Уведомление отправлено для "${habit.name}"`)
+    
+    // Также отправляем через Telegram, если настроено
+    if (isTelegramEnabled()) {
+      await sendTelegramNotification(
+        `${characterName} напоминает: ${habit.name}`,
+        message
+      ).catch(error => {
+        console.warn('⚠️ Ошибка при отправке Telegram уведомления:', error)
+      })
+    }
   } catch (error) {
     console.error('Ошибка при показе уведомления:', error)
   }
@@ -189,7 +351,7 @@ export function testNotification(): void {
   }
 }
 
-export function clearNotifications(habitId: string): void {
+export async function clearNotifications(habitId: string): Promise<void> {
   // Очищаем timeout
   const timeoutId = notificationTimeouts.get(habitId)
   if (timeoutId) {
@@ -204,6 +366,19 @@ export function clearNotifications(habitId: string): void {
     clearInterval(intervalId)
     notificationIntervals.delete(habitId)
   }
+  
+  // Уведомляем Service Worker об отмене уведомления
+  if ('serviceWorker' in navigator) {
+    try {
+      const registration = await navigator.serviceWorker.ready
+      registration.active?.postMessage({
+        type: 'CLEAR_NOTIFICATION',
+        habitId
+      })
+    } catch (error) {
+      console.warn('⚠️ Ошибка при отправке команды очистки в Service Worker:', error)
+    }
+  }
 }
 
 // Проверка пропущенных уведомлений при загрузке приложения
@@ -213,8 +388,9 @@ export async function checkMissedNotifications(habits: Habit[]): Promise<void> {
   }
 
   const now = new Date()
-  const currentHour = now.getHours()
-  const currentMinute = now.getMinutes()
+  
+  // Для iOS увеличиваем окно проверки до 4 часов
+  const checkWindow = isIOS() ? 4 * 60 * 60 * 1000 : 2 * 60 * 60 * 1000
 
   for (const habit of habits) {
     if (!habit.notificationEnabled || !habit.notificationTime) {
@@ -223,17 +399,28 @@ export async function checkMissedNotifications(habits: Habit[]): Promise<void> {
 
     const [hours, minutes] = habit.notificationTime.split(':').map(Number)
     
-    // Проверяем, было ли время уведомления в последние 2 часа
+    // Проверяем, было ли время уведомления в последние N часов
     const notificationTimeToday = new Date()
     notificationTimeToday.setHours(hours, minutes, 0, 0)
     
     const timeDiff = now.getTime() - notificationTimeToday.getTime()
-    const twoHours = 2 * 60 * 60 * 1000
 
-    // Если уведомление должно было быть в последние 2 часа, показываем его
-    if (timeDiff > 0 && timeDiff < twoHours) {
-      console.log(`⏰ Показываем пропущенное уведомление для "${habit.name}"`)
-      showNotification(habit)
+    // Если уведомление должно было быть в последние N часов, показываем его
+    if (timeDiff > 0 && timeDiff < checkWindow) {
+      // Проверяем, не показывали ли мы уже это уведомление сегодня
+      try {
+        const lastShownKey = `lastMissedNotification_${habit.id}`
+        const lastShownDate = localStorage.getItem(lastShownKey)
+        const today = now.toDateString()
+        
+        if (lastShownDate !== today) {
+          console.log(`⏰ Показываем пропущенное уведомление для "${habit.name}"`)
+          await showNotification(habit)
+          localStorage.setItem(lastShownKey, today)
+        }
+      } catch (error) {
+        console.warn('⚠️ Ошибка при проверке пропущенного уведомления:', error)
+      }
     }
   }
 }

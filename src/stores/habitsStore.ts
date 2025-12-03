@@ -73,11 +73,11 @@ export const useHabitsStore = defineStore('habits', () => {
     try {
       habits.value = await getAllHabits()
       // Schedule notifications for all habits
-      habits.value.forEach((habit) => {
+      for (const habit of habits.value) {
         if (habit.notificationEnabled) {
-          scheduleNotifications(habit)
+          await scheduleNotifications(habit)
         }
-      })
+      }
     } catch (error) {
       console.error('Failed to load habits:', error)
     } finally {
@@ -117,7 +117,7 @@ export const useHabitsStore = defineStore('habits', () => {
 
     if (newHabit.notificationEnabled) {
       await requestNotificationPermission()
-      scheduleNotifications(newHabit)
+      await scheduleNotifications(newHabit)
     }
 
     return newHabit
@@ -146,7 +146,7 @@ export const useHabitsStore = defineStore('habits', () => {
 
       if (habit.notificationEnabled) {
         await requestNotificationPermission()
-        scheduleNotifications(habit)
+        await scheduleNotifications(habit)
       }
     } catch (error) {
       console.error('Failed to update habit:', error)

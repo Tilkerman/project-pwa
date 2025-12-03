@@ -44,6 +44,7 @@
         />
       </div>
     </div>
+
   </div>
 </template>
 
@@ -118,6 +119,58 @@ function closeForm() {
   align-items: center;
   margin-bottom: 2rem;
   padding-top: 1rem;
+  position: relative;
+}
+
+.settings-btn {
+  position: absolute;
+  right: 0;
+  top: 1rem;
+  background: #f3f4f6;
+  border: 2px solid #e5e7eb;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: all 0.2s;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.settings-btn:hover {
+  background: #e5e7eb;
+  transform: scale(1.1);
+}
+
+.btn-telegram-settings {
+  width: 100%;
+  margin-top: 0.75rem;
+  padding: 0.875rem;
+  background: #e0f2fe;
+  color: #0369a1;
+  border: 2px solid #bae6fd;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-telegram-settings:hover {
+  background: #bae6fd;
+  border-color: #7dd3fc;
+  transform: translateY(-1px);
+}
+
+.telegram-icon {
+  font-size: 1.25rem;
 }
 
 .loading {
@@ -246,6 +299,30 @@ function closeForm() {
   background: #4338ca;
 }
 
+.btn-telegram-empty {
+  margin-top: 1rem;
+  padding: 0.75rem 1.5rem;
+  background: #e0f2fe;
+  color: #0369a1;
+  border: 2px solid #bae6fd;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.btn-telegram-empty:hover {
+  background: #bae6fd;
+  border-color: #7dd3fc;
+}
+
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -270,6 +347,13 @@ function closeForm() {
   overflow-y: auto;
   animation: fadeIn 0.3s ease-out;
   border: 1px solid var(--border-color);
+}
+
+.modal-actions {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: flex-end;
 }
 
 @keyframes fadeIn {
