@@ -13,6 +13,7 @@
 import { onMounted } from 'vue'
 import { useHabitsStore } from './stores/habitsStore'
 import { useThemeStore } from './stores/themeStore'
+import { checkMissedNotifications } from './utils/notifications'
 
 const store = useHabitsStore()
 const themeStore = useThemeStore()
@@ -22,6 +23,11 @@ const appVersion = __APP_VERSION__ ?? '1.0.0'
 onMounted(async () => {
   themeStore.initTheme()
   await store.loadHabits()
+  
+  // Проверяем пропущенные уведомления при загрузке
+  if (store.habits.length > 0) {
+    await checkMissedNotifications(store.habits)
+  }
 })
 </script>
 

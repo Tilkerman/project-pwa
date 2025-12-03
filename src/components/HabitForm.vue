@@ -342,14 +342,25 @@ function selectIcon(icon: string) {
   showIconPicker.value = false
 }
 
-function handleNotificationToggle(event: Event) {
+async function handleNotificationToggle(event: Event) {
   const target = event.target as HTMLInputElement
   const willBeEnabled = target.checked
   const wasEnabled = formData.value.notificationEnabled
   
   if (willBeEnabled && !wasEnabled) {
-    // Если включаем оповещения (были выключены), предотвращаем включение и показываем модалку
+    // Если включаем оповещения (были выключены), запрашиваем разрешение
     event.preventDefault()
+    
+    // Импортируем функцию запроса разрешения
+    const { requestNotificationPermission } = await import('@/utils/notifications')
+    const hasPermission = await requestNotificationPermission()
+    
+    if (!hasPermission) {
+      alert('Для работы уведомлений необходимо разрешить их в настройках браузера')
+      return
+    }
+    
+    // Если разрешение получено, показываем модалку выбора времени
     pendingNotificationEnabled.value = true
     showTimePicker.value = true
   } else if (!willBeEnabled && wasEnabled) {
