@@ -21,51 +21,83 @@ const currentYear = new Date().getFullYear()
 const appVersion = __APP_VERSION__ ?? '1.0.0'
 
 onMounted(async () => {
-  themeStore.initTheme()
-  await store.loadHabits()
-  
-  // Проверяем пропущенные уведомления при загрузке
-  if (store.habits.length > 0) {
-    await checkMissedNotifications(store.habits)
-  }
-  
-  // Для iOS: проверяем пропущенные уведомления при открытии приложения
-  if (/iPad|iPhone|iPod/.test(navigator.userAgent) || 
-      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) {
-    // Проверяем расписания из localStorage
-    try {
-      const schedules = JSON.parse(localStorage.getItem('ios_notification_schedules') || '{}')
-      const now = new Date()
-      const currentHour = now.getHours()
-      const currentMinute = now.getMinutes()
-      
-      for (const [habitId, schedule] of Object.entries(schedules)) {
-        if (!schedule.enabled) continue
+  try {
+    themeStore.initTheme()
+    await store.loadHabits()
+    
+    // Проверяем пропущенные уведомления при загрузке
+    if (store.habits.length > 0) {
+      try {
+        await checkMissedNotifications(store.habits)
+      } catch (error) {
+        console.error('⚠️ Ошибка при проверке пропущенных уведомлений:', error)
+      }
+    }
+    
+    // Для iOS: проверяем пропущенные уведомления при открытии приложения
+    if (/iPad|iPhone|iPod/.test(navigator.userAgent) || 
+        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) {
+      // Проверяем расписания из localStorage
+      try {
+        const schedulesStr = localStorage.getItem('ios_notification_schedules')
+        if (!schedulesStr) return
         
-        const [hours, minutes] = schedule.time.split(':').map(Number)
-        const lastCheck = schedule.lastCheck ? new Date(schedule.lastCheck) : null
+        const schedules = JSON.parse(schedulesStr)
+        if (!schedules || typeof schedules !== 'object') return
         
-        // Если время уведомления было в последние 2 часа и мы его еще не показывали сегодня
-        const notificationTime = new Date()
-        notificationTime.setHours(hours, minutes, 0, 0)
-        const timeDiff = now.getTime() - notificationTime.getTime()
-        const twoHours = 2 * 60 * 60 * 1000
+        const now = new Date()
         
-        if (timeDiff > 0 && timeDiff < twoHours) {
-          const habit = store.habits.find(h => h.id === habitId)
-          if (habit && (!lastCheck || lastCheck.toDateString() !== now.toDateString())) {
-            // Показываем пропущенное уведомление
-            const { showNotification } = await import('./utils/notifications')
-            await showNotification(habit)
-            // Обновляем время последней проверки
-            schedules[habitId].lastCheck = now.toISOString()
-            localStorage.setItem('ios_notification_schedules', JSON.stringify(schedules))
+        for (const [habitId, schedule] of Object.entries(schedules)) {
+          try {
+            // Проверяем, что schedule - это объект и имеет нужные поля
+            if (!schedule || typeof schedule !== 'object') continue
+            if (!schedule.enabled) continue
+            if (!schedule.time || typeof schedule.time !== 'string') continue
+            
+            const timeParts = schedule.time.split(':')
+            if (timeParts.length !== 2) continue
+            
+            const hours = parseInt(timeParts[0], 10)
+            const minutes = parseInt(timeParts[1], 10)
+            
+            if (isNaN(hours) || isNaN(minutes)) continue
+            
+            const lastCheck = schedule.lastCheck ? new Date(schedule.lastCheck) : null
+            
+            // Если время уведомления было в последние 2 часа и мы его еще не показывали сегодня
+            const notificationTime = new Date()
+            notificationTime.setHours(hours, minutes, 0, 0)
+            const timeDiff = now.getTime() - notificationTime.getTime()
+            const twoHours = 2 * 60 * 60 * 1000
+            
+            if (timeDiff > 0 && timeDiff < twoHours) {
+              const habit = store.habits.find(h => h.id === habitId)
+              if (habit && (!lastCheck || lastCheck.toDateString() !== now.toDateString())) {
+                try {
+                  // Показываем пропущенное уведомление
+                  const { showNotification } = await import('./utils/notifications')
+                  await showNotification(habit)
+                  // Обновляем время последней проверки
+                  schedules[habitId].lastCheck = now.toISOString()
+                  localStorage.setItem('ios_notification_schedules', JSON.stringify(schedules))
+                } catch (error) {
+                  console.error('⚠️ Ошибка при показе пропущенного уведомления:', error)
+                }
+              }
+            }
+          } catch (error) {
+            console.error(`⚠️ Ошибка при обработке расписания для привычки ${habitId}:`, error)
+            // Продолжаем обработку других привычек
+            continue
           }
         }
+      } catch (error) {
+        console.error('⚠️ Ошибка при проверке пропущенных уведомлений на iOS:', error)
       }
-    } catch (error) {
-      console.warn('⚠️ Ошибка при проверке пропущенных уведомлений на iOS:', error)
     }
+  } catch (error) {
+    console.error('⚠️ Критическая ошибка при инициализации приложения:', error)
+    // Не позволяем ошибке сломать всё приложение
   }
 })
 </script>

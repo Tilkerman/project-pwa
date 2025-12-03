@@ -6,6 +6,26 @@ import './style.css'
 
 const app = createApp(App)
 
+// Глобальная обработка ошибок для предотвращения белого экрана
+app.config.errorHandler = (err, instance, info) => {
+  console.error('⚠️ Глобальная ошибка Vue:', err, info)
+  // Не позволяем ошибке сломать всё приложение
+}
+
+// Обработка необработанных ошибок
+window.addEventListener('error', (event) => {
+  console.error('⚠️ Необработанная ошибка:', event.error)
+  // Предотвращаем показ белого экрана
+  event.preventDefault()
+})
+
+// Обработка необработанных промисов
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('⚠️ Необработанное отклонение промиса:', event.reason)
+  // Предотвращаем показ белого экрана
+  event.preventDefault()
+})
+
 app.use(createPinia())
 app.use(router)
 

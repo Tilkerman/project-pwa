@@ -383,45 +383,74 @@ export async function clearNotifications(habitId: string): Promise<void> {
 
 // Проверка пропущенных уведомлений при загрузке приложения
 export async function checkMissedNotifications(habits: Habit[]): Promise<void> {
-  if (!('Notification' in window) || Notification.permission !== 'granted') {
-    return
-  }
-
-  const now = new Date()
-  
-  // Для iOS увеличиваем окно проверки до 4 часов
-  const checkWindow = isIOS() ? 4 * 60 * 60 * 1000 : 2 * 60 * 60 * 1000
-
-  for (const habit of habits) {
-    if (!habit.notificationEnabled || !habit.notificationTime) {
-      continue
+  try {
+    if (!('Notification' in window) || Notification.permission !== 'granted') {
+      return
     }
 
-    const [hours, minutes] = habit.notificationTime.split(':').map(Number)
-    
-    // Проверяем, было ли время уведомления в последние N часов
-    const notificationTimeToday = new Date()
-    notificationTimeToday.setHours(hours, minutes, 0, 0)
-    
-    const timeDiff = now.getTime() - notificationTimeToday.getTime()
+    if (!habits || !Array.isArray(habits)) {
+      return
+    }
 
-    // Если уведомление должно было быть в последние N часов, показываем его
-    if (timeDiff > 0 && timeDiff < checkWindow) {
-      // Проверяем, не показывали ли мы уже это уведомление сегодня
+    const now = new Date()
+    
+    // Для iOS увеличиваем окно проверки до 4 часов
+    const checkWindow = isIOS() ? 4 * 60 * 60 * 1000 : 2 * 60 * 60 * 1000
+
+    for (const habit of habits) {
       try {
-        const lastShownKey = `lastMissedNotification_${habit.id}`
-        const lastShownDate = localStorage.getItem(lastShownKey)
-        const today = now.toDateString()
+        if (!habit || !habit.notificationEnabled || !habit.notificationTime) {
+          continue
+        }
+
+        // Проверяем формат времени
+        if (typeof habit.notificationTime !== 'string') {
+          continue
+        }
+
+        const timeParts = habit.notificationTime.split(':')
+        if (timeParts.length !== 2) {
+          continue
+        }
+
+        const hours = parseInt(timeParts[0], 10)
+        const minutes = parseInt(timeParts[1], 10)
+
+        if (isNaN(hours) || isNaN(minutes) || hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+          continue
+        }
         
-        if (lastShownDate !== today) {
-          console.log(`⏰ Показываем пропущенное уведомление для "${habit.name}"`)
-          await showNotification(habit)
-          localStorage.setItem(lastShownKey, today)
+        // Проверяем, было ли время уведомления в последние N часов
+        const notificationTimeToday = new Date()
+        notificationTimeToday.setHours(hours, minutes, 0, 0)
+        
+        const timeDiff = now.getTime() - notificationTimeToday.getTime()
+
+        // Если уведомление должно было быть в последние N часов, показываем его
+        if (timeDiff > 0 && timeDiff < checkWindow) {
+          // Проверяем, не показывали ли мы уже это уведомление сегодня
+          try {
+            const lastShownKey = `lastMissedNotification_${habit.id}`
+            const lastShownDate = localStorage.getItem(lastShownKey)
+            const today = now.toDateString()
+            
+            if (lastShownDate !== today) {
+              console.log(`⏰ Показываем пропущенное уведомление для "${habit.name}"`)
+              await showNotification(habit)
+              localStorage.setItem(lastShownKey, today)
+            }
+          } catch (error) {
+            console.warn('⚠️ Ошибка при проверке пропущенного уведомления:', error)
+          }
         }
       } catch (error) {
-        console.warn('⚠️ Ошибка при проверке пропущенного уведомления:', error)
+        console.warn(`⚠️ Ошибка при проверке уведомлений для привычки ${habit?.id}:`, error)
+        // Продолжаем проверку других привычек
+        continue
       }
     }
+  } catch (error) {
+    console.error('⚠️ Критическая ошибка при проверке пропущенных уведомлений:', error)
   }
 }
 
