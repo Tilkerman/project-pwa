@@ -304,10 +304,12 @@ function selectCustomColor() {
 }
 
 function openColorPicker() {
+  console.log('openColorPicker called')
   if (!formData.value.customColor) {
     formData.value.customColor = '#3b82f6'
   }
   showColorPickerModal.value = true
+  console.log('showColorPickerModal:', showColorPickerModal.value)
 }
 
 function handleColorConfirm(color: string) {
