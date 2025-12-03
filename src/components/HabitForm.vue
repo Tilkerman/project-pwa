@@ -225,6 +225,7 @@ const emit = defineEmits<{
     notificationEnabled: boolean
     customNotificationMessage?: string
     color?: ProjectColor
+    customColor?: string
     icon?: string
     additionalMotivation?: boolean
   }]
@@ -245,6 +246,7 @@ const formData = ref({
   notificationEnabled: props.habit?.notificationEnabled || false,
   customNotificationMessage: props.habit?.customNotificationMessage || '',
   color: (props.habit?.color || 'blue') as ProjectColor,
+  customColor: props.habit?.customColor || '#3b82f6',
   icon: props.habit?.icon || '🚫',
   additionalMotivation: props.habit?.additionalMotivation !== undefined ? props.habit.additionalMotivation : true
 })
@@ -406,6 +408,7 @@ function handleSubmit(event?: Event) {
     notificationEnabled: formData.value.notificationEnabled,
     customNotificationMessage: formData.value.customNotificationMessage?.trim() || undefined,
     color: formData.value.color,
+    customColor: formData.value.color === 'custom' ? formData.value.customColor : undefined,
     icon: formData.value.icon,
     additionalMotivation: formData.value.additionalMotivation
   }

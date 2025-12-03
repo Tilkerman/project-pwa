@@ -207,6 +207,7 @@ async function handleUpdate(data: {
   notificationEnabled: boolean
   customNotificationMessage?: string
   color?: Habit['color']
+  customColor?: string
   icon?: string
   additionalMotivation?: boolean
 }) {
@@ -235,6 +236,7 @@ async function handleUpdate(data: {
       notificationEnabled: data.notificationEnabled,
       customNotificationMessage: data.customNotificationMessage,
       color: data.color || 'blue',
+      customColor: data.customColor,
       icon: data.icon || '🚫',
       additionalMotivation: data.additionalMotivation !== undefined ? data.additionalMotivation : true
     }
