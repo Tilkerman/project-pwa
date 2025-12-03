@@ -160,14 +160,14 @@
     </div>
 
     <div class="form-actions">
-      <span style="background: red; color: white; padding: 10px; margin-right: 10px;">ТЕСТ</span>
       <button
+        v-if="isEditing"
         type="button"
         class="btn-delete-icon"
         @click.stop="showDeleteConfirm = true"
         title="Удалить привычку"
       >
-        🗑️ УДАЛИТЬ
+        🗑️
       </button>
       <button
         type="button"
