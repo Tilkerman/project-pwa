@@ -1,10 +1,11 @@
 <template>
-  <div class="color-picker-modal" @click.self="$emit('close')">
-    <div class="color-picker-content" @click.stop>
-      <div class="color-picker-header">
-        <h3>Выберите цвет</h3>
-        <button class="close-btn" @click="$emit('close')">×</button>
-      </div>
+  <Teleport to="body">
+    <div class="color-picker-modal" @click.self="$emit('close')">
+      <div class="color-picker-content" @click.stop>
+        <div class="color-picker-header">
+          <h3>Выберите цвет</h3>
+          <button class="close-btn" @click="$emit('close')">×</button>
+        </div>
       
       <div class="color-picker-body">
         <!-- Большой селектор цвета (saturation/lightness) -->
@@ -61,6 +62,7 @@
       </div>
     </div>
   </div>
+  </Teleport>
 </template>
 
 <script setup lang="ts">

@@ -143,10 +143,12 @@
           :style="{ 
             background: formData.color === 'custom' && formData.customColor 
               ? formData.customColor 
-              : 'linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%)'
+              : 'linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%)',
+            cursor: 'pointer'
           }"
+          title="Выбрать свой цвет"
         >
-          <span class="custom-color-icon">+</span>
+          <span class="custom-color-icon" style="font-size: 1.5rem; font-weight: bold; color: white; text-shadow: 0 0 3px rgba(0,0,0,0.5);">+</span>
         </div>
       </div>
       
@@ -304,12 +306,13 @@ function selectCustomColor() {
 }
 
 function openColorPicker() {
-  console.log('openColorPicker called')
+  console.log('🎨 openColorPicker called')
   if (!formData.value.customColor) {
     formData.value.customColor = '#3b82f6'
   }
   showColorPickerModal.value = true
-  console.log('showColorPickerModal:', showColorPickerModal.value)
+  console.log('✅ showColorPickerModal установлен в:', showColorPickerModal.value)
+  console.log('📋 Текущий цвет:', formData.value.customColor)
 }
 
 function handleColorConfirm(color: string) {
