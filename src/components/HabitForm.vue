@@ -652,7 +652,7 @@ function handleDelete() {
 
 .btn-delete-icon {
   padding: 0.75rem;
-  background: transparent;
+  background: #fee2e2;
   border: 2px solid #ef4444;
   border-radius: 8px;
   color: #ef4444;
@@ -664,6 +664,8 @@ function handleDelete() {
   min-width: 48px;
   min-height: 48px;
   flex-shrink: 0;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
 .btn-delete-icon:hover {
