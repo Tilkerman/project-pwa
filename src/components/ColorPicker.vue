@@ -177,11 +177,12 @@ function handleHexInput(event: Event) {
 
 function startDragging(event: MouseEvent | TouchEvent) {
   isDragging.value = true
-  updateSaturationLightness(event)
+  const target = event.currentTarget as HTMLElement
+  updateSaturationLightness(event, target)
   
   const moveHandler = (e: MouseEvent | TouchEvent) => {
     if (isDragging.value) {
-      updateSaturationLightness(e)
+      updateSaturationLightness(e, target)
     }
   }
   
@@ -199,8 +200,7 @@ function startDragging(event: MouseEvent | TouchEvent) {
   document.addEventListener('touchend', endHandler)
 }
 
-function updateSaturationLightness(event: MouseEvent | TouchEvent) {
-  const target = event.currentTarget as HTMLElement
+function updateSaturationLightness(event: MouseEvent | TouchEvent, target: HTMLElement) {
   const rect = target.getBoundingClientRect()
   
   let clientX: number
@@ -225,11 +225,12 @@ function updateSaturationLightness(event: MouseEvent | TouchEvent) {
 
 function startHueDragging(event: MouseEvent | TouchEvent) {
   isHueDragging.value = true
-  updateHue(event)
+  const target = event.currentTarget as HTMLElement
+  updateHue(event, target)
   
   const moveHandler = (e: MouseEvent | TouchEvent) => {
     if (isHueDragging.value) {
-      updateHue(e)
+      updateHue(e, target)
     }
   }
   
@@ -237,8 +238,8 @@ function startHueDragging(event: MouseEvent | TouchEvent) {
     isHueDragging.value = false
     document.removeEventListener('mousemove', moveHandler as EventListener)
     document.removeEventListener('mouseup', endHandler)
-    document.addEventListener('touchmove', moveHandler as EventListener)
-    document.addEventListener('touchend', endHandler)
+    document.removeEventListener('touchmove', moveHandler as EventListener)
+    document.removeEventListener('touchend', endHandler)
   }
   
   document.addEventListener('mousemove', moveHandler as EventListener)
@@ -247,8 +248,7 @@ function startHueDragging(event: MouseEvent | TouchEvent) {
   document.addEventListener('touchend', endHandler)
 }
 
-function updateHue(event: MouseEvent | TouchEvent) {
-  const target = event.currentTarget as HTMLElement
+function updateHue(event: MouseEvent | TouchEvent, target: HTMLElement) {
   const rect = target.getBoundingClientRect()
   
   let clientX: number
