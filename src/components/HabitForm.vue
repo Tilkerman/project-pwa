@@ -168,11 +168,11 @@
 
     <div class="form-actions">
       <button
+        v-if="isEditing"
         type="button"
         class="btn-delete-icon"
         @click.stop="showDeleteConfirm = true"
         title="Удалить привычку"
-        style="background: red; color: white; border: 2px solid red;"
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M3 6h18"></path>
@@ -658,12 +658,12 @@ function handleDelete() {
 
 .btn-delete-icon {
   padding: 0.75rem;
-  background: #fee2e2;
-  border: 2px solid #ef4444;
+  background: #fee2e2 !important;
+  border: 2px solid #ef4444 !important;
   border-radius: 8px;
-  color: #ef4444;
+  color: #ef4444 !important;
   cursor: pointer;
-  display: flex;
+  display: flex !important;
   align-items: center;
   justify-content: center;
   transition: all 0.2s;
@@ -672,6 +672,8 @@ function handleDelete() {
   flex-shrink: 0;
   opacity: 1 !important;
   visibility: visible !important;
+  position: relative !important;
+  z-index: 10 !important;
 }
 
 .btn-delete-icon:hover {
