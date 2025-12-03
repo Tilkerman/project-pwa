@@ -21,7 +21,7 @@
       </p>
     </div>
 
-    <div v-if="enabled" class="telegram-config">
+    <div class="telegram-config">
       <div v-if="!isBotConfigured" class="bot-not-configured">
         <p>⚠️ Telegram бот не настроен администратором. Обратитесь к разработчику.</p>
       </div>
@@ -149,17 +149,10 @@ onMounted(async () => {
 })
 
 async function updateSettings() {
-  if (enabled.value && chatId.value) {
-    await saveTelegramConfig({
-      enabled: enabled.value,
-      chatId: chatId.value,
-    })
-  } else if (!enabled.value) {
-    await saveTelegramConfig({
-      enabled: false,
-      chatId: chatId.value,
-    })
-  }
+  await saveTelegramConfig({
+    enabled: enabled.value,
+    chatId: chatId.value || '',
+  })
 }
 
 async function processTelegramInput() {

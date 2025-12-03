@@ -46,11 +46,6 @@ export default defineConfig({
             purpose: 'any maskable'
           }
         ]
-      },
-      workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
-        // Импортируем кастомный скрипт для уведомлений
-        importScripts: ['/sw-custom.js']
       }
     })
   ],

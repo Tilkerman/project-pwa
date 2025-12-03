@@ -34,6 +34,9 @@
           Добавить привычку
         </button>
       </div>
+      
+      <!-- Telegram настройки -->
+      <TelegramSettings />
     </div>
 
     <div v-if="showForm" class="modal-overlay" @click.self="closeForm">
@@ -53,6 +56,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import HabitForm from '@/components/HabitForm.vue'
 import AppLogo from '@/components/AppLogo.vue'
+import TelegramSettings from '@/components/TelegramSettings.vue'
 import { useHabitsStore } from '@/stores/habitsStore'
 import { getProjectColorStyles } from '@/utils/projectColors'
 import type { Habit } from '@/types'
