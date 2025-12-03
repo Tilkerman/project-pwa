@@ -293,17 +293,23 @@ const iosContactInfo = ref('')
 
 // Определение iOS устройства
 const isIOSDevice = computed(() => {
-  const ua = navigator.userAgent
-  const isIOS = /iPad|iPhone|iPod/.test(ua) || 
-                (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
-  // Отладочная информация
-  console.log('🔍 iOS Detection:', {
-    userAgent: ua,
-    platform: navigator.platform,
-    maxTouchPoints: navigator.maxTouchPoints,
-    isIOS: isIOS
-  })
-  return isIOS
+  try {
+    if (typeof navigator === 'undefined') return false
+    const ua = navigator.userAgent
+    const isIOS = /iPad|iPhone|iPod/.test(ua) || 
+                  (navigator.platform === 'MacIntel' && (navigator.maxTouchPoints || 0) > 1)
+    // Отладочная информация
+    console.log('🔍 iOS Detection:', {
+      userAgent: ua,
+      platform: navigator.platform,
+      maxTouchPoints: navigator.maxTouchPoints || 0,
+      isIOS: isIOS
+    })
+    return isIOS
+  } catch (error) {
+    console.warn('⚠️ Ошибка при определении iOS устройства:', error)
+    return false
+  }
 })
 
 // Загружаем сохраненный контакт iOS пользователя

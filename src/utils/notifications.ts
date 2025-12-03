@@ -11,8 +11,14 @@ let periodicSyncRegistered = false
 
 // Определение iOS устройства
 function isIOS(): boolean {
-  return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
-         (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+  try {
+    if (typeof navigator === 'undefined') return false
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+           (navigator.platform === 'MacIntel' && (navigator.maxTouchPoints || 0) > 1)
+  } catch (error) {
+    console.warn('⚠️ Ошибка при определении iOS устройства:', error)
+    return false
+  }
 }
 
 // Определение, установлено ли приложение как PWA

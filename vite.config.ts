@@ -15,9 +15,7 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico'],
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
-        // Импортируем кастомный скрипт для уведомлений
-        importScripts: ['/sw-custom.js']
+        globPatterns: ['**/*.{js,css,html,ico,png,svg}']
       },
       manifest: {
         name: 'Трекер Привычек',

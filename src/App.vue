@@ -35,8 +35,11 @@ onMounted(async () => {
     }
     
     // Для iOS: проверяем пропущенные уведомления при открытии приложения
-    if (/iPad|iPhone|iPod/.test(navigator.userAgent) || 
-        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) {
+    try {
+      const isIOSDevice = typeof navigator !== 'undefined' && 
+                          (/iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                           (navigator.platform === 'MacIntel' && (navigator.maxTouchPoints || 0) > 1))
+      if (isIOSDevice) {
       // Проверяем расписания из localStorage
       try {
         const schedulesStr = localStorage.getItem('ios_notification_schedules')
@@ -94,6 +97,9 @@ onMounted(async () => {
       } catch (error) {
         console.error('⚠️ Ошибка при проверке пропущенных уведомлений на iOS:', error)
       }
+      }
+    } catch (error) {
+      console.error('⚠️ Ошибка при проверке iOS устройства:', error)
     }
   } catch (error) {
     console.error('⚠️ Критическая ошибка при инициализации приложения:', error)

@@ -80,10 +80,14 @@ export function isTelegramEnabled(): boolean {
   if (!isTelegramBotConfigured()) return false
   const config = getTelegramConfig()
   // Для iOS также проверяем наличие контакта
-  if (/iPad|iPhone|iPod/.test(navigator.userAgent) || 
-      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) {
-    const iosContact = getIOSContactInfo()
-    return (config?.enabled === true && !!config?.chatId) || !!iosContact
+  try {
+    if (/iPad|iPhone|iPod/.test(navigator.userAgent) || 
+        (navigator.platform === 'MacIntel' && (navigator.maxTouchPoints || 0) > 1)) {
+      const iosContact = getIOSContactInfo()
+      return (config?.enabled === true && !!config?.chatId) || !!iosContact
+    }
+  } catch (error) {
+    console.warn('⚠️ Ошибка при проверке iOS устройства:', error)
   }
   return config?.enabled === true && !!config?.chatId
 }
@@ -109,19 +113,26 @@ export async function sendTelegramNotification(
     chatId = config.chatId
   }
   // Для iOS пытаемся использовать сохраненный контакт
-  else if (iosContact && (/iPad|iPhone|iPod/.test(navigator.userAgent) || 
-      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1))) {
-    // Если контакт начинается с @, используем его как username
-    if (iosContact.startsWith('@')) {
-      chatId = iosContact
-    }
-    // Если это номер телефона, пытаемся использовать его
-    else if (iosContact.startsWith('+') || /^\d{10,15}$/.test(iosContact)) {
-      chatId = iosContact
-    }
-    // Иначе считаем это username
-    else {
-      chatId = `@${iosContact}`
+  else if (iosContact) {
+    try {
+      const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                          (navigator.platform === 'MacIntel' && (navigator.maxTouchPoints || 0) > 1)
+      if (isIOSDevice) {
+        // Если контакт начинается с @, используем его как username
+        if (iosContact.startsWith('@')) {
+          chatId = iosContact
+        }
+        // Если это номер телефона, пытаемся использовать его
+        else if (iosContact.startsWith('+') || /^\d{10,15}$/.test(iosContact)) {
+          chatId = iosContact
+        }
+        // Иначе считаем это username
+        else {
+          chatId = `@${iosContact}`
+        }
+      }
+    } catch (error) {
+      console.warn('⚠️ Ошибка при проверке iOS устройства:', error)
     }
   }
   
