@@ -167,6 +167,7 @@
     </div>
 
     <div class="form-actions">
+      <span style="background: red; color: white; padding: 10px; margin-right: 10px;">ТЕСТ</span>
       <button
         type="button"
         class="btn-delete-icon"
