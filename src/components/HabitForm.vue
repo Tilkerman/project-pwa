@@ -168,13 +168,12 @@
 
     <div class="form-actions">
       <button
-        v-if="isEditing"
         type="button"
         class="btn-delete-icon"
         @click.stop="showDeleteConfirm = true"
         title="Удалить привычку"
       >
-        🗑️
+        🗑️ УДАЛИТЬ
       </button>
       <button
         type="button"
@@ -652,23 +651,26 @@ function handleDelete() {
 }
 
 .btn-delete-icon {
-  padding: 0.75rem;
+  padding: 0.75rem 1.5rem;
   background: #fee2e2 !important;
   border: 2px solid #ef4444 !important;
   border-radius: 8px;
   color: #ef4444 !important;
   cursor: pointer;
-  display: flex !important;
+  display: inline-flex !important;
   align-items: center;
   justify-content: center;
   transition: all 0.2s;
-  min-width: 48px;
-  min-height: 48px;
+  min-width: auto;
+  min-height: auto;
   flex-shrink: 0;
   opacity: 1 !important;
   visibility: visible !important;
   position: relative !important;
   z-index: 10 !important;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-right: 1rem;
 }
 
 .btn-delete-icon:hover {
