@@ -111,24 +111,24 @@ const fixPathsPlugin = () => {
       const swPath = join(distPath, 'sw.js')
       if (existsSync(swPath)) {
         let swContent = readFileSync(swPath, 'utf-8')
-        // Исправляем пути в precacheAndRoute - ищем паттерны вида 'index.html' или '/index.html'
-        // и заменяем на правильные пути с base
-        swContent = swContent.replace(/(precacheAndRoute|registerRoute|createHandlerBoundToURL)\(\[([^\]]+)\]\)/g, (match, func, paths) => {
-          const fixedPaths = paths.split(',').map((p: string) => {
-            const trimmed = p.trim().replace(/['"]/g, '')
-            // Пропускаем внешние ссылки
-            if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return p
-            // Если путь начинается с /, заменяем на base path
-            if (trimmed.startsWith('/')) {
-              return p.replace(trimmed, `${basePath}${trimmed.slice(1)}`)
-            }
-            // Если путь относительный, добавляем base path
-            return p.replace(trimmed, `${basePath}${trimmed}`)
-          })
-          return `${func}([${fixedPaths.join(',')}])`
+        // Исправляем пути в precacheAndRoute - ищем объекты вида {url:"path",revision:"..."}
+        // Используем более точный regex для минифицированного кода без пробелов
+        swContent = swContent.replace(/\{url:"([^"]+)",revision:("([^"]+)"|null)\}/g, (match, url, revisionPart) => {
+          // Пропускаем внешние ссылки и уже исправленные пути
+          if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith(basePath) || url.startsWith('./')) {
+            return match
+          }
+          // Если путь начинается с /, убираем / и добавляем base path
+          const fixedUrl = url.startsWith('/') ? `${basePath}${url.slice(1)}` : `${basePath}${url}`
+          return `{url:"${fixedUrl}",revision:${revisionPart}}`
         })
-        // Исправляем navigateFallback если есть
-        swContent = swContent.replace(/navigateFallback:\s*['"]\/([^'"]+)['"]/g, `navigateFallback: '${basePath}$1'`)
+        // Исправляем createHandlerBoundToURL - ищем паттерны вида createHandlerBoundToURL("/path")
+        swContent = swContent.replace(/createHandlerBoundToURL\("(\/[^"]+)"\)/g, (match, path) => {
+          if (path.startsWith(basePath)) {
+            return match
+          }
+          return `createHandlerBoundToURL("${basePath}${path.slice(1)}")`
+        })
         writeFileSync(swPath, swContent)
       }
     }
