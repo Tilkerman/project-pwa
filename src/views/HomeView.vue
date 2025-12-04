@@ -1,13 +1,14 @@
 <template>
   <div class="home-view">
-    <!-- Заголовок H1 -->
-    <h1 class="main-title">Привет! Начнём новую привычку?</h1>
+    <!-- Header с иконкой настроек -->
+    <header class="page-header">
+      <button class="settings-btn" @click="goToSettings" aria-label="Настройки">
+        <span class="settings-icon">⚙️</span>
+      </button>
+    </header>
     
-    <!-- Мини-онбординг подзаголовок -->
-    <h2 class="subtitle">
-      Создавайте привычки, отмечайте прогресс каждый день<br>
-      и получайте уведомления в Telegram.
-    </h2>
+    <!-- Заголовок H1 -->
+    <h1 class="main-title">Привычки</h1>
     
     <div v-if="store.loading" class="loading">Загрузка...</div>
 
@@ -37,9 +38,6 @@
       </button>
     </div>
     
-    <!-- Telegram настройки - уменьшенные отступы -->
-    <TelegramSettings v-if="!store.loading" class="telegram-section" />
-    
     <!-- Модальное окно формы -->
     <div v-if="showForm" class="modal-overlay" @click.self="closeForm">
       <div class="modal-content">
@@ -56,7 +54,6 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import HabitForm from '@/components/HabitForm.vue'
-import TelegramSettings from '@/components/TelegramSettings.vue'
 import { useHabitsStore } from '@/stores/habitsStore'
 import { getProjectColorStyles } from '@/utils/projectColors'
 import type { Habit } from '@/types'
@@ -75,6 +72,10 @@ onMounted(async () => {
 
 function goToHabit(id: string) {
   router.push(`/habit/${id}`)
+}
+
+function goToSettings() {
+  router.push('/settings')
 }
 
 // Проверка, выполнена ли привычка сегодня
@@ -143,32 +144,71 @@ function closeForm() {
   min-height: 100vh;
 }
 
-/* Скрываем header-logo, если он все еще где-то есть */
-.header-logo {
-  display: none !important;
+/* Header с иконкой настроек */
+.page-header {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 12px 20px 0;
+  margin-bottom: 0.5rem;
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.settings-btn {
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+}
+
+.settings-btn:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.dark .settings-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.settings-btn:active {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.dark .settings-btn:active {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.settings-icon {
+  font-size: 24px;
+  line-height: 1;
+  color: #333;
+  display: inline-block;
+  user-select: none;
+}
+
+.dark .settings-icon {
+  color: #e5e7eb;
 }
 
 /* Заголовок H1 - крупный, жирный, тёплый */
 .main-title {
   font-size: 1.75rem;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--text-primary);
   text-align: center;
-  margin: 0 0 0.75rem 0;
+  margin: 0 0 1.5rem 0;
   line-height: 1.3;
   padding: 0 0.5rem;
 }
 
-/* Подзаголовок - маленький, серый, две строки, по центру */
-.subtitle {
-  font-size: 0.875rem;
-  font-weight: 400;
-  color: #6b7280;
-  text-align: center;
-  margin: 0 0 2rem 0;
-  line-height: 1.5;
-  padding: 0 1rem;
-}
 
 .loading {
   text-align: center;
@@ -291,11 +331,6 @@ function closeForm() {
 .add-text {
   font-size: 1rem;
   font-weight: 600;
-}
-
-/* Telegram секция - уменьшенные отступы */
-.telegram-section {
-  margin-top: 1.5rem;
 }
 
 /* Модальное окно */
