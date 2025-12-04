@@ -1,44 +1,51 @@
 <template>
   <div class="home-view">
+    <!-- Логотип приложения - маленький, по центру -->
     <div class="header-logo">
-      <AppLogo size="80px" />
+      <AppLogo size="48px" />
     </div>
+    
+    <!-- Заголовок H1 -->
+    <h1 class="main-title">Привет! Начнём новую привычку?</h1>
+    
+    <!-- Мини-онбординг подзаголовок -->
+    <h2 class="subtitle">
+      Создавайте привычки, отмечайте прогресс каждый день<br>
+      и получайте уведомления в Telegram.
+    </h2>
     
     <div v-if="store.loading" class="loading">Загрузка...</div>
 
-    <div v-else-if="store.habits.length === 0" class="empty-state fade-in">
-      <div class="empty-icon">📝</div>
-      <h2>Нет привычек</h2>
-      <p>Создайте свою первую привычку, чтобы начать отслеживать прогресс!</p>
-      <button class="btn btn-primary" @click="showForm = true">
-        Создать привычку
+    <!-- Блок привычек -->
+    <div v-else class="habits-section">
+      <div v-if="store.habits.length > 0" class="habits-list">
+        <div
+          v-for="habit in store.habits"
+          :key="habit.id"
+          class="habit-card"
+          :class="{ 'habit-completed': isHabitCompletedToday(habit) }"
+          :style="getHabitCardStyle(habit)"
+          @click="goToHabit(habit.id)"
+        >
+          <div class="habit-content">
+            <div class="habit-icon-large">{{ habit.icon || '🚫' }}</div>
+            <div class="habit-name-text">{{ habit.name }}</div>
+          </div>
+          <div class="habit-status-indicator" :class="{ 'completed': isHabitCompletedToday(habit) }"></div>
+        </div>
+      </div>
+      
+      <!-- Кнопка добавления привычки - показываем всегда -->
+      <button class="btn-add-habit" @click="showForm = true">
+        <span class="add-icon">+</span>
+        <span class="add-text">Создать новую привычку</span>
       </button>
     </div>
-
-    <div v-else class="habits-container">
-      <div class="habits-card">
-        <h2 class="habits-title">Привычки</h2>
-        <div class="habits-list">
-          <div
-            v-for="habit in store.habits"
-            :key="habit.id"
-            class="habit-item"
-            :style="getHabitBorderStyle(habit)"
-            @click="goToHabit(habit.id)"
-          >
-            <div class="habit-icon">{{ habit.icon || '🚫' }}</div>
-            <div class="habit-name">{{ habit.name }}</div>
-          </div>
-        </div>
-        <button class="btn-add-habit" @click="showForm = true">
-          Добавить привычку
-        </button>
-      </div>
-    </div>
     
-    <!-- Telegram настройки - показываем всегда -->
-    <TelegramSettings v-if="!store.loading" />
-
+    <!-- Telegram настройки - уменьшенные отступы -->
+    <TelegramSettings v-if="!store.loading" class="telegram-section" />
+    
+    <!-- Модальное окно формы -->
     <div v-if="showForm" class="modal-overlay" @click.self="closeForm">
       <div class="modal-content">
         <HabitForm
@@ -47,7 +54,6 @@
         />
       </div>
     </div>
-
   </div>
 </template>
 
@@ -73,11 +79,32 @@ function goToHabit(id: string) {
   router.push(`/habit/${id}`)
 }
 
-function getHabitBorderStyle(habit: Habit) {
+// Проверка, выполнена ли привычка сегодня
+function isHabitCompletedToday(habit: Habit): boolean {
+  const today = new Date()
+  const todayStr = today.toISOString().split('T')[0]
+  return habit.markedDays.includes(todayStr)
+}
+
+// Стили для карточки привычки
+function getHabitCardStyle(habit: Habit) {
   const colorStyles = getProjectColorStyles(habit.color || 'blue', habit.customColor)
+  const isCompleted = isHabitCompletedToday(habit)
+  
+  if (isCompleted) {
+    return {
+      backgroundColor: '#f0fdf4', // светло-зеленый фон для выполненных
+    }
+  }
+  
+  // Преобразуем hex в rgba с прозрачностью
+  const hex = colorStyles.bg.replace('#', '')
+  const r = parseInt(hex.substr(0, 2), 16)
+  const g = parseInt(hex.substr(2, 2), 16)
+  const b = parseInt(hex.substr(4, 2), 16)
+  
   return {
-    border: `2px solid ${colorStyles.border}`,
-    boxShadow: `0 0 0 1px ${colorStyles.border}20`
+    backgroundColor: `rgba(${r}, ${g}, ${b}, 0.08)`, // легкий фон цвета привычки
   }
 }
 
@@ -114,219 +141,170 @@ function closeForm() {
 .home-view {
   max-width: 600px;
   margin: 0 auto;
-  padding: 2rem 1rem;
+  padding: 1rem 1rem 2rem;
+  min-height: 100vh;
 }
 
+/* Логотип - маленький, по центру, без больших отступов */
 .header-logo {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-bottom: 2rem;
-  padding-top: 1rem;
-  position: relative;
+  margin-bottom: 1rem;
+  padding-top: 0.5rem;
 }
 
-.settings-btn {
-  position: absolute;
-  right: 0;
-  top: 1rem;
-  background: #f3f4f6;
-  border: 2px solid #e5e7eb;
-  font-size: 1.5rem;
-  cursor: pointer;
-  padding: 0.5rem;
-  border-radius: 8px;
-  transition: all 0.2s;
-  width: 2.5rem;
-  height: 2.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* Заголовок H1 - крупный, жирный, тёплый */
+.main-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1f2937;
+  text-align: center;
+  margin: 0 0 0.75rem 0;
+  line-height: 1.3;
+  padding: 0 0.5rem;
 }
 
-.settings-btn:hover {
-  background: #e5e7eb;
-  transform: scale(1.1);
-}
-
-.btn-telegram-settings {
-  width: 100%;
-  margin-top: 0.75rem;
-  padding: 0.875rem;
-  background: #e0f2fe;
-  color: #0369a1;
-  border: 2px solid #bae6fd;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-}
-
-.btn-telegram-settings:hover {
-  background: #bae6fd;
-  border-color: #7dd3fc;
-  transform: translateY(-1px);
-}
-
-.telegram-icon {
-  font-size: 1.25rem;
+/* Подзаголовок - маленький, серый, две строки, по центру */
+.subtitle {
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: #6b7280;
+  text-align: center;
+  margin: 0 0 2rem 0;
+  line-height: 1.5;
+  padding: 0 1rem;
 }
 
 .loading {
   text-align: center;
   padding: 3rem;
-  color: var(--text-secondary);
+  color: #6b7280;
 }
 
-.empty-state {
-  text-align: center;
-  padding: 4rem 2rem;
-  background: var(--bg-secondary);
-  border-radius: 12px;
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--border-color);
-}
-
-.empty-icon {
-  font-size: 4rem;
-  margin-bottom: 1rem;
-}
-
-.empty-state h2 {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0 0 0.5rem 0;
-}
-
-.empty-state p {
-  color: var(--text-secondary);
-  margin: 0 0 2rem 0;
-}
-
-.habits-container {
-  display: flex;
-  justify-content: center;
-}
-
-.habits-card {
-  background: white;
-  border-radius: 16px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  width: 100%;
-  max-width: 500px;
-}
-
-.habits-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #1f2937;
-  margin: 0 0 1.5rem 0;
+/* Секция привычек */
+.habits-section {
+  margin-bottom: 1.5rem;
 }
 
 .habits-list {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
-.habit-item {
+/* Карточка привычки - улучшенная */
+.habit-card {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 0.75rem;
-  border-radius: 8px;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-radius: 14px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
   background: white;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  min-height: 64px;
+  position: relative;
 }
 
-.habit-item:hover {
-  background-color: #f9fafb;
+.habit-card:hover {
   transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
-.habit-icon {
-  font-size: 1.5rem;
-  width: 2rem;
-  text-align: center;
+.habit-card.habit-completed {
+  background-color: #f0fdf4;
 }
 
-.habit-name {
+.habit-content {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
   flex: 1;
+}
+
+/* Иконка привычки - увеличенная */
+.habit-icon-large {
+  font-size: 1.75rem;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Название привычки */
+.habit-name-text {
   font-size: 1rem;
   color: #1f2937;
-  font-weight: 500;
+  font-weight: 600;
+  line-height: 1.4;
 }
 
+/* Индикатор статуса - точка справа */
+.habit-status-indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #d1d5db;
+  flex-shrink: 0;
+  margin-left: 0.5rem;
+}
 
+.habit-status-indicator.completed {
+  background-color: #10b981;
+}
+
+/* Кнопка добавления привычки - переработанная */
 .btn-add-habit {
   width: 100%;
-  padding: 0.875rem;
-  background: #e0f2fe;
-  color: #0369a1;
+  height: 56px;
+  padding: 0;
+  background: #E8F3FF;
   border: none;
-  border-radius: 8px;
+  border-radius: 14px;
   font-size: 1rem;
   font-weight: 600;
+  color: #2563eb;
   cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.btn-add-habit:hover {
-  background: #bae6fd;
-}
-
-.btn {
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-primary {
-  background: #4f46e5;
-  color: white;
-}
-
-.btn-primary:hover {
-  background: #4338ca;
-}
-
-.btn-telegram-empty {
-  margin-top: 1rem;
-  padding: 0.75rem 1.5rem;
-  background: #e0f2fe;
-  color: #0369a1;
-  border: 2px solid #bae6fd;
-  border-radius: 8px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  margin-left: auto;
-  margin-right: auto;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
-.btn-telegram-empty:hover {
-  background: #bae6fd;
-  border-color: #7dd3fc;
+.btn-add-habit:hover {
+  background: #dbeafe;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
+.btn-add-habit:active {
+  transform: translateY(0);
+}
+
+.add-icon {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.add-text {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* Telegram секция - уменьшенные отступы */
+.telegram-section {
+  margin-top: 1.5rem;
+}
+
+/* Модальное окно */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -343,21 +321,14 @@ function closeForm() {
 }
 
 .modal-content {
-  background: var(--bg-secondary);
-  border-radius: 12px;
+  background: white;
+  border-radius: 16px;
   max-width: 600px;
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
   animation: fadeIn 0.3s ease-out;
-  border: 1px solid var(--border-color);
-}
-
-.modal-actions {
-  padding: 1rem 1.5rem;
-  border-top: 1px solid var(--border-color);
-  display: flex;
-  justify-content: flex-end;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
 }
 
 @keyframes fadeIn {
@@ -368,6 +339,38 @@ function closeForm() {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* Адаптивность */
+@media (max-width: 480px) {
+  .main-title {
+    font-size: 1.5rem;
+  }
+  
+  .subtitle {
+    font-size: 0.8125rem;
+  }
+  
+  .habit-card {
+    padding: 0.875rem 1rem;
+    min-height: 60px;
+  }
+  
+  .habit-icon-large {
+    font-size: 1.5rem;
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+  
+  .btn-add-habit {
+    height: 52px;
+  }
+}
+
+@media (min-width: 600px) {
+  .home-view {
+    padding: 1.5rem 1.5rem 2rem;
   }
 }
 </style>

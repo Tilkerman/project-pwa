@@ -279,16 +279,17 @@ function disconnectTelegram() {
 .telegram-settings {
   background: var(--bg-secondary);
   border-radius: 12px;
-  padding: 1.5rem;
+  padding: 1.25rem 1rem;
   box-shadow: var(--shadow-sm);
-  margin-top: 1.5rem;
+  margin-top: 0;
 }
 
 .settings-title {
   font-size: 1.125rem;
   font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: 1.5rem;
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -299,7 +300,7 @@ function disconnectTelegram() {
 }
 
 .setting-item {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .setting-label {
@@ -326,8 +327,8 @@ function disconnectTelegram() {
 }
 
 .telegram-config {
-  margin-top: 1.5rem;
-  padding-top: 1.5rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
   border-top: 1px solid var(--border-color);
 }
 
