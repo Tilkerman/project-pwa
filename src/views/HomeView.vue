@@ -1,14 +1,21 @@
 <template>
   <div class="home-view">
-    <!-- Header с иконкой настроек -->
+    <!-- Header с логотипом и иконкой настроек -->
     <header class="page-header">
+      <div class="header-logo-container">
+        <AppLogo size="32px" />
+        <span class="app-name">Привычки</span>
+      </div>
       <button class="settings-btn" @click="goToSettings" aria-label="Настройки">
         <span class="settings-icon">⚙️</span>
       </button>
     </header>
     
     <!-- Заголовок H1 -->
-    <h1 class="main-title">Привычки</h1>
+    <h1 class="main-title">Привет! Начнём новую привычку?</h1>
+    
+    <!-- Подзаголовок -->
+    <p class="subtitle">Отмечайте прогресс каждый день и двигайтесь к целям</p>
     
     <div v-if="store.loading" class="loading">Загрузка...</div>
 
@@ -25,9 +32,11 @@
         >
           <div class="habit-content">
             <div class="habit-icon-large">{{ habit.icon || '🚫' }}</div>
-            <div class="habit-name-text">{{ habit.name }}</div>
+            <div class="habit-info">
+              <div class="habit-name-text">{{ habit.name }}</div>
+              <div class="habit-progress">{{ getHabitProgress(habit) }}</div>
+            </div>
           </div>
-          <div class="habit-status-indicator" :class="{ 'completed': isHabitCompletedToday(habit) }"></div>
         </div>
       </div>
       
@@ -54,8 +63,10 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import HabitForm from '@/components/HabitForm.vue'
+import AppLogo from '@/components/AppLogo.vue'
 import { useHabitsStore } from '@/stores/habitsStore'
 import { getProjectColorStyles } from '@/utils/projectColors'
+import { getCurrentStreak } from '@/utils/characters'
 import type { Habit } from '@/types'
 
 const router = useRouter()
@@ -76,6 +87,42 @@ function goToHabit(id: string) {
 
 function goToSettings() {
   router.push('/settings')
+}
+
+// Получение прогресса привычки
+function getHabitProgress(habit: Habit): string {
+  const totalDays = habit.markedDays.length
+  const streak = getCurrentStreak(habit)
+  
+  if (totalDays === 0) {
+    return 'Начните сегодня'
+  }
+  
+  if (streak > 0) {
+    return `${streak} ${getDayWord(streak)} подряд`
+  }
+  
+  return `${totalDays} ${getDayWord(totalDays)}`
+}
+
+// Склонение слова "день"
+function getDayWord(count: number): string {
+  const lastDigit = count % 10
+  const lastTwoDigits = count % 100
+  
+  if (lastTwoDigits >= 11 && lastTwoDigits <= 14) {
+    return 'дней'
+  }
+  
+  if (lastDigit === 1) {
+    return 'день'
+  }
+  
+  if (lastDigit >= 2 && lastDigit <= 4) {
+    return 'дня'
+  }
+  
+  return 'дней'
 }
 
 // Проверка, выполнена ли привычка сегодня
@@ -144,16 +191,28 @@ function closeForm() {
   min-height: 100vh;
 }
 
-/* Header с иконкой настроек */
+/* Header с логотипом и иконкой настроек */
 .page-header {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: center;
-  padding: 12px 20px 0;
-  margin-bottom: 0.5rem;
+  padding: 12px 20px;
+  margin-bottom: 1rem;
   position: relative;
   width: 100%;
   box-sizing: border-box;
+}
+
+.header-logo-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.app-name {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
 .settings-btn {
@@ -204,9 +263,20 @@ function closeForm() {
   font-weight: 700;
   color: var(--text-primary);
   text-align: center;
-  margin: 0 0 1.5rem 0;
+  margin: 0 0 0.5rem 0;
   line-height: 1.3;
   padding: 0 0.5rem;
+}
+
+/* Подзаголовок - маленький, серый */
+.subtitle {
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: var(--text-secondary);
+  text-align: center;
+  margin: 0 0 2rem 0;
+  line-height: 1.5;
+  padding: 0 1rem;
 }
 
 
@@ -232,64 +302,98 @@ function closeForm() {
 .habit-card {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 1rem 1.25rem;
-  border-radius: 14px;
+  padding: 1.25rem 1.5rem;
+  border-radius: 16px;
   cursor: pointer;
   transition: all 0.2s ease;
-  background: white;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-  min-height: 64px;
+  background: var(--bg-secondary);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.08);
+  min-height: 72px;
   position: relative;
+  border: 1px solid var(--border-color);
 }
 
 .habit-card:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1), 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+.habit-card:active {
+  transform: translateY(0);
 }
 
 .habit-card.habit-completed {
-  background-color: #f0fdf4;
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border-color: #86efac;
+}
+
+.dark .habit-card {
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+.dark .habit-card.habit-completed {
+  background: linear-gradient(135deg, #064e3b 0%, #065f46 100%);
+  border-color: #10b981;
 }
 
 .habit-content {
   display: flex;
   align-items: center;
-  gap: 0.875rem;
+  gap: 1rem;
   flex: 1;
+  min-width: 0;
 }
 
-/* Иконка привычки - увеличенная */
+/* Иконка привычки - увеличенная и заметная */
 .habit-icon-large {
-  font-size: 1.75rem;
-  width: 2rem;
-  height: 2rem;
+  font-size: 2rem;
+  width: 2.5rem;
+  height: 2.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.dark .habit-icon-large {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.habit-card.habit-completed .habit-icon-large {
+  background: rgba(16, 185, 129, 0.15);
+}
+
+.dark .habit-card.habit-completed .habit-icon-large {
+  background: rgba(16, 185, 129, 0.2);
+}
+
+.habit-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+  min-width: 0;
 }
 
 /* Название привычки */
 .habit-name-text {
   font-size: 1rem;
-  color: #1f2937;
+  color: var(--text-primary);
   font-weight: 600;
   line-height: 1.4;
+  margin: 0;
 }
 
-/* Индикатор статуса - точка справа */
-.habit-status-indicator {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background-color: #d1d5db;
-  flex-shrink: 0;
-  margin-left: 0.5rem;
-}
-
-.habit-status-indicator.completed {
-  background-color: #10b981;
+/* Индикатор прогресса */
+.habit-progress {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  font-weight: 400;
+  line-height: 1.3;
 }
 
 /* Кнопка добавления привычки - переработанная */
@@ -373,23 +477,47 @@ function closeForm() {
 
 /* Адаптивность */
 @media (max-width: 480px) {
+  .page-header {
+    padding: 12px 16px;
+  }
+  
+  .app-name {
+    font-size: 1rem;
+  }
+  
+  .header-logo-container {
+    gap: 0.375rem;
+  }
+  
   .main-title {
     font-size: 1.5rem;
+    padding: 0 0.75rem;
   }
   
   .subtitle {
     font-size: 0.8125rem;
+    padding: 0 0.75rem;
   }
   
   .habit-card {
-    padding: 0.875rem 1rem;
-    min-height: 60px;
+    padding: 1rem 1.25rem;
+    min-height: 68px;
+    border-radius: 14px;
   }
   
   .habit-icon-large {
-    font-size: 1.5rem;
-    width: 1.75rem;
-    height: 1.75rem;
+    font-size: 1.75rem;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 10px;
+  }
+  
+  .habit-name-text {
+    font-size: 0.9375rem;
+  }
+  
+  .habit-progress {
+    font-size: 0.75rem;
   }
   
   .btn-add-habit {
