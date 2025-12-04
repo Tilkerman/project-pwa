@@ -113,13 +113,15 @@ const fixPathsPlugin = () => {
         let swContent = readFileSync(swPath, 'utf-8')
         // Исправляем пути в precacheAndRoute - заменяем все относительные пути на пути с base
         // Ищем паттерны вида {url:"path",revision:"..."} или {url:"path",revision:null}
+        // Используем более точный regex для минифицированного кода
         swContent = swContent.replace(/\{url:"([^"]+)",revision:([^}]+)\}/g, (match, url, revisionPart) => {
           // Пропускаем внешние ссылки, уже исправленные пути и пути к workbox модулям
           if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith(basePath) || url.startsWith('./workbox-')) {
             return match
           }
-          // Добавляем base path к относительным путям
-          const fixedUrl = `${basePath}${url}`
+          // Добавляем base path к относительным путям (убираем начальный / если есть)
+          const cleanUrl = url.startsWith('/') ? url.slice(1) : url
+          const fixedUrl = `${basePath}${cleanUrl}`
           return `{url:"${fixedUrl}",revision:${revisionPart}}`
         })
         // Исправляем createHandlerBoundToURL - ищем паттерны вида createHandlerBoundToURL("/path")
