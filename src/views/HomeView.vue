@@ -1,10 +1,5 @@
 <template>
   <div class="home-view">
-    <!-- Логотип приложения - маленький, по центру -->
-    <div class="header-logo">
-      <AppLogo size="48px" />
-    </div>
-    
     <!-- Заголовок H1 -->
     <h1 class="main-title">Привет! Начнём новую привычку?</h1>
     
@@ -61,7 +56,6 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import HabitForm from '@/components/HabitForm.vue'
-import AppLogo from '@/components/AppLogo.vue'
 import TelegramSettings from '@/components/TelegramSettings.vue'
 import { useHabitsStore } from '@/stores/habitsStore'
 import { getProjectColorStyles } from '@/utils/projectColors'
@@ -149,13 +143,9 @@ function closeForm() {
   min-height: 100vh;
 }
 
-/* Логотип - маленький, по центру, без больших отступов */
+/* Скрываем header-logo, если он все еще где-то есть */
 .header-logo {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 1rem;
-  padding-top: 0.5rem;
+  display: none !important;
 }
 
 /* Заголовок H1 - крупный, жирный, тёплый */
