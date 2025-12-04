@@ -9,21 +9,34 @@ const app = createApp(App)
 // Глобальная обработка ошибок для предотвращения белого экрана
 app.config.errorHandler = (err, instance, info) => {
   console.error('⚠️ Глобальная ошибка Vue:', err, info)
-  // Не позволяем ошибке сломать всё приложение
+  // Показываем ошибку пользователю
+  const errorDiv = document.createElement('div')
+  errorDiv.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; background: #fee2e2; color: #991b1b; padding: 1rem; z-index: 10000; text-align: center;'
+  errorDiv.textContent = 'Произошла ошибка. Пожалуйста, обновите страницу.'
+  document.body.appendChild(errorDiv)
+  setTimeout(() => errorDiv.remove(), 5000)
 }
 
 // Обработка необработанных ошибок
 window.addEventListener('error', (event) => {
-  console.error('⚠️ Необработанная ошибка:', event.error)
-  // Предотвращаем показ белого экрана
-  event.preventDefault()
+  console.error('⚠️ Необработанная ошибка:', event.error, event.filename, event.lineno)
+  // Показываем ошибку пользователю
+  const errorDiv = document.createElement('div')
+  errorDiv.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; background: #fee2e2; color: #991b1b; padding: 1rem; z-index: 10000; text-align: center;'
+  errorDiv.textContent = 'Ошибка загрузки. Пожалуйста, обновите страницу.'
+  document.body.appendChild(errorDiv)
+  setTimeout(() => errorDiv.remove(), 5000)
 })
 
 // Обработка необработанных промисов
 window.addEventListener('unhandledrejection', (event) => {
   console.error('⚠️ Необработанное отклонение промиса:', event.reason)
-  // Предотвращаем показ белого экрана
-  event.preventDefault()
+  // Показываем ошибку пользователю
+  const errorDiv = document.createElement('div')
+  errorDiv.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; background: #fee2e2; color: #991b1b; padding: 1rem; z-index: 10000; text-align: center;'
+  errorDiv.textContent = 'Ошибка загрузки данных. Пожалуйста, обновите страницу.'
+  document.body.appendChild(errorDiv)
+  setTimeout(() => errorDiv.remove(), 5000)
 })
 
 app.use(createPinia())

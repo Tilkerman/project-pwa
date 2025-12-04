@@ -72,7 +72,11 @@ const store = useHabitsStore()
 const showForm = ref(false)
 
 onMounted(async () => {
-  await store.loadHabits()
+  try {
+    await store.loadHabits()
+  } catch (error) {
+    console.error('⚠️ Ошибка при загрузке привычек:', error)
+  }
 })
 
 function goToHabit(id: string) {
