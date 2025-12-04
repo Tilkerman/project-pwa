@@ -111,15 +111,15 @@ const fixPathsPlugin = () => {
       const swPath = join(distPath, 'sw.js')
       if (existsSync(swPath)) {
         let swContent = readFileSync(swPath, 'utf-8')
-        // Исправляем пути в precacheAndRoute - ищем объекты вида {url:"path",revision:"..."}
-        // Используем более точный regex для минифицированного кода без пробелов
-        swContent = swContent.replace(/\{url:"([^"]+)",revision:("([^"]+)"|null)\}/g, (match, url, revisionPart) => {
-          // Пропускаем внешние ссылки и уже исправленные пути
-          if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith(basePath) || url.startsWith('./')) {
+        // Исправляем пути в precacheAndRoute - заменяем все относительные пути на пути с base
+        // Ищем паттерны вида {url:"path",revision:"..."} или {url:"path",revision:null}
+        swContent = swContent.replace(/\{url:"([^"]+)",revision:([^}]+)\}/g, (match, url, revisionPart) => {
+          // Пропускаем внешние ссылки, уже исправленные пути и пути к workbox модулям
+          if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith(basePath) || url.startsWith('./workbox-')) {
             return match
           }
-          // Если путь начинается с /, убираем / и добавляем base path
-          const fixedUrl = url.startsWith('/') ? `${basePath}${url.slice(1)}` : `${basePath}${url}`
+          // Добавляем base path к относительным путям
+          const fixedUrl = `${basePath}${url}`
           return `{url:"${fixedUrl}",revision:${revisionPart}}`
         })
         // Исправляем createHandlerBoundToURL - ищем паттерны вида createHandlerBoundToURL("/path")
