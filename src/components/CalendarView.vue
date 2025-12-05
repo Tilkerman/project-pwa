@@ -15,14 +15,7 @@
       >
         {{ day }}
       </div>
-      <!-- Пустые ячейки в начале месяца -->
-      <div 
-        v-for="n in getEmptyCellsBefore()" 
-        :key="`empty-${n}`"
-        class="calendar-day empty-cell"
-      ></div>
-      
-      <!-- Дни текущего месяца -->
+      <!-- Дни календаря (включая дни предыдущего/следующего месяца) -->
       <div
         v-for="day in calendarDays"
         :key="day.date.toISOString()"
@@ -30,7 +23,8 @@
         :class="{
           'marked': day.isMarked,
           'today': day.isToday,
-          'future': day.isFuture
+          'future': day.isFuture,
+          'other-month': !day.isCurrentMonth
         }"
         :style="getDayStyle(day)"
         @click="toggleDay(day.date)"
@@ -91,8 +85,18 @@ const calendarDays = computed(() => {
   const firstDay = new Date(year, month, 1)
   const lastDay = new Date(year, month + 1, 0)
   
+  // Вычисляем день недели первого дня месяца (1 = понедельник, 7 = воскресенье)
+  const firstDayOfWeek = (firstDay.getDay() || 7) - 1 // Преобразуем: 0 (воскресенье) -> 6, 1 (понедельник) -> 0
+  
+  // Начало календаря - первый день недели, который попадает в календарь
   const startDate = new Date(firstDay)
-  startDate.setDate(startDate.getDate() - (firstDay.getDay() || 7) + 1)
+  startDate.setDate(startDate.getDate() - firstDayOfWeek)
+  
+  // Конец календаря - последний день недели, который попадает в календарь
+  const daysInMonth = lastDay.getDate()
+  const lastDayOfWeek = (lastDay.getDay() || 7) - 1
+  const endDate = new Date(lastDay)
+  endDate.setDate(endDate.getDate() + (6 - lastDayOfWeek))
   
   const days: Array<{
     date: Date
@@ -107,30 +111,17 @@ const calendarDays = computed(() => {
   const todayMonth = today.getMonth()
   const todayDate = today.getDate()
   
-  // Вычисляем количество дней в текущем месяце
-  const daysInMonth = lastDay.getDate()
-  
-  // Вычисляем день недели первого дня месяца (1 = понедельник, 7 = воскресенье)
-  const firstDayOfWeek = (firstDay.getDay() || 7) - 1 // Преобразуем: 0 (воскресенье) -> 6, 1 (понедельник) -> 0
-  
-  // Вычисляем общее количество ячеек (только дни текущего месяца + пустые ячейки в начале)
-  const totalCells = firstDayOfWeek + daysInMonth
-  
-  for (let i = 0; i < totalCells; i++) {
-    if (i < firstDayOfWeek) {
-      // Пустые ячейки в начале месяца
-      continue
-    }
+  // Проходим по всем дням от начала до конца календаря
+  const currentDate = new Date(startDate)
+  while (currentDate <= endDate) {
+    const dateYear = currentDate.getFullYear()
+    const dateMonth = currentDate.getMonth()
+    const dateDay = currentDate.getDate()
     
-    const dayOfMonth = i - firstDayOfWeek + 1
-    const date = new Date(year, month, dayOfMonth)
+    // Проверяем, относится ли день к текущему месяцу
+    const isCurrentMonth = dateYear === year && dateMonth === month
     
-    const dateStr = date.toISOString().split('T')[0]
-    const isCurrentMonth = true // Все дни относятся к текущему месяцу
-    
-    const dateYear = date.getFullYear()
-    const dateMonth = date.getMonth()
-    const dateDay = date.getDate()
+    const dateStr = currentDate.toISOString().split('T')[0]
     
     // Используем локальное время для определения сегодня и будущих дней
     const isToday = dateYear === todayYear && dateMonth === todayMonth && dateDay === todayDate
@@ -140,7 +131,15 @@ const calendarDays = computed(() => {
     
     const isMarked = currentHabit.markedDays.includes(dateStr)
     
-    days.push({ date, isCurrentMonth, isMarked, isToday, isFuture })
+    days.push({ 
+      date: new Date(currentDate), 
+      isCurrentMonth, 
+      isMarked, 
+      isToday, 
+      isFuture 
+    })
+    
+    currentDate.setDate(currentDate.getDate() + 1)
   }
   
   return days
@@ -158,14 +157,6 @@ function nextMonth() {
   currentDate.value = newDate
 }
 
-// Вычисляем количество пустых ячеек перед первым днем месяца
-function getEmptyCellsBefore(): number {
-  const year = currentDate.value.getFullYear()
-  const month = currentDate.value.getMonth()
-  const firstDay = new Date(year, month, 1)
-  const firstDayOfWeek = (firstDay.getDay() || 7) - 1 // Преобразуем: 0 (воскресенье) -> 6, 1 (понедельник) -> 0
-  return firstDayOfWeek
-}
 
 // Определяем стили для дня (обводка)
 function getDayStyle(day: { isMarked: boolean; isFuture: boolean; isToday: boolean; isCurrentMonth: boolean }) {
@@ -180,14 +171,14 @@ function getDayStyle(day: { isMarked: boolean; isFuture: boolean; isToday: boole
     }
   }
   
-  // Все дни (включая текущий) имеют одинаковую толщину обводки
-  // Текущий день выделяется только визуально через opacity или другой способ
+  // Все дни имеют одинаковую толщину обводки (1px)
+  // Дни из другого месяца делаем менее заметными
+  const opacity = !day.isCurrentMonth ? 0.2 : (day.isFuture ? (isLight ? 0.3 : 0.4) : 1)
+  
   return {
     border: `1px solid ${textColor}`,
     background: 'transparent',
-    opacity: day.isFuture ? (isLight ? 0.3 : 0.4) : 1,
-    // Для текущего дня делаем обводку чуть ярче
-    borderWidth: day.isToday ? '2px' : '1px'
+    opacity: opacity
   }
 }
 
@@ -198,6 +189,11 @@ function getDayNumberColor(day: { isMarked: boolean; isFuture: boolean; isToday:
   if (day.isMarked) {
     // Выполненные дни - белый текст на зелёном фоне
     return '#FFFFFF'
+  }
+  
+  // Дни из другого месяца - очень приглушённый цвет
+  if (!day.isCurrentMonth) {
+    return isLight ? '#ccc' : '#666'
   }
   
   if (day.isFuture) {
@@ -308,19 +304,17 @@ async function toggleDay(date: Date) {
   box-sizing: border-box;
 }
 
-.calendar-day.empty-cell {
+.calendar-day.other-month {
   cursor: default;
-  border: none;
-  opacity: 0;
 }
 
-.calendar-day:hover:not(.empty-cell):not(.marked) {
+.calendar-day:hover:not(.other-month):not(.marked) {
   transform: scale(1.1);
   opacity: 1 !important;
 }
 
-.calendar-day:hover:not(.other-month) {
-  transform: scale(1.1);
+.calendar-day.other-month:hover {
+  transform: none;
 }
 
 .day-number {
