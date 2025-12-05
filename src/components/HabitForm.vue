@@ -62,76 +62,68 @@
     <!-- Модальное окно для выбора времени оповещения -->
     <div v-if="showTimePicker" class="time-picker-modal" @click.self="closeTimePicker">
       <div class="time-picker-content" @click.stop>
+        <!-- Header -->
         <div class="time-picker-header">
-          <div class="character-preview">
-            <div class="character-icon-large">{{ selectedCharacterIcon }}</div>
-            <div class="character-name-text">{{ selectedCharacterName }}</div>
-          </div>
-          <button class="close-btn" @click="closeTimePicker">×</button>
+          <button class="back-btn" @click="cancelTimePicker" aria-label="Назад">
+            <span class="back-icon">←</span>
+          </button>
+          <h2 class="time-picker-header-title">{{ selectedCharacterName }}</h2>
+          <button class="close-btn" @click="closeTimePicker" aria-label="Закрыть">
+            <span class="close-icon">✕</span>
+          </button>
         </div>
+        
         <div class="time-picker-body">
-          <h3 class="time-picker-title">Выберите время для напоминания</h3>
-          <div class="time-input-container">
+          <!-- Секция: Время напоминания -->
+          <div class="notification-section">
+            <label class="section-label">Время напоминания</label>
             <input
               v-model="formData.notificationTime"
               type="time"
-              class="time-input"
+              class="time-input-compact"
             />
           </div>
-          <div class="message-input-container">
-            <label class="message-label">Текст напоминания</label>
+          
+          <!-- Секция: Текст напоминания -->
+          <div class="notification-section">
+            <label class="section-label">Текст напоминания</label>
             <textarea
               v-model="formData.customNotificationMessage"
               class="message-textarea"
               placeholder="Введите текст напоминания..."
               rows="3"
             ></textarea>
-            <div class="message-hint">
-              <span class="hint-icon">💡</span>
-              <span>Или используйте текст по умолчанию от {{ selectedCharacterName }}</span>
-              <button 
-                class="btn-use-default" 
-                @click="useDefaultMessage"
-                type="button"
-              >
-                Использовать
-              </button>
-            </div>
-          </div>
-          
-          <!-- Форма для ввода номера/никнейма Telegram -->
-          <div class="ios-telegram-info">
-            <div class="info-header">
-              <span class="info-icon">🍎</span>
-              <strong>Для получения уведомлений через Telegram:</strong>
-            </div>
-            <div class="info-text">
-              Введите ваш номер телефона или никнейм Telegram:
-            </div>
-            <div class="ios-contact-form">
-              <input
-                v-model="iosContactInfo"
-                type="text"
-                class="ios-contact-input"
-                placeholder="Номер телефона или никнейм (например: @username или +79991234567)"
-                @input="saveIOSContactInfo"
-              />
-              <p class="ios-contact-hint">
-                Введите ваш номер телефона (например: +79991234567) или никнейм Telegram (например: @username)
-              </p>
-            </div>
-          </div>
-          
-          <div class="test-notification-section">
+            <div class="default-text-divider">— или —</div>
             <button 
-              class="btn-test-notification" 
+              class="btn-use-default-text" 
+              @click="useDefaultMessage"
+              type="button"
+            >
+              Использовать стандартный текст
+            </button>
+          </div>
+          
+          <!-- Секция: Telegram уведомления -->
+          <div class="notification-section">
+            <label class="section-label">Telegram уведомления</label>
+            <p class="telegram-subtitle">Получайте напоминания даже когда приложение закрыто.</p>
+            <input
+              v-model="iosContactInfo"
+              type="text"
+              class="telegram-input"
+              placeholder="username / телефон"
+              @input="saveIOSContactInfo"
+            />
+            <button 
+              class="btn-connect-telegram" 
               @click="testNotification"
               type="button"
             >
-              🔔 Проверить уведомления
+              Подключить Telegram
             </button>
           </div>
         </div>
+        
         <div class="time-picker-actions">
           <button class="btn btn-secondary" @click="cancelTimePicker">Отмена</button>
           <button class="btn btn-primary" @click="confirmTimePicker">Сохранить</button>
@@ -1053,7 +1045,7 @@ function handleCancel() {
 .time-picker-content {
   background: white;
   border-radius: 16px;
-  max-width: 400px;
+  max-width: 500px;
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
@@ -1069,305 +1061,248 @@ function handleCancel() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.5rem;
-  border-bottom: 1px solid #e5e7eb;
+  padding: 16px 20px;
+  position: relative;
 }
 
-.character-preview {
+.back-btn {
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 1rem;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  transition: background-color 0.2s;
 }
 
-.character-icon-large {
-  font-size: 3rem;
+.back-btn:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.back-icon {
+  font-size: 24px;
+  color: #007AFF;
   line-height: 1;
 }
 
-.character-name-text {
-  font-size: 1.125rem;
+.time-picker-header-title {
+  font-size: 18px;
   font-weight: 600;
-  color: #1f2937;
+  color: #000000;
+  margin: 0;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .close-btn {
   background: none;
   border: none;
-  font-size: 2rem;
-  color: #6b7280;
+  padding: 8px;
   cursor: pointer;
-  padding: 0;
-  width: 32px;
-  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  transition: all 0.2s;
+  transition: background-color 0.2s;
+  margin-left: auto;
 }
 
 .close-btn:hover {
-  background: #f3f4f6;
-  color: #1f2937;
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.close-icon {
+  font-size: 20px;
+  font-weight: 300;
+  color: #007AFF;
+  line-height: 1;
 }
 
 .time-picker-body {
-  padding: 1.5rem;
-  text-align: center;
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 24px;
 }
 
-.time-picker-title {
-  font-size: 1.25rem;
+.notification-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.notification-section .section-label {
+  font-size: 15px;
   font-weight: 600;
-  color: #1f2937;
-  margin: 0 0 1.5rem 0;
+  color: #6A6A6A;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 0;
 }
 
-.time-input-container {
-  margin-bottom: 1.5rem;
-}
-
-.time-input {
+.time-input-compact {
   width: 100%;
-  padding: 1rem;
-  border: 2px solid #e5e7eb;
+  height: 48px;
+  padding: 12px;
+  border: 1.5px solid rgba(0, 0, 0, 0.12);
   border-radius: 12px;
-  font-size: 1.5rem;
+  font-size: 16px;
   text-align: center;
-  background: #f9fafb;
-  color: #1f2937;
-  transition: border-color 0.2s;
-}
-
-.time-input:focus {
-  outline: none;
-  border-color: #3b82f6;
   background: white;
-}
-
-.message-input-container {
-  margin-top: 1.5rem;
-}
-
-.message-label {
-  display: block;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #374151;
-  margin-bottom: 0.5rem;
-}
-
-.message-textarea {
-  width: 100%;
-  padding: 0.75rem;
-  border: 2px solid #e5e7eb;
-  border-radius: 8px;
-  font-size: 0.875rem;
-  font-family: inherit;
-  resize: vertical;
-  min-height: 80px;
-  background: #f9fafb;
-  color: #1f2937;
+  color: #000000;
   transition: border-color 0.2s;
-}
-
-.message-textarea:focus {
-  outline: none;
-  border-color: #3b82f6;
-  background: white;
-}
-
-.message-textarea::placeholder {
-  color: #9ca3af;
-}
-
-.message-hint {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-  padding: 0.75rem;
-  background: #f0f9ff;
-  border-left: 4px solid #3b82f6;
-  border-radius: 8px;
-  font-size: 0.75rem;
-  color: #1e40af;
-  flex-wrap: wrap;
-}
-
-.hint-icon {
-  font-size: 1rem;
-}
-
-.btn-use-default {
-  margin-left: auto;
-  padding: 0.25rem 0.75rem;
-  background: #3b82f6;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.btn-use-default:hover {
-  background: #2563eb;
-}
-
-.time-picker-actions {
-  display: flex;
-  gap: 1rem;
-  padding: 1.5rem;
-  border-top: 1px solid #e5e7eb;
-}
-
-.time-picker-actions .btn {
-  flex: 1;
-}
-
-.ios-telegram-info {
-  margin-top: 0;
-  padding: 1.5rem;
-  background: #e0f2fe;
-  border: 2px solid #0ea5e9;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(14, 165, 233, 0.2);
-  display: block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-  width: 100%;
   box-sizing: border-box;
-}
-
-.info-header {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-  font-size: 0.875rem;
-  color: #0369a1;
-}
-
-.info-icon {
-  font-size: 1.25rem;
-}
-
-.info-text {
-  font-size: 0.875rem;
-  color: #0369a1;
-  margin-bottom: 1rem;
-  line-height: 1.5;
-}
-
-.info-steps {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid #7dd3fc;
-}
-
-.steps-title {
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: #0369a1;
-  margin-bottom: 0.5rem;
-}
-
-.steps-list {
-  margin: 0;
-  padding-left: 1.25rem;
-  font-size: 0.8125rem;
-  color: #0369a1;
-  line-height: 1.6;
-}
-
-.steps-list li {
-  margin-bottom: 0.5rem;
-}
-
-.steps-list code {
-  background: #bae6fd;
-  padding: 0.125rem 0.375rem;
-  border-radius: 4px;
-  font-family: 'Courier New', monospace;
-  font-size: 0.75rem;
-}
-
-.ios-contact-form {
-  margin-top: 1rem;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.ios-contact-input {
-  width: 100% !important;
-  padding: 0.75rem !important;
-  border: 2px solid #bae6fd !important;
-  border-radius: 8px !important;
-  font-size: 0.875rem !important;
-  background: white !important;
-  color: #1f2937 !important;
-  transition: border-color 0.2s !important;
-  display: block !important;
-  visibility: visible !important;
-  box-sizing: border-box !important;
   -webkit-appearance: none;
   appearance: none;
 }
 
-.ios-contact-input:focus {
-  outline: none !important;
-  border-color: #0ea5e9 !important;
+.time-input-compact:focus {
+  outline: none;
+  border-color: #007AFF;
 }
 
-.ios-contact-hint {
-  margin-top: 0.5rem;
-  font-size: 0.75rem;
-  color: #0369a1;
+.message-textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1.5px solid rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
+  font-size: 16px;
+  line-height: 20px;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 80px;
+  background: white;
+  color: #000000;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.message-textarea:focus {
+  outline: none;
+  border-color: #007AFF;
+}
+
+.message-textarea::placeholder {
+  color: #999999;
+}
+
+.default-text-divider {
+  text-align: center;
+  font-size: 13px;
+  color: #999999;
+  margin: 12px 0;
+}
+
+.btn-use-default-text {
+  background: transparent;
+  border: none;
+  color: #007AFF;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 8px 0;
+  text-align: center;
+  transition: opacity 0.2s;
+}
+
+.btn-use-default-text:hover {
+  opacity: 0.7;
+}
+
+.telegram-subtitle {
+  font-size: 15px;
+  color: #6A6A6A;
+  margin: 0 0 12px 0;
   line-height: 1.4;
 }
 
-.test-notification-section {
-  margin-top: 0;
-  padding-top: 1.5rem;
-  border-top: 1px solid #e5e7eb;
-  display: block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
+.telegram-input {
   width: 100%;
+  height: 48px;
+  padding: 12px;
+  border: 1.5px solid rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
+  font-size: 16px;
+  background: white;
+  color: #000000;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+  -webkit-appearance: none;
+  appearance: none;
+  margin-bottom: 12px;
+}
+
+.telegram-input:focus {
+  outline: none;
+  border-color: #007AFF;
+}
+
+.telegram-input::placeholder {
+  color: #999999;
+}
+
+.btn-connect-telegram {
+  width: 100%;
+  height: 48px;
+  padding: 12px;
+  border: 1.5px solid rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 500;
+  background: white;
+  color: #007AFF;
+  cursor: pointer;
+  transition: all 0.2s;
   box-sizing: border-box;
 }
 
-.btn-test-notification {
-  width: 100% !important;
-  padding: 0.875rem 1.5rem !important;
-  background: #f3f4f6 !important;
-  color: #374151 !important;
-  border: 2px solid #e5e7eb !important;
-  border-radius: 8px !important;
-  font-size: 0.875rem !important;
-  font-weight: 600 !important;
-  cursor: pointer !important;
-  transition: all 0.2s !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 0.5rem !important;
-  visibility: visible !important;
-  opacity: 1 !important;
+.btn-connect-telegram:hover {
+  background: #f5f5f5;
+  border-color: #007AFF;
 }
 
-.btn-test-notification:hover {
-  background: #e5e7eb;
-  border-color: #d1d5db;
+.time-picker-actions {
+  display: flex;
+  gap: 12px;
+  padding: 20px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
 }
 
-.btn-test-notification:active {
-  transform: scale(0.98);
+.time-picker-actions .btn {
+  flex: 1;
+  height: 48px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.time-picker-actions .btn-secondary {
+  background: #f5f5f5;
+  color: #000000;
+  border: 1.5px solid rgba(0, 0, 0, 0.12);
+}
+
+.time-picker-actions .btn-secondary:hover {
+  background: #e5e5e5;
+}
+
+.time-picker-actions .btn-primary {
+  background: #007AFF;
+  color: #ffffff;
+  border: none;
+}
+
+.time-picker-actions .btn-primary:hover {
+  background: #0051D5;
 }
 
 .ios-contact-section {
