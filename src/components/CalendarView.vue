@@ -25,6 +25,7 @@
           'today': day.isToday,
           'future': day.isFuture
         }"
+        :style="getDayStyle(day)"
         @click="toggleDay(day.date)"
       >
         <span 
@@ -136,27 +137,52 @@ function nextMonth() {
   currentDate.value = newDate
 }
 
+// Определяем стили для дня (обводка)
+function getDayStyle(day: { isMarked: boolean; isFuture: boolean; isToday: boolean; isCurrentMonth: boolean }) {
+  const isLight = props.isLightBackground ?? false
+  const textColor = props.textColor || (isLight ? '#1A1A1A' : '#FFFFFF')
+  
+  if (day.isMarked) {
+    // Выполненные дни - зелёный фон, без обводки
+    return {
+      border: 'none',
+      background: '#10b981'
+    }
+  }
+  
+  if (day.isToday) {
+    // Текущий день - толстая обводка
+    return {
+      border: `2px solid ${textColor}`,
+      background: 'transparent'
+    }
+  }
+  
+  // Остальные дни - тонкая обводка
+  return {
+    border: `1px solid ${textColor}`,
+    background: 'transparent',
+    opacity: day.isFuture ? (isLight ? 0.3 : 0.4) : (day.isCurrentMonth ? 1 : 0.3)
+  }
+}
+
 // Определяем цвет цифры дня в зависимости от состояния и фона
 function getDayNumberColor(day: { isMarked: boolean; isFuture: boolean; isToday: boolean; isCurrentMonth: boolean }): string {
   const isLight = props.isLightBackground ?? false
+  const textColor = props.textColor || (isLight ? '#1A1A1A' : '#FFFFFF')
   
   if (day.isMarked) {
-    // Выполненные дни - всегда зелёный
+    // Выполненные дни - белый текст на зелёном фоне
     return '#FFFFFF'
   }
   
   if (day.isFuture) {
-    // Будущие дни
+    // Будущие дни - приглушённый цвет
     return isLight ? '#DDD' : '#666'
   }
   
-  if (day.isToday) {
-    // Текущий день - используем цвет текста
-    return props.textColor || (isLight ? '#1A1A1A' : '#FFFFFF')
-  }
-  
-  // Невыполненные прошедшие дни
-  return isLight ? '#999' : '#BBB'
+  // Остальные дни - основной цвет текста
+  return textColor
 }
 
 async function toggleDay(date: Date) {
@@ -254,30 +280,12 @@ async function toggleDay(date: Date) {
   cursor: pointer;
   transition: all 0.2s;
   position: relative;
-  background: transparent;
+  box-sizing: border-box;
 }
 
-.calendar-day.other-month {
-  opacity: 0.3;
-}
-
-.calendar-day.marked {
-  background: #10b981;
-  color: white;
-}
-
-.calendar-day.future {
-  background: transparent;
-}
-
-.calendar-day.today {
-  border: 2px solid;
-  border-color: inherit;
-  opacity: 0.6;
-}
-
-.calendar-day:not(.other-month):not(.future):not(.marked) {
-  background: transparent;
+.calendar-day:hover:not(.other-month):not(.marked) {
+  transform: scale(1.1);
+  opacity: 1 !important;
 }
 
 .calendar-day:hover:not(.other-month) {
