@@ -31,9 +31,13 @@
           @click="goToHabit(habit.id)"
         >
           <div class="habit-content">
-            <div class="habit-icon-large">{{ habit.icon || '🚫' }}</div>
-            <div class="habit-info">
-              <div class="habit-name-text">{{ habit.name }}</div>
+            <div class="habit-left">
+              <div class="habit-icon-large">{{ habit.icon || '🚫' }}</div>
+              <div class="habit-info">
+                <div class="habit-name-text">{{ habit.name }}</div>
+              </div>
+            </div>
+            <div class="habit-right">
               <div class="habit-progress">{{ getHabitProgress(habit) }}</div>
             </div>
           </div>
@@ -347,9 +351,26 @@ function closeForm() {
 .habit-content {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 1rem;
   flex: 1;
   min-width: 0;
+  width: 100%;
+}
+
+.habit-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.habit-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-shrink: 0;
 }
 
 /* Иконка привычки - увеличенная и заметная */
@@ -397,10 +418,29 @@ function closeForm() {
 
 /* Индикатор прогресса */
 .habit-progress {
-  font-size: 0.8125rem;
-  color: var(--text-secondary);
-  font-weight: 400;
+  font-size: 1rem;
+  color: var(--text-primary);
+  font-weight: 600;
   line-height: 1.3;
+  white-space: nowrap;
+  padding: 0.25rem 0.75rem;
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 8px;
+}
+
+.dark .habit-progress {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+}
+
+.habit-card.habit-completed .habit-progress {
+  background: rgba(16, 185, 129, 0.15);
+  color: #059669;
+}
+
+.dark .habit-card.habit-completed .habit-progress {
+  background: rgba(16, 185, 129, 0.2);
+  color: #10b981;
 }
 
 /* Кнопка добавления привычки - переработанная */
