@@ -491,24 +491,23 @@ function closeForm() {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: #ffffff;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
   z-index: 1000;
-  padding: 1rem;
+  overflow-y: auto;
   animation: fadeIn 0.2s ease-out;
 }
 
 .modal-content {
-  background: white;
-  border-radius: 16px;
-  max-width: 600px;
+  background: #ffffff;
   width: 100%;
-  max-height: 90vh;
+  max-width: 100%;
+  min-height: 100vh;
   overflow-y: auto;
   animation: fadeIn 0.3s ease-out;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
 }
 
 @keyframes fadeIn {

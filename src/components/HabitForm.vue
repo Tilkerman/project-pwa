@@ -1,23 +1,32 @@
 <template>
   <div class="habit-form">
-    <h2 class="form-title">{{ isEditing ? 'Название проекта' : 'Название проекта' }}</h2>
-    
-    <div class="form-group">
+    <!-- Header с крестиком -->
+    <header class="form-header">
+      <h2 class="form-title">{{ isEditing ? 'Редактировать привычку' : 'Новая привычка' }}</h2>
+      <button class="close-button" @click="handleCancel" aria-label="Закрыть">
+        <span class="close-icon">✕</span>
+      </button>
+    </header>
+
+    <!-- Секция: Название привычки -->
+    <div class="form-section">
+      <label class="section-label">НАЗВАНИЕ ПРИВЫЧКИ</label>
       <input
         id="habit-name"
         v-model="formData.name"
         type="text"
         placeholder="НЕ КУРИМ"
-        class="form-input"
+        class="ios-input"
       />
     </div>
 
-    <div class="form-group">
-      <label class="form-label">Кто напоминает?</label>
+    <!-- Секция: Кто напоминает -->
+    <div class="form-section">
+      <label class="section-label">КТО НАПОМИНАЕТ</label>
       <div class="character-dropdown">
-        <button class="dropdown-button" @click.prevent="showCharacterDropdown = !showCharacterDropdown">
-          {{ selectedCharacterName }}
-          <span class="dropdown-arrow">▼</span>
+        <button class="ios-dropdown-button" @click.prevent="showCharacterDropdown = !showCharacterDropdown">
+          <span>{{ selectedCharacterName }}</span>
+          <span class="dropdown-arrow">›</span>
         </button>
         <div v-if="showCharacterDropdown" class="dropdown-list">
           <div
@@ -28,14 +37,17 @@
             @click="selectCharacter(char.id)"
           >
             {{ char.name }}
+            <span v-if="formData.character === char.id" class="checkmark">✓</span>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="form-group">
-      <label class="toggle-label">
-        <span>Оповещения</span>
+    <!-- Секция: Оповещения -->
+    <div class="form-section">
+      <label class="section-label">ОПОВЕЩЕНИЯ</label>
+      <div class="ios-toggle-row">
+        <span class="toggle-label-text">Включить уведомления</span>
         <label class="ios-toggle">
           <input
             v-model="formData.notificationEnabled"
@@ -44,7 +56,7 @@
           >
           <span class="ios-toggle-slider"></span>
         </label>
-      </label>
+      </div>
     </div>
 
     <!-- Модальное окно для выбора времени оповещения -->
@@ -127,9 +139,11 @@
       </div>
     </div>
 
-    <div class="form-group">
-      <label class="toggle-label">
-        <span>Доп. мотивация</span>
+    <!-- Секция: Дополнительная мотивация -->
+    <div class="form-section">
+      <label class="section-label">ДОПОЛНИТЕЛЬНАЯ МОТИВАЦИЯ</label>
+      <div class="ios-toggle-row">
+        <span class="toggle-label-text">Включить дополнительную мотивацию</span>
         <label class="ios-toggle">
           <input
             v-model="formData.additionalMotivation"
@@ -137,13 +151,15 @@
           >
           <span class="ios-toggle-slider"></span>
         </label>
-      </label>
+      </div>
     </div>
 
-    <div class="form-group">
-      <label class="form-label">Иконка проекта</label>
-      <button class="btn-select-icon" @click.prevent="showIconPicker = !showIconPicker">
-        Выбрать из библиотеки
+    <!-- Секция: Иконка проекта -->
+    <div class="form-section">
+      <label class="section-label">ИКОНКА ПРОЕКТА</label>
+      <button class="ios-dropdown-button" @click.prevent="showIconPicker = !showIconPicker">
+        <span>{{ formData.icon || '🚫' }}</span>
+        <span class="dropdown-arrow">›</span>
       </button>
       <div v-if="showIconPicker" class="icon-picker">
         <div
@@ -158,10 +174,11 @@
       </div>
     </div>
 
-    <div class="form-group">
-      <label class="form-label">Выберите цвет для проекта</label>
+    <!-- Секция: Цвет проекта -->
+    <div class="form-section">
+      <label class="section-label">ЦВЕТ</label>
       <div class="color-picker">
-        <!-- Кнопка выбора своего цвета - ПЕРВАЯ -->
+        <!-- Кнопка выбора своего цвета -->
         <div
           class="color-option color-option-custom"
           :class="{ active: formData.color === 'custom' }"
@@ -169,14 +186,13 @@
           :style="{ 
             background: formData.color === 'custom' && formData.customColor 
               ? formData.customColor 
-              : 'linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%)',
-            cursor: 'pointer'
+              : 'linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%)'
           }"
           title="Выбрать свой цвет"
         >
-          <span class="custom-color-icon" style="font-size: 1.5rem; font-weight: bold; color: white; text-shadow: 0 0 3px rgba(0,0,0,0.5);">+</span>
+          <span class="custom-color-icon">+</span>
         </div>
-        <!-- Только 4-5 предустановленных цветов -->
+        <!-- Предустановленные цвета -->
         <div
           v-for="color in ['blue', 'red', 'green', 'purple', 'pink']"
           :key="color"
@@ -196,23 +212,23 @@
       />
     </div>
 
+    <!-- Кнопки действий -->
     <div class="form-actions">
       <button
-        v-if="isEditing"
         type="button"
-        class="btn-delete-icon"
-        @click.stop="showDeleteConfirm = true"
-        title="Удалить привычку"
-      >
-        🗑️
-      </button>
-      <button
-        type="button"
-        class="btn btn-primary"
+        class="btn-primary-ios"
         :disabled="!formData.name.trim()"
         @click="handleSubmit"
       >
-        СОХРАНИТЬ
+        Сохранить
+      </button>
+      <button
+        v-if="isEditing"
+        type="button"
+        class="btn-delete-text"
+        @click.stop="showDeleteConfirm = true"
+      >
+        Удалить привычку
       </button>
     </div>
 
@@ -546,113 +562,205 @@ function handleDelete() {
   showDeleteConfirm.value = false
   emit('delete')
 }
+
+function handleCancel() {
+  emit('cancel')
+}
 </script>
 
 <style scoped>
 .habit-form {
-  background: white;
-  border-radius: 16px;
-  padding: 2rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: #ffffff;
+  min-height: 100vh;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header с крестиком */
+.form-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  position: sticky;
+  top: 0;
+  background: #ffffff;
+  z-index: 10;
 }
 
 .form-title {
-  font-size: 1.25rem;
+  font-size: 17px;
   font-weight: 600;
-  color: #1f2937;
-  margin-bottom: 1.5rem;
+  color: #000000;
+  margin: 0;
 }
 
-.form-group {
-  margin-bottom: 1.5rem;
+.close-button {
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  transition: background-color 0.2s;
 }
 
-.form-label {
+.close-button:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.close-icon {
+  font-size: 20px;
+  font-weight: 300;
+  color: #007AFF;
+  line-height: 1;
+}
+
+/* Секции формы */
+.form-section {
+  padding: 20px 20px 0;
+  margin-bottom: 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.form-section:last-of-type {
+  border-bottom: none;
+  padding-bottom: 20px;
+}
+
+.section-label {
   display: block;
-  font-size: 0.875rem;
+  font-size: 15px;
   font-weight: 600;
-  color: #1f2937;
-  margin-bottom: 0.5rem;
+  color: #6A6A6A;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 6px;
 }
 
-.form-input {
+/* iOS стиль input */
+.ios-input {
   width: 100%;
-  padding: 0.75rem;
-  border: 2px solid #e5e7eb;
-  border-radius: 8px;
-  font-size: 1rem;
+  padding: 12px;
+  border: 1.5px solid rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
+  font-size: 16px;
+  line-height: 20px;
   transition: border-color 0.2s;
   background: white;
-  color: #1f2937;
+  color: #000000;
+  box-sizing: border-box;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
-.form-input:focus {
+.ios-input::placeholder {
+  color: #999999;
+}
+
+.ios-input:focus {
   outline: none;
-  border-color: #3b82f6;
+  border-color: #007AFF;
 }
 
 .character-dropdown {
   position: relative;
 }
 
-.dropdown-button {
+.ios-dropdown-button {
   width: 100%;
-  padding: 0.75rem;
-  border: 2px solid #e5e7eb;
-  border-radius: 8px;
+  padding: 12px;
+  border: 1.5px solid rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
   background: white;
-  color: #1f2937;
-  font-size: 1rem;
+  color: #000000;
+  font-size: 16px;
+  line-height: 20px;
   cursor: pointer;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  box-sizing: border-box;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: border-color 0.2s;
+}
+
+.ios-dropdown-button:focus {
+  outline: none;
+  border-color: #007AFF;
 }
 
 .dropdown-arrow {
-  font-size: 0.75rem;
-  color: #6b7280;
+  font-size: 18px;
+  color: #C7C7CC;
+  font-weight: 300;
 }
 
 .dropdown-list {
   position: absolute;
-  top: 100%;
+  top: calc(100% + 8px);
   left: 0;
   right: 0;
-  margin-top: 0.25rem;
   background: white;
-  border: 2px solid #e5e7eb;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  z-index: 10;
-  max-height: 200px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+  max-height: 300px;
   overflow-y: auto;
+  margin-top: 4px;
 }
 
 .dropdown-item {
-  padding: 0.75rem;
+  padding: 12px 16px;
   cursor: pointer;
-  color: #1f2937;
+  color: #000000;
+  font-size: 16px;
   transition: background-color 0.2s;
-}
-
-.dropdown-item:hover {
-  background-color: #f9fafb;
-}
-
-.dropdown-item.active {
-  background-color: #eef2ff;
-  color: #3b82f6;
-  font-weight: 600;
-}
-
-.toggle-label {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.875rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.dropdown-item:hover {
+  background-color: #f5f5f5;
+}
+
+.dropdown-item.active {
+  background-color: #E3F2FD;
+  color: #007AFF;
+  font-weight: 500;
+}
+
+.checkmark {
+  color: #007AFF;
+  font-size: 18px;
   font-weight: 600;
-  color: #1f2937;
+}
+
+.ios-toggle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+}
+
+.toggle-label-text {
+  font-size: 16px;
+  color: #000000;
+  font-weight: 400;
 }
 
 .ios-toggle {
@@ -660,6 +768,7 @@ function handleDelete() {
   display: inline-block;
   width: 51px;
   height: 31px;
+  flex-shrink: 0;
 }
 
 .ios-toggle input {
@@ -675,9 +784,9 @@ function handleDelete() {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #e5e7eb;
+  background-color: #E5E5EA;
   transition: 0.3s;
-  border-radius: 34px;
+  border-radius: 31px;
 }
 
 .ios-toggle-slider:before {
@@ -694,38 +803,23 @@ function handleDelete() {
 }
 
 .ios-toggle input:checked + .ios-toggle-slider {
-  background-color: #3b82f6;
+  background-color: #34C759;
 }
 
 .ios-toggle input:checked + .ios-toggle-slider:before {
   transform: translateX(20px);
 }
 
-.btn-select-icon {
-  width: 100%;
-  padding: 0.75rem;
-  border: 2px solid #e5e7eb;
-  border-radius: 8px;
-  background: white;
-  color: #1f2937;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: border-color 0.2s;
-}
-
-.btn-select-icon:hover {
-  border-color: #3b82f6;
-}
 
 .icon-picker {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 0.5rem;
-  margin-top: 0.75rem;
-  padding: 1rem;
-  background: #f9fafb;
-  border-radius: 8px;
-  max-height: 200px;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  margin-top: 12px;
+  padding: 12px;
+  background: #f5f5f5;
+  border-radius: 12px;
+  max-height: 250px;
   overflow-y: auto;
 }
 
@@ -734,105 +828,124 @@ function handleDelete() {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
+  font-size: 24px;
   background: white;
-  border: 2px solid #e5e7eb;
-  border-radius: 8px;
+  border: 1.5px solid rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .icon-option:hover {
-  border-color: #3b82f6;
-  transform: scale(1.1);
+  border-color: #007AFF;
+  transform: scale(1.05);
 }
 
 .icon-option.active {
-  border-color: #3b82f6;
-  background: #eef2ff;
+  border-color: #007AFF;
+  background: #E3F2FD;
 }
 
 .color-picker {
   display: flex;
-  gap: 0.75rem;
-  margin-top: 0.75rem;
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.color-picker::-webkit-scrollbar {
-  display: none;
+  gap: 12px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+  padding: 8px 0;
 }
 
 .color-option {
-  width: 40px;
-  min-width: 40px;
-  height: 40px;
-  min-height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   cursor: pointer;
   border: 3px solid transparent;
   transition: all 0.2s;
   flex-shrink: 0;
-  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
 }
 
 .color-option:hover {
-  transform: scale(1.1);
+  transform: scale(1.05);
 }
 
 .color-option.active {
-  border-color: #1f2937;
-  box-shadow: 0 0 0 3px rgba(31, 41, 55, 0.2);
+  border-color: #007AFF;
+}
+
+.color-option-custom {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%);
+}
+
+.custom-color-icon {
+  font-size: 20px;
+  font-weight: 300;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  line-height: 1;
 }
 
 .form-actions {
   display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 1rem;
-  margin-top: 2rem;
-  padding: 1rem 0;
-  position: relative;
-  z-index: 10;
+  flex-direction: column;
+  gap: 0;
+  margin-top: auto;
+  padding: 20px;
+  background: #ffffff;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.btn-primary-ios {
   width: 100%;
-  flex-wrap: wrap;
-}
-
-.btn-delete-icon {
-  padding: 0.75rem 1.5rem;
-  background: #fee2e2 !important;
-  border: 2px solid #ef4444 !important;
-  border-radius: 8px;
-  color: #ef4444 !important;
-  cursor: pointer;
-  display: inline-flex !important;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-  min-width: auto;
-  min-height: auto;
-  flex-shrink: 0;
-  opacity: 1 !important;
-  visibility: visible !important;
-  position: relative !important;
-  z-index: 10 !important;
-  font-size: 1rem;
+  padding: 14px 20px;
+  background: #007AFF;
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  font-size: 17px;
   font-weight: 600;
-  margin-right: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 12px;
 }
 
-.btn-delete-icon:hover {
-  background: #fee2e2;
-  border-color: #dc2626;
-  color: #dc2626;
+.btn-primary-ios:hover:not(:disabled) {
+  background: #0051D5;
 }
 
-.btn-delete-icon:active {
-  transform: scale(0.95);
+.btn-primary-ios:active:not(:disabled) {
+  background: #0040A8;
+  transform: scale(0.98);
+}
+
+.btn-primary-ios:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #C7C7CC;
+}
+
+.btn-delete-text {
+  width: 100%;
+  padding: 12px 20px;
+  background: transparent;
+  color: #FF3B30;
+  border: none;
+  font-size: 17px;
+  font-weight: 400;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  text-align: center;
+}
+
+.btn-delete-text:hover {
+  opacity: 0.7;
+}
+
+.btn-delete-text:active {
+  opacity: 0.5;
 }
 
 .delete-confirm-modal {
@@ -925,19 +1038,6 @@ function handleDelete() {
   transition: all 0.2s;
 }
 
-.btn-primary {
-  background: #e0f2fe;
-  color: #0369a1;
-}
-
-.btn-primary:hover:not(:disabled) {
-  background: #bae6fd;
-}
-
-.btn-primary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
 
 .time-picker-modal {
   position: fixed;
