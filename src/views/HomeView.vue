@@ -3,11 +3,11 @@
     <!-- Header с логотипом и иконкой настроек -->
     <header class="page-header">
       <div class="header-logo-container">
-        <AppLogo size="32px" />
+        <img src="/icon-new.png" alt="Логотип" class="header-logo-img" />
         <span class="app-name">Привычки</span>
       </div>
       <button class="settings-btn" @click="goToSettings" aria-label="Настройки">
-        <AppLogo size="24px" />
+        <span class="settings-icon">⚙️</span>
       </button>
     </header>
     
@@ -207,6 +207,13 @@ function closeForm() {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+.header-logo-img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  display: block;
 }
 
 .app-name {
