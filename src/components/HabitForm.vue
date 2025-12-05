@@ -583,7 +583,6 @@ function handleCancel() {
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
   position: sticky;
   top: 0;
   background: #ffffff;
@@ -626,11 +625,9 @@ function handleCancel() {
 .form-section {
   padding: 20px 20px 0;
   margin-bottom: 0;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .form-section:last-of-type {
-  border-bottom: none;
   padding-bottom: 20px;
 }
 
@@ -895,7 +892,6 @@ function handleCancel() {
   margin-top: auto;
   padding: 20px;
   background: #ffffff;
-  border-top: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .btn-primary-ios {
