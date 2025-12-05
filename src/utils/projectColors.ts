@@ -105,26 +105,60 @@ export const projectIcons = [
 
 export function getProjectColorStyles(color: ProjectColor = 'blue', customColor?: string) {
   if (color === 'custom' && customColor) {
+    // Проверяем, не является ли цвет чисто белым
+    const normalizedColor = customColor.toLowerCase().replace('#', '')
+    const isWhite = normalizedColor === 'ffffff' || normalizedColor === 'fff'
+    
     // Генерируем стили для кастомного цвета
     return {
-      bg: customColor,
-      text: getContrastColor(customColor),
-      border: darkenColor(customColor, 0.2)
+      bg: isWhite ? '#F7F7F7' : customColor, // Fallback для белого
+      text: getContrastColor(isWhite ? '#F7F7F7' : customColor),
+      border: darkenColor(isWhite ? '#F7F7F7' : customColor, 0.2)
     }
   }
+  
+  // Проверяем стандартные цвета на белый
+  const baseColor = projectColors[color]
+  const normalizedBg = baseColor.bg.toLowerCase().replace('#', '')
+  const isWhite = normalizedBg === 'ffffff' || normalizedBg === 'fff'
+  
+  if (isWhite) {
+    return {
+      bg: '#F7F7F7',
+      text: '#1A1A1A',
+      border: '#E5E5E5'
+    }
+  }
+  
   return projectColors[color]
 }
 
-// Функция для определения контрастного цвета текста (черный или белый)
-function getContrastColor(hex: string): string {
-  // Убираем # если есть
+// Функция для вычисления luminance (яркости) по формуле WCAG
+export function calculateLuminance(hex: string): number {
   const color = hex.replace('#', '')
-  const r = parseInt(color.substr(0, 2), 16)
-  const g = parseInt(color.substr(2, 2), 16)
-  const b = parseInt(color.substr(4, 2), 16)
-  // Вычисляем яркость
-  const brightness = (r * 299 + g * 587 + b * 114) / 1000
-  return brightness > 128 ? '#000000' : '#ffffff'
+  const r = parseInt(color.substr(0, 2), 16) / 255
+  const g = parseInt(color.substr(2, 2), 16) / 255
+  const b = parseInt(color.substr(4, 2), 16) / 255
+  
+  // Применяем гамма-коррекцию
+  const rLinear = r <= 0.03928 ? r / 12.92 : Math.pow((r + 0.055) / 1.055, 2.4)
+  const gLinear = g <= 0.03928 ? g / 12.92 : Math.pow((g + 0.055) / 1.055, 2.4)
+  const bLinear = b <= 0.03928 ? b / 12.92 : Math.pow((b + 0.055) / 1.055, 2.4)
+  
+  // Формула luminance
+  return 0.2126 * rLinear + 0.7152 * gLinear + 0.0722 * bLinear
+}
+
+// Функция для определения контрастного цвета текста (черный или белый)
+export function getContrastColor(hex: string): string {
+  const luminance = calculateLuminance(hex)
+  return luminance > 0.6 ? '#1A1A1A' : '#FFFFFF'
+}
+
+// Функция для определения, является ли цвет светлым
+export function isLightColor(hex: string): boolean {
+  const luminance = calculateLuminance(hex)
+  return luminance > 0.6
 }
 
 // Функция для затемнения цвета (для border)
