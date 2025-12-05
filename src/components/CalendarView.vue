@@ -169,7 +169,6 @@ function getDayStyle(day: { isMarked: boolean; isFuture: boolean; isToday: boole
 // Определяем цвет цифры дня в зависимости от состояния и фона
 function getDayNumberColor(day: { isMarked: boolean; isFuture: boolean; isToday: boolean; isCurrentMonth: boolean }): string {
   const isLight = props.isLightBackground ?? false
-  const textColor = props.textColor || (isLight ? '#1A1A1A' : '#FFFFFF')
   
   if (day.isMarked) {
     // Выполненные дни - белый текст на зелёном фоне
@@ -178,11 +177,12 @@ function getDayNumberColor(day: { isMarked: boolean; isFuture: boolean; isToday:
   
   if (day.isFuture) {
     // Будущие дни - приглушённый цвет
-    return isLight ? '#DDD' : '#666'
+    return isLight ? '#999' : '#999'
   }
   
-  // Остальные дни - основной цвет текста
-  return textColor
+  // Остальные дни - цвет зависит от фона
+  // Светлый фон → темные цифры, темный фон → светлые цифры
+  return isLight ? '#1A1A1A' : '#FFFFFF'
 }
 
 async function toggleDay(date: Date) {
