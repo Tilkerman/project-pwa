@@ -7,7 +7,7 @@
         <span class="app-name">Привычки</span>
       </div>
       <button class="settings-btn" @click="goToSettings" aria-label="Настройки">
-        <span class="settings-icon">⚙️</span>
+        <AppLogo size="24px" />
       </button>
     </header>
     
