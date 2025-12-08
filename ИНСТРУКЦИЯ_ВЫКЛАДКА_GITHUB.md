@@ -99,3 +99,8 @@ git push -u origin main
 2. Убедитесь, что файл `.github/workflows/deploy.yml` загружен на GitHub
 3. Проверьте, что в настройках Pages выбрана ветка `main` или `master`
 
+
+
+
+
+

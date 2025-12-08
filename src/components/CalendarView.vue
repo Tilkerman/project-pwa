@@ -2,12 +2,17 @@
   <div class="calendar-view">
     <div class="calendar-header">
       <button class="nav-btn" @click="previousMonth">‹</button>
-      <h3 class="month-year">{{ monthYear }}</h3>
+      <h3 class="month-year" :style="{ color: props.textColor || 'inherit' }">{{ monthYear }}</h3>
       <button class="nav-btn" @click="nextMonth">›</button>
     </div>
     
     <div class="calendar-grid">
-      <div class="day-label" v-for="day in dayLabels" :key="day">
+      <div 
+        class="day-label" 
+        v-for="day in dayLabels" 
+        :key="day"
+        :style="{ color: props.textColor || 'inherit' }"
+      >
         {{ day }}
       </div>
       <div
@@ -20,9 +25,13 @@
           'today': day.isToday,
           'future': day.isFuture
         }"
+        :style="getDayStyle(day)"
         @click="toggleDay(day.date)"
       >
-        <span class="day-number">{{ day.date.getDate() }}</span>
+        <span 
+          class="day-number"
+          :style="{ color: getDayNumberColor(day) }"
+        >{{ day.date.getDate() }}</span>
       </div>
     </div>
   </div>
@@ -37,6 +46,8 @@ import { getProjectColorStyles } from '@/utils/projectColors'
 const props = defineProps<{
   habit: Habit
   projectColor?: ProjectColor
+  textColor?: string
+  isLightBackground?: boolean
 }>()
 
 const store = useHabitsStore()
@@ -89,7 +100,16 @@ const calendarDays = computed(() => {
   const todayMonth = today.getMonth()
   const todayDate = today.getDate()
   
-  for (let i = 0; i < 42; i++) {
+  // Вычисляем количество дней, которые нужно показать
+  // Показываем только дни текущего месяца + дни предыдущего месяца для заполнения первой недели
+  const daysInMonth = lastDay.getDate()
+  const firstDayOfWeek = (firstDay.getDay() || 7) - 1 // 0 = понедельник, 6 = воскресенье
+  const totalDaysToShow = firstDayOfWeek + daysInMonth
+  
+  // Ограничиваем до 35 дней максимум (5 недель), чтобы не показывать лишний ряд следующего месяца
+  const maxDays = 35
+  
+  for (let i = 0; i < Math.min(totalDaysToShow, maxDays); i++) {
     const date = new Date(startDate)
     date.setDate(startDate.getDate() + i)
     
@@ -124,6 +144,61 @@ function nextMonth() {
   const newDate = new Date(currentDate.value)
   newDate.setMonth(newDate.getMonth() + 1)
   currentDate.value = newDate
+}
+
+// Определяем стили для дня (обводка)
+function getDayStyle(day: { isMarked: boolean; isFuture: boolean; isToday: boolean; isCurrentMonth: boolean }) {
+  const isLight = props.isLightBackground ?? false
+  const textColor = props.textColor || (isLight ? '#1A1A1A' : '#FFFFFF')
+  
+  if (day.isMarked) {
+    // Выполненные дни - зелёный фон, без обводки
+    return {
+      border: 'none',
+      background: '#10b981'
+    }
+  }
+  
+  // Все дни имеют обводку
+  if (!day.isCurrentMonth) {
+    // Дни из другого месяца - очень прозрачные
+    return {
+      border: `1px solid ${textColor}`,
+      background: 'transparent',
+      opacity: 0.2
+    }
+  }
+  
+  const opacity = day.isFuture ? (isLight ? 0.4 : 0.5) : 1
+  
+  return {
+    border: `1px solid ${textColor}`,
+    background: 'transparent',
+    opacity: opacity
+  }
+}
+
+// Определяем цвет цифры дня в зависимости от состояния и фона
+function getDayNumberColor(day: { isMarked: boolean; isFuture: boolean; isToday: boolean; isCurrentMonth: boolean }): string {
+  const isLight = props.isLightBackground ?? false
+  
+  if (day.isMarked) {
+    // Выполненные дни - всегда зелёный
+    return '#FFFFFF'
+  }
+  
+  if (day.isFuture) {
+    // Будущие дни
+    return isLight ? '#DDD' : '#666'
+  }
+  
+  if (day.isToday) {
+    // Текущий день - используем цвет текста
+    return props.textColor || (isLight ? '#1A1A1A' : '#FFFFFF')
+  }
+  
+  // Невыполненные прошедшие дни
+  return isLight ? '#999' : '#BBB'
 }
 
 async function toggleDay(date: Date) {
@@ -171,24 +246,29 @@ async function toggleDay(date: Date) {
 }
 
 .nav-btn {
-  background: rgba(255, 255, 255, 0.1);
-  border: none;
+  background: transparent;
+  border: 1px solid;
+  border-color: inherit;
+  opacity: 0.5;
   border-radius: 8px;
   width: 2.5rem;
   height: 2.5rem;
   font-size: 1.5rem;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.2s;
   color: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .nav-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
+  opacity: 0.8;
 }
 
 .month-year {
-  font-size: 1.125rem;
-  font-weight: 600;
+  font-size: 1.25rem;
+  font-weight: 700;
   margin: 0;
   text-transform: capitalize;
 }
@@ -203,7 +283,7 @@ async function toggleDay(date: Date) {
   text-align: center;
   font-size: 0.75rem;
   font-weight: 600;
-  opacity: 0.7;
+  opacity: 0.8;
   padding: 0.5rem;
 }
 
@@ -220,26 +300,17 @@ async function toggleDay(date: Date) {
 }
 
 .calendar-day.other-month {
-  opacity: 0.3;
+  cursor: default;
 }
 
 .calendar-day.marked {
-  background: #10b981;
+  background: #10b981 !important;
   color: white;
-}
-
-.calendar-day.future {
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.7);
+  border: none !important;
 }
 
 .calendar-day.today {
-  border: 2px solid rgba(255, 255, 255, 0.5);
-}
-
-.calendar-day:not(.other-month):not(.future):not(.marked) {
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.5);
+  /* Стили для сегодняшнего дня задаются через inline style */
 }
 
 .calendar-day:hover:not(.other-month) {

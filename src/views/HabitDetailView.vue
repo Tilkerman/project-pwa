@@ -1,7 +1,12 @@
 <template>
   <div
     class="habit-detail-view"
-    :style="{ backgroundColor: projectColorStyles.bg, color: projectColorStyles.text }"
+    :style="{ 
+      backgroundColor: projectColorStyles.bg, 
+      color: textColor,
+      '--text-color': textColor,
+      '--is-light': isLightBackground ? '1' : '0'
+    }"
   >
     <div v-if="loading" class="loading">Загрузка...</div>
     
@@ -19,12 +24,17 @@
     >
       <div class="header-section">
         <button class="back-btn" @click="$router.push('/')">
-          ← Назад
+          <span class="back-icon">←</span>
+          <span class="back-text">Назад</span>
         </button>
       </div>
 
       <div class="main-section">
-        <button class="arrow-up" @click="navigateToPreviousHabit">
+        <button 
+          class="arrow-up" 
+          :style="getArrowButtonStyle()"
+          @click="navigateToPreviousHabit"
+        >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M12 19V5M5 12l7-7 7 7"/>
           </svg>
@@ -33,13 +43,29 @@
         <p class="habit-days">уже {{ stats.totalDays }} дней</p>
 
         <div class="calendar-section">
-          <CalendarView :habit="habit" :project-color="habit.color || 'blue'" />
+          <CalendarView 
+            :habit="habit" 
+            :project-color="habit.color || 'blue'"
+            :text-color="textColor"
+            :is-light-background="isLightBackground"
+          />
         </div>
       </div>
 
       <div class="footer-section">
-        <div class="settings-link" @click="showSettings = true">настройки</div>
-        <button class="arrow-down" @click="navigateToNextHabit">
+        <button 
+          class="habit-settings-btn" 
+          :style="getSettingsButtonStyle()"
+          @click="showSettings = true"
+        >
+          <span class="settings-icon">⚙️</span>
+          <span class="settings-text">Настройки</span>
+        </button>
+        <button 
+          class="arrow-down" 
+          :style="getArrowButtonStyle()"
+          @click="navigateToNextHabit"
+        >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M12 5v14M19 12l-7 7-7-7"/>
           </svg>
@@ -68,7 +94,7 @@ import { useRoute, useRouter } from 'vue-router'
 import CalendarView from '@/components/CalendarView.vue'
 import HabitForm from '@/components/HabitForm.vue'
 import { useHabitsStore } from '@/stores/habitsStore'
-import { getProjectColorStyles } from '@/utils/projectColors'
+import { getProjectColorStyles, calculateLuminance } from '@/utils/projectColors'
 import type { Habit } from '@/types'
 
 const route = useRoute()
@@ -195,6 +221,20 @@ const projectColorStyles = computed(() => {
   return getProjectColorStyles(habit.value?.color || 'blue', habit.value?.customColor)
 })
 
+// Вычисляем цвет текста на основе контрастности фона
+const textColor = computed(() => {
+  return projectColorStyles.value.text
+})
+
+// Определяем, является ли фон светлым
+const isLightBackground = computed(() => {
+  const bg = projectColorStyles.value.bg.toLowerCase().replace('#', '')
+  // Проверяем на белый или очень светлый цвет
+  if (bg === 'ffffff' || bg === 'fff' || bg === 'f7f7f7') return true
+  // Используем luminance для определения
+  return calculateLuminance(projectColorStyles.value.bg) > 0.6
+})
+
 onMounted(async () => {
   await store.loadHabits()
   loading.value = false
@@ -263,6 +303,23 @@ function closeSettings() {
   showSettings.value = false
 }
 
+// Стили для кнопки настроек в зависимости от фона
+function getSettingsButtonStyle() {
+  return {
+    background: isLightBackground.value 
+      ? 'rgba(0, 0, 0, 0.05)' 
+      : 'rgba(255, 255, 255, 0.15)'
+  }
+}
+
+// Стили для стрелок в зависимости от фона
+function getArrowButtonStyle() {
+  return {
+    borderColor: textColor.value,
+    color: textColor.value
+  }
+}
+
 async function handleDelete() {
   if (!habit.value) return
   
@@ -292,22 +349,70 @@ async function handleDelete() {
 }
 
 .header-section {
+  position: sticky;
+  top: 0;
+  z-index: 100;
   padding: 1rem;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  background: inherit;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid;
+  border-bottom-color: rgba(0, 0, 0, 0.1);
+}
+
+.habit-detail-view[style*="--is-light: 1"] .header-section {
+  border-bottom-color: rgba(0, 0, 0, 0.15);
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.habit-detail-view[style*="--is-light: 0"] .header-section {
+  border-bottom-color: rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.3);
 }
 
 .back-btn {
-  background: none;
+  background: transparent;
   border: none;
-  color: inherit;
-  font-size: 1rem;
+  border-radius: 12px;
+  color: var(--text-color);
+  font-size: 0.875rem;
+  font-weight: 600;
   cursor: pointer;
-  padding: 0.5rem 0;
-  margin-bottom: 0.5rem;
-  opacity: 0.9;
+  padding: 0.5rem 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  transition: all 0.2s ease;
+  opacity: 0.8;
+}
+
+.habit-detail-view[style*="--is-light: 1"] .back-btn {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.habit-detail-view[style*="--is-light: 0"] .back-btn {
+  background: rgba(255, 255, 255, 0.15);
 }
 
 .back-btn:hover {
   opacity: 1;
+}
+
+.back-btn:active {
+  opacity: 0.9;
+  transform: scale(0.98);
+}
+
+.back-icon {
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.back-text {
+  font-weight: 600;
+  font-size: 0.875rem;
 }
 
 .main-section {
@@ -320,7 +425,8 @@ async function handleDelete() {
   height: 40px;
   margin-bottom: 0.5rem;
   background: transparent;
-  border: 1.5px solid rgba(255, 255, 255, 0.8);
+  border: 1.5px solid;
+  opacity: 0.5;
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -328,8 +434,6 @@ async function handleDelete() {
   cursor: pointer;
   margin: 0 auto 0.5rem;
   transition: all 0.2s;
-  opacity: 0.9;
-  color: rgba(255, 255, 255, 0.9);
   padding: 0;
 }
 
@@ -340,30 +444,29 @@ async function handleDelete() {
 
 .arrow-up:hover {
   opacity: 1;
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 1);
 }
 
 .arrow-up:active {
   transform: scale(0.95);
-  background: rgba(255, 255, 255, 0.15);
 }
 
 .habit-title {
   font-size: 2rem;
   font-weight: 700;
-  margin: 0 0 0.5rem 0;
+  margin: 0 0 4px 0;
   text-transform: uppercase;
+  color: var(--text-color);
 }
 
 .habit-days {
-  font-size: 1rem;
-  opacity: 0.9;
-  margin-bottom: 1rem;
+  font-size: 16px;
+  opacity: 0.8;
+  margin-bottom: 1.5rem;
+  color: var(--text-color);
 }
 
 .calendar-section {
-  margin-top: 1rem;
+  margin-top: 1.75rem;
 }
 
 .footer-section {
@@ -372,31 +475,65 @@ async function handleDelete() {
   left: 0;
   right: 0;
   padding: 1rem;
+  padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
   background: inherit;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.settings-link {
-  text-align: center;
-  font-size: 0.875rem;
-  opacity: 0.8;
-  margin-bottom: 0.5rem;
+.habit-settings-btn {
+  width: calc(100% - 32px);
+  max-width: 600px;
+  height: 52px;
+  border-radius: 12px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
   cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-color);
+  padding: 0;
+  margin-bottom: 0.5rem;
+}
+
+.habit-settings-btn:hover {
+  opacity: 0.8;
+}
+
+.habit-settings-btn:active {
+  opacity: 0.7;
+  transform: scale(0.98);
+}
+
+.settings-icon {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.settings-text {
+  font-size: 1rem;
+  font-weight: 600;
 }
 
 .arrow-down {
   width: 40px;
   height: 40px;
   background: transparent;
-  border: 1.5px solid rgba(255, 255, 255, 0.8);
+  border: 1.5px solid;
+  opacity: 0.5;
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  margin: 0.5rem auto;
+  margin: 0;
   transition: all 0.2s;
-  opacity: 0.9;
-  color: rgba(255, 255, 255, 0.9);
   padding: 0;
 }
 
@@ -407,13 +544,10 @@ async function handleDelete() {
 
 .arrow-down:hover {
   opacity: 1;
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 1);
 }
 
 .arrow-down:active {
   transform: scale(0.95);
-  background: rgba(255, 255, 255, 0.15);
 }
 
 .settings-modal {
@@ -422,20 +556,18 @@ async function handleDelete() {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: #ffffff;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
   z-index: 1000;
-  padding: 1rem;
+  overflow-y: auto;
 }
 
 .settings-content {
-  background: white;
-  border-radius: 16px;
-  max-width: 600px;
+  background: #ffffff;
   width: 100%;
-  max-height: 90vh;
+  max-width: 100%;
+  min-height: 100vh;
   overflow-y: auto;
   position: relative;
   display: flex;

@@ -1,6 +1,6 @@
 {
   "name": "habit-tracker-pwa",
-  "version": "1.0.1",
+  "version": "1.0.6",
   "type": "module",
   "scripts": {
     "dev": "vite",

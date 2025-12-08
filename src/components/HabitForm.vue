@@ -1,150 +1,35 @@
 <template>
   <div class="habit-form">
-    <h2 class="form-title">{{ isEditing ? 'Название проекта' : 'Название проекта' }}</h2>
-    
-    <div class="form-group">
-      <input
-        id="habit-name"
-        v-model="formData.name"
-        type="text"
-        placeholder="НЕ КУРИМ"
-        class="form-input"
-      />
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">Кто напоминает?</label>
-      <div class="character-dropdown">
-        <button class="dropdown-button" @click.prevent="showCharacterDropdown = !showCharacterDropdown">
-          {{ selectedCharacterName }}
-          <span class="dropdown-arrow">▼</span>
-        </button>
-        <div v-if="showCharacterDropdown" class="dropdown-list">
-          <div
-            v-for="char in availableCharacters"
-            :key="char.id"
-            class="dropdown-item"
-            :class="{ active: formData.character === char.id }"
-            @click="selectCharacter(char.id)"
-          >
-            {{ char.name }}
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label class="toggle-label">
-        <span>Оповещения</span>
-        <label class="ios-toggle">
-          <input
-            v-model="formData.notificationEnabled"
-            type="checkbox"
-            @click="handleNotificationToggle"
-          >
-          <span class="ios-toggle-slider"></span>
-        </label>
-      </label>
-    </div>
-
-    <!-- Модальное окно для выбора времени оповещения -->
-    <div v-if="showTimePicker" class="time-picker-modal" @click.self="closeTimePicker">
-      <div class="time-picker-content" @click.stop>
-        <div class="time-picker-header">
-          <div class="character-preview">
-            <div class="character-icon-large">{{ selectedCharacterIcon }}</div>
-            <div class="character-name-text">{{ selectedCharacterName }}</div>
-          </div>
-          <button class="close-btn" @click="closeTimePicker">×</button>
-        </div>
-        <div class="time-picker-body">
-          <h3 class="time-picker-title">Выберите время для напоминания</h3>
-          <div class="time-input-container">
-            <input
-              v-model="formData.notificationTime"
-              type="time"
-              class="time-input"
-            />
-          </div>
-          <div class="message-input-container">
-            <label class="message-label">Текст напоминания</label>
-            <textarea
-              v-model="formData.customNotificationMessage"
-              class="message-textarea"
-              placeholder="Введите текст напоминания..."
-              rows="3"
-            ></textarea>
-            <div class="message-hint">
-              <span class="hint-icon">💡</span>
-              <span>Или используйте текст по умолчанию от {{ selectedCharacterName }}</span>
-              <button 
-                class="btn-use-default" 
-                @click="useDefaultMessage"
-                type="button"
-              >
-                Использовать
-              </button>
-            </div>
-          </div>
-          
-          <!-- Форма для ввода номера/никнейма Telegram -->
-          <div class="ios-telegram-info">
-            <div class="info-header">
-              <span class="info-icon">🍎</span>
-              <strong>Для получения уведомлений через Telegram:</strong>
-            </div>
-            <div class="info-text">
-              Введите ваш номер телефона или никнейм Telegram:
-            </div>
-            <div class="ios-contact-form">
-              <input
-                v-model="iosContactInfo"
-                type="text"
-                class="ios-contact-input"
-                placeholder="Номер телефона или никнейм (например: @username или +79991234567)"
-                @input="saveIOSContactInfo"
-              />
-              <p class="ios-contact-hint">
-                Введите ваш номер телефона (например: +79991234567) или никнейм Telegram (например: @username)
-              </p>
-            </div>
-          </div>
-          
-          <div class="test-notification-section">
-            <button 
-              class="btn-test-notification" 
-              @click="testNotification"
-              type="button"
-            >
-              🔔 Проверить уведомления
-            </button>
-          </div>
-        </div>
-        <div class="time-picker-actions">
-          <button class="btn btn-secondary" @click="cancelTimePicker">Отмена</button>
-          <button class="btn btn-primary" @click="confirmTimePicker">Сохранить</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label class="toggle-label">
-        <span>Доп. мотивация</span>
-        <label class="ios-toggle">
-          <input
-            v-model="formData.additionalMotivation"
-            type="checkbox"
-          >
-          <span class="ios-toggle-slider"></span>
-        </label>
-      </label>
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">Иконка проекта</label>
-      <button class="btn-select-icon" @click.prevent="showIconPicker = !showIconPicker">
-        Выбрать из библиотеки
+    <!-- Header с крестиком -->
+    <header class="form-header">
+      <h2 class="form-title">{{ isEditing ? 'Редактировать привычку' : 'Новая привычка' }}</h2>
+      <button class="close-button" @click="handleCancel" aria-label="Закрыть">
+        <span class="close-icon">✕</span>
       </button>
+    </header>
+
+    <!-- Секция: Название привычки -->
+    <div class="form-section">
+      <label class="section-label">НАЗВАНИЕ ПРИВЫЧКИ</label>
+      <div class="name-with-icon-container">
+        <button 
+          type="button"
+          class="icon-select-button" 
+          @click.prevent="showIconPicker = !showIconPicker"
+          :aria-label="'Выбрать иконку. Текущая: ' + (formData.icon || '🚫')"
+        >
+          <span class="icon-display">{{ formData.icon || '🚫' }}</span>
+          <span class="icon-dropdown-arrow">▼</span>
+        </button>
+        <div class="icon-separator"></div>
+        <input
+          id="habit-name"
+          v-model="formData.name"
+          type="text"
+          placeholder="НЕ КУРИМ"
+          class="ios-input name-input-with-icon"
+        />
+      </div>
       <div v-if="showIconPicker" class="icon-picker">
         <div
           v-for="icon in projectIcons"
@@ -158,10 +43,139 @@
       </div>
     </div>
 
-    <div class="form-group">
-      <label class="form-label">Выберите цвет для проекта</label>
+
+    <!-- Секция: Оповещения -->
+    <div class="form-section">
+      <label class="section-label">ОПОВЕЩЕНИЯ</label>
+      <div class="ios-toggle-row">
+        <span class="toggle-label-text">Включить уведомления</span>
+        <label class="ios-toggle">
+          <input
+            v-model="formData.notificationEnabled"
+            type="checkbox"
+            @click="handleNotificationToggle"
+          >
+          <span class="ios-toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Модальное окно для выбора времени оповещения -->
+    <div v-if="showTimePicker" class="time-picker-modal" @click.self="closeTimePicker">
+      <div class="time-picker-content" @click.stop>
+        <!-- Header -->
+        <div class="time-picker-header">
+          <button class="back-btn" @click="cancelTimePicker" aria-label="Назад">
+            <span class="back-icon">←</span>
+          </button>
+          <h2 class="time-picker-header-title">{{ selectedCharacterName }}</h2>
+          <button class="close-btn" @click="closeTimePicker" aria-label="Закрыть">
+            <span class="close-icon">✕</span>
+          </button>
+        </div>
+        
+        <div class="time-picker-body">
+          <!-- Секция: Кто напоминает -->
+          <div class="notification-section">
+            <label class="section-label">Кто напоминает</label>
+            <div class="character-dropdown">
+              <button class="ios-dropdown-button" @click.prevent="showCharacterDropdown = !showCharacterDropdown">
+                <span>{{ selectedCharacterName }}</span>
+                <span class="dropdown-arrow">›</span>
+              </button>
+              <div v-if="showCharacterDropdown" class="dropdown-list">
+                <div
+                  v-for="char in availableCharacters"
+                  :key="char.id"
+                  class="dropdown-item"
+                  :class="{ active: formData.character === char.id }"
+                  @click="selectCharacter(char.id)"
+                >
+                  {{ char.name }}
+                  <span v-if="formData.character === char.id" class="checkmark">✓</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Секция: Время напоминания -->
+          <div class="notification-section">
+            <label class="section-label">Время напоминания</label>
+            <input
+              v-model="formData.notificationTime"
+              type="time"
+              class="time-input-compact"
+            />
+          </div>
+          
+          <!-- Секция: Текст напоминания -->
+          <div class="notification-section">
+            <label class="section-label">Текст напоминания</label>
+            <textarea
+              v-model="formData.customNotificationMessage"
+              class="message-textarea"
+              placeholder="Введите текст напоминания..."
+              rows="3"
+            ></textarea>
+            <div class="default-text-divider">— или —</div>
+            <button 
+              class="btn-use-default-text" 
+              @click="useDefaultMessage"
+              type="button"
+            >
+              Использовать стандартный текст
+            </button>
+          </div>
+          
+          <!-- Секция: Telegram уведомления -->
+          <div class="notification-section">
+            <label class="section-label">Telegram уведомления</label>
+            <p class="telegram-subtitle">Получайте напоминания даже когда приложение закрыто.</p>
+            <input
+              v-model="iosContactInfo"
+              type="text"
+              class="telegram-input"
+              placeholder="username / телефон"
+              @input="saveIOSContactInfo"
+            />
+            <button 
+              class="btn-connect-telegram" 
+              @click="testNotification"
+              type="button"
+            >
+              Подключить Telegram
+            </button>
+          </div>
+        </div>
+        
+        <div class="time-picker-actions">
+          <button class="btn btn-secondary" @click="cancelTimePicker">Отмена</button>
+          <button class="btn btn-primary" @click="confirmTimePicker">Сохранить</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Секция: Дополнительная мотивация -->
+    <div class="form-section">
+      <label class="section-label">ДОПОЛНИТЕЛЬНАЯ МОТИВАЦИЯ</label>
+      <div class="ios-toggle-row">
+        <span class="toggle-label-text">Включить дополнительную мотивацию</span>
+        <label class="ios-toggle">
+          <input
+            v-model="formData.additionalMotivation"
+            type="checkbox"
+          >
+          <span class="ios-toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+
+
+    <!-- Секция: Цвет проекта -->
+    <div class="form-section">
+      <label class="section-label">ЦВЕТ</label>
       <div class="color-picker">
-        <!-- Кнопка выбора своего цвета - ПЕРВАЯ -->
+        <!-- Кнопка выбора своего цвета -->
         <div
           class="color-option color-option-custom"
           :class="{ active: formData.color === 'custom' }"
@@ -169,14 +183,13 @@
           :style="{ 
             background: formData.color === 'custom' && formData.customColor 
               ? formData.customColor 
-              : 'linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%)',
-            cursor: 'pointer'
+              : 'linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%)'
           }"
           title="Выбрать свой цвет"
         >
-          <span class="custom-color-icon" style="font-size: 1.5rem; font-weight: bold; color: white; text-shadow: 0 0 3px rgba(0,0,0,0.5);">+</span>
+          <span class="custom-color-icon">+</span>
         </div>
-        <!-- Только 4-5 предустановленных цветов -->
+        <!-- Предустановленные цвета -->
         <div
           v-for="color in ['blue', 'red', 'green', 'purple', 'pink']"
           :key="color"
@@ -196,23 +209,23 @@
       />
     </div>
 
+    <!-- Кнопки действий -->
     <div class="form-actions">
       <button
-        v-if="isEditing"
         type="button"
-        class="btn-delete-icon"
-        @click.stop="showDeleteConfirm = true"
-        title="Удалить привычку"
-      >
-        🗑️
-      </button>
-      <button
-        type="button"
-        class="btn btn-primary"
+        class="btn-primary-ios"
         :disabled="!formData.name.trim()"
         @click="handleSubmit"
       >
-        СОХРАНИТЬ
+        Сохранить
+      </button>
+      <button
+        v-if="isEditing"
+        type="button"
+        class="btn-delete-text"
+        @click.stop="showDeleteConfirm = true"
+      >
+        Удалить привычку
       </button>
     </div>
 
@@ -546,113 +559,285 @@ function handleDelete() {
   showDeleteConfirm.value = false
   emit('delete')
 }
+
+function handleCancel() {
+  emit('cancel')
+}
 </script>
 
 <style scoped>
 .habit-form {
-  background: white;
-  border-radius: 16px;
-  padding: 2rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: #ffffff;
+  min-height: 100vh;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header с крестиком */
+.form-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  position: sticky;
+  top: 0;
+  background: #ffffff;
+  z-index: 10;
 }
 
 .form-title {
-  font-size: 1.25rem;
+  font-size: 17px;
   font-weight: 600;
-  color: #1f2937;
-  margin-bottom: 1.5rem;
+  color: #000000;
+  margin: 0;
 }
 
-.form-group {
-  margin-bottom: 1.5rem;
+.close-button {
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  transition: background-color 0.2s;
 }
 
-.form-label {
+.close-button:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.close-icon {
+  font-size: 20px;
+  font-weight: 300;
+  color: #007AFF;
+  line-height: 1;
+}
+
+/* Секции формы */
+.form-section {
+  padding: 20px 20px 0;
+  margin-bottom: 0;
+}
+
+.form-section:last-of-type {
+  padding-bottom: 20px;
+}
+
+.section-label {
   display: block;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #1f2937;
-  margin-bottom: 0.5rem;
+  font-size: 15px;
+  font-weight: 700;
+  color: #6A6A6A;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 6px;
 }
 
-.form-input {
+/* iOS стиль input */
+.ios-input {
   width: 100%;
-  padding: 0.75rem;
-  border: 2px solid #e5e7eb;
-  border-radius: 8px;
-  font-size: 1rem;
+  padding: 12px;
+  border: 1.5px solid rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
+  font-size: 16px;
+  line-height: 20px;
   transition: border-color 0.2s;
   background: white;
-  color: #1f2937;
+  color: #000000;
+  box-sizing: border-box;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
-.form-input:focus {
+.ios-input::placeholder {
+  color: #999999;
+}
+
+.ios-input:focus {
   outline: none;
-  border-color: #3b82f6;
+  border-color: #007AFF;
+}
+
+/* Контейнер для названия с иконкой */
+.name-with-icon-container {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  border: 1.5px solid rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
+  background: white;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.name-with-icon-container:focus-within {
+  border-color: #007AFF;
+}
+
+.icon-select-button {
+  flex-shrink: 0;
+  width: 64px;
+  height: 48px;
+  padding: 0 8px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: background-color 0.2s;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.icon-select-button:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.icon-select-button:active {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.icon-display {
+  font-size: 24px;
+  line-height: 1;
+  display: block;
+}
+
+.icon-dropdown-arrow {
+  font-size: 12px;
+  color: #007AFF;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 400;
+  flex-shrink: 0;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.icon-select-button:hover .icon-dropdown-arrow {
+  opacity: 1;
+}
+
+.icon-separator {
+  width: 1px;
+  height: 32px;
+  background: rgba(0, 0, 0, 0.12);
+  flex-shrink: 0;
+}
+
+.name-input-with-icon {
+  flex: 1;
+  border: none;
+  border-radius: 0;
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+.name-input-with-icon:focus {
+  border-color: transparent;
 }
 
 .character-dropdown {
   position: relative;
 }
 
-.dropdown-button {
+.ios-dropdown-button {
   width: 100%;
-  padding: 0.75rem;
-  border: 2px solid #e5e7eb;
-  border-radius: 8px;
+  padding: 12px;
+  border: 1.5px solid rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
   background: white;
-  color: #1f2937;
-  font-size: 1rem;
+  color: #000000;
+  font-size: 16px;
+  line-height: 20px;
   cursor: pointer;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  box-sizing: border-box;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: border-color 0.2s;
+}
+
+.ios-dropdown-button:focus {
+  outline: none;
+  border-color: #007AFF;
 }
 
 .dropdown-arrow {
-  font-size: 0.75rem;
-  color: #6b7280;
+  font-size: 18px;
+  color: #C7C7CC;
+  font-weight: 300;
 }
 
 .dropdown-list {
   position: absolute;
-  top: 100%;
+  top: calc(100% + 8px);
   left: 0;
   right: 0;
-  margin-top: 0.25rem;
   background: white;
-  border: 2px solid #e5e7eb;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  z-index: 10;
-  max-height: 200px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  z-index: 2100;
+  max-height: 300px;
   overflow-y: auto;
+  margin-top: 4px;
 }
 
 .dropdown-item {
-  padding: 0.75rem;
+  padding: 12px 16px;
   cursor: pointer;
-  color: #1f2937;
+  color: #000000;
+  font-size: 16px;
   transition: background-color 0.2s;
-}
-
-.dropdown-item:hover {
-  background-color: #f9fafb;
-}
-
-.dropdown-item.active {
-  background-color: #eef2ff;
-  color: #3b82f6;
-  font-weight: 600;
-}
-
-.toggle-label {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.875rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.dropdown-item:hover {
+  background-color: #f5f5f5;
+}
+
+.dropdown-item.active {
+  background-color: #E3F2FD;
+  color: #007AFF;
+  font-weight: 500;
+}
+
+.checkmark {
+  color: #007AFF;
+  font-size: 18px;
   font-weight: 600;
-  color: #1f2937;
+}
+
+.ios-toggle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+}
+
+.toggle-label-text {
+  font-size: 16px;
+  color: #000000;
+  font-weight: 400;
 }
 
 .ios-toggle {
@@ -660,6 +845,7 @@ function handleDelete() {
   display: inline-block;
   width: 51px;
   height: 31px;
+  flex-shrink: 0;
 }
 
 .ios-toggle input {
@@ -675,9 +861,9 @@ function handleDelete() {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #e5e7eb;
+  background-color: #E5E5EA;
   transition: 0.3s;
-  border-radius: 34px;
+  border-radius: 31px;
 }
 
 .ios-toggle-slider:before {
@@ -694,39 +880,25 @@ function handleDelete() {
 }
 
 .ios-toggle input:checked + .ios-toggle-slider {
-  background-color: #3b82f6;
+  background-color: #34C759;
 }
 
 .ios-toggle input:checked + .ios-toggle-slider:before {
   transform: translateX(20px);
 }
 
-.btn-select-icon {
-  width: 100%;
-  padding: 0.75rem;
-  border: 2px solid #e5e7eb;
-  border-radius: 8px;
-  background: white;
-  color: #1f2937;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: border-color 0.2s;
-}
-
-.btn-select-icon:hover {
-  border-color: #3b82f6;
-}
 
 .icon-picker {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 0.5rem;
-  margin-top: 0.75rem;
-  padding: 1rem;
-  background: #f9fafb;
-  border-radius: 8px;
-  max-height: 200px;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  margin-top: 12px;
+  padding: 12px;
+  background: #f5f5f5;
+  border-radius: 12px;
+  max-height: 250px;
   overflow-y: auto;
+  border: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .icon-option {
@@ -734,105 +906,123 @@ function handleDelete() {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
+  font-size: 24px;
   background: white;
-  border: 2px solid #e5e7eb;
-  border-radius: 8px;
+  border: 1.5px solid rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .icon-option:hover {
-  border-color: #3b82f6;
-  transform: scale(1.1);
+  border-color: #007AFF;
+  transform: scale(1.05);
 }
 
 .icon-option.active {
-  border-color: #3b82f6;
-  background: #eef2ff;
+  border-color: #007AFF;
+  background: #E3F2FD;
 }
 
 .color-picker {
   display: flex;
-  gap: 0.75rem;
-  margin-top: 0.75rem;
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.color-picker::-webkit-scrollbar {
-  display: none;
+  gap: 12px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+  padding: 8px 0;
 }
 
 .color-option {
-  width: 40px;
-  min-width: 40px;
-  height: 40px;
-  min-height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   cursor: pointer;
   border: 3px solid transparent;
   transition: all 0.2s;
   flex-shrink: 0;
-  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
 }
 
 .color-option:hover {
-  transform: scale(1.1);
+  transform: scale(1.05);
 }
 
 .color-option.active {
-  border-color: #1f2937;
-  box-shadow: 0 0 0 3px rgba(31, 41, 55, 0.2);
+  border-color: #007AFF;
+}
+
+.color-option-custom {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%);
+}
+
+.custom-color-icon {
+  font-size: 20px;
+  font-weight: 300;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  line-height: 1;
 }
 
 .form-actions {
   display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 1rem;
-  margin-top: 2rem;
-  padding: 1rem 0;
-  position: relative;
-  z-index: 10;
+  flex-direction: column;
+  gap: 0;
+  margin-top: auto;
+  padding: 20px;
+  background: #ffffff;
+}
+
+.btn-primary-ios {
   width: 100%;
-  flex-wrap: wrap;
-}
-
-.btn-delete-icon {
-  padding: 0.75rem 1.5rem;
-  background: #fee2e2 !important;
-  border: 2px solid #ef4444 !important;
-  border-radius: 8px;
-  color: #ef4444 !important;
-  cursor: pointer;
-  display: inline-flex !important;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-  min-width: auto;
-  min-height: auto;
-  flex-shrink: 0;
-  opacity: 1 !important;
-  visibility: visible !important;
-  position: relative !important;
-  z-index: 10 !important;
-  font-size: 1rem;
+  padding: 14px 20px;
+  background: #007AFF;
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  font-size: 17px;
   font-weight: 600;
-  margin-right: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 12px;
 }
 
-.btn-delete-icon:hover {
-  background: #fee2e2;
-  border-color: #dc2626;
-  color: #dc2626;
+.btn-primary-ios:hover:not(:disabled) {
+  background: #0051D5;
 }
 
-.btn-delete-icon:active {
-  transform: scale(0.95);
+.btn-primary-ios:active:not(:disabled) {
+  background: #0040A8;
+  transform: scale(0.98);
+}
+
+.btn-primary-ios:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #C7C7CC;
+}
+
+.btn-delete-text {
+  width: 100%;
+  padding: 12px 20px;
+  background: transparent;
+  color: #FF3B30;
+  border: none;
+  font-size: 17px;
+  font-weight: 400;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  text-align: center;
+}
+
+.btn-delete-text:hover {
+  opacity: 0.7;
+}
+
+.btn-delete-text:active {
+  opacity: 0.5;
 }
 
 .delete-confirm-modal {
@@ -925,19 +1115,6 @@ function handleDelete() {
   transition: all 0.2s;
 }
 
-.btn-primary {
-  background: #e0f2fe;
-  color: #0369a1;
-}
-
-.btn-primary:hover:not(:disabled) {
-  background: #bae6fd;
-}
-
-.btn-primary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
 
 .time-picker-modal {
   position: fixed;
@@ -957,7 +1134,7 @@ function handleDelete() {
 .time-picker-content {
   background: white;
   border-radius: 16px;
-  max-width: 400px;
+  max-width: 500px;
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
@@ -973,305 +1150,248 @@ function handleDelete() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.5rem;
-  border-bottom: 1px solid #e5e7eb;
+  padding: 16px 20px;
+  position: relative;
 }
 
-.character-preview {
+.back-btn {
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 1rem;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  transition: background-color 0.2s;
 }
 
-.character-icon-large {
-  font-size: 3rem;
+.back-btn:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.back-icon {
+  font-size: 24px;
+  color: #007AFF;
   line-height: 1;
 }
 
-.character-name-text {
-  font-size: 1.125rem;
+.time-picker-header-title {
+  font-size: 18px;
   font-weight: 600;
-  color: #1f2937;
+  color: #000000;
+  margin: 0;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .close-btn {
   background: none;
   border: none;
-  font-size: 2rem;
-  color: #6b7280;
+  padding: 8px;
   cursor: pointer;
-  padding: 0;
-  width: 32px;
-  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  transition: all 0.2s;
+  transition: background-color 0.2s;
+  margin-left: auto;
 }
 
 .close-btn:hover {
-  background: #f3f4f6;
-  color: #1f2937;
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.close-icon {
+  font-size: 20px;
+  font-weight: 300;
+  color: #007AFF;
+  line-height: 1;
 }
 
 .time-picker-body {
-  padding: 1.5rem;
-  text-align: center;
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 24px;
 }
 
-.time-picker-title {
-  font-size: 1.25rem;
+.notification-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.notification-section .section-label {
+  font-size: 15px;
   font-weight: 600;
-  color: #1f2937;
-  margin: 0 0 1.5rem 0;
+  color: #6A6A6A;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 0;
 }
 
-.time-input-container {
-  margin-bottom: 1.5rem;
-}
-
-.time-input {
+.time-input-compact {
   width: 100%;
-  padding: 1rem;
-  border: 2px solid #e5e7eb;
+  height: 48px;
+  padding: 12px;
+  border: 1.5px solid rgba(0, 0, 0, 0.12);
   border-radius: 12px;
-  font-size: 1.5rem;
+  font-size: 16px;
   text-align: center;
-  background: #f9fafb;
-  color: #1f2937;
-  transition: border-color 0.2s;
-}
-
-.time-input:focus {
-  outline: none;
-  border-color: #3b82f6;
   background: white;
-}
-
-.message-input-container {
-  margin-top: 1.5rem;
-}
-
-.message-label {
-  display: block;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #374151;
-  margin-bottom: 0.5rem;
-}
-
-.message-textarea {
-  width: 100%;
-  padding: 0.75rem;
-  border: 2px solid #e5e7eb;
-  border-radius: 8px;
-  font-size: 0.875rem;
-  font-family: inherit;
-  resize: vertical;
-  min-height: 80px;
-  background: #f9fafb;
-  color: #1f2937;
+  color: #000000;
   transition: border-color 0.2s;
-}
-
-.message-textarea:focus {
-  outline: none;
-  border-color: #3b82f6;
-  background: white;
-}
-
-.message-textarea::placeholder {
-  color: #9ca3af;
-}
-
-.message-hint {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-  padding: 0.75rem;
-  background: #f0f9ff;
-  border-left: 4px solid #3b82f6;
-  border-radius: 8px;
-  font-size: 0.75rem;
-  color: #1e40af;
-  flex-wrap: wrap;
-}
-
-.hint-icon {
-  font-size: 1rem;
-}
-
-.btn-use-default {
-  margin-left: auto;
-  padding: 0.25rem 0.75rem;
-  background: #3b82f6;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.btn-use-default:hover {
-  background: #2563eb;
-}
-
-.time-picker-actions {
-  display: flex;
-  gap: 1rem;
-  padding: 1.5rem;
-  border-top: 1px solid #e5e7eb;
-}
-
-.time-picker-actions .btn {
-  flex: 1;
-}
-
-.ios-telegram-info {
-  margin-top: 0;
-  padding: 1.5rem;
-  background: #e0f2fe;
-  border: 2px solid #0ea5e9;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(14, 165, 233, 0.2);
-  display: block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-  width: 100%;
   box-sizing: border-box;
-}
-
-.info-header {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-  font-size: 0.875rem;
-  color: #0369a1;
-}
-
-.info-icon {
-  font-size: 1.25rem;
-}
-
-.info-text {
-  font-size: 0.875rem;
-  color: #0369a1;
-  margin-bottom: 1rem;
-  line-height: 1.5;
-}
-
-.info-steps {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid #7dd3fc;
-}
-
-.steps-title {
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: #0369a1;
-  margin-bottom: 0.5rem;
-}
-
-.steps-list {
-  margin: 0;
-  padding-left: 1.25rem;
-  font-size: 0.8125rem;
-  color: #0369a1;
-  line-height: 1.6;
-}
-
-.steps-list li {
-  margin-bottom: 0.5rem;
-}
-
-.steps-list code {
-  background: #bae6fd;
-  padding: 0.125rem 0.375rem;
-  border-radius: 4px;
-  font-family: 'Courier New', monospace;
-  font-size: 0.75rem;
-}
-
-.ios-contact-form {
-  margin-top: 1rem;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.ios-contact-input {
-  width: 100% !important;
-  padding: 0.75rem !important;
-  border: 2px solid #bae6fd !important;
-  border-radius: 8px !important;
-  font-size: 0.875rem !important;
-  background: white !important;
-  color: #1f2937 !important;
-  transition: border-color 0.2s !important;
-  display: block !important;
-  visibility: visible !important;
-  box-sizing: border-box !important;
   -webkit-appearance: none;
   appearance: none;
 }
 
-.ios-contact-input:focus {
-  outline: none !important;
-  border-color: #0ea5e9 !important;
+.time-input-compact:focus {
+  outline: none;
+  border-color: #007AFF;
 }
 
-.ios-contact-hint {
-  margin-top: 0.5rem;
-  font-size: 0.75rem;
-  color: #0369a1;
+.message-textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1.5px solid rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
+  font-size: 16px;
+  line-height: 20px;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 80px;
+  background: white;
+  color: #000000;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.message-textarea:focus {
+  outline: none;
+  border-color: #007AFF;
+}
+
+.message-textarea::placeholder {
+  color: #999999;
+}
+
+.default-text-divider {
+  text-align: center;
+  font-size: 13px;
+  color: #999999;
+  margin: 12px 0;
+}
+
+.btn-use-default-text {
+  background: transparent;
+  border: none;
+  color: #007AFF;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 8px 0;
+  text-align: center;
+  transition: opacity 0.2s;
+}
+
+.btn-use-default-text:hover {
+  opacity: 0.7;
+}
+
+.telegram-subtitle {
+  font-size: 15px;
+  color: #6A6A6A;
+  margin: 0 0 12px 0;
   line-height: 1.4;
 }
 
-.test-notification-section {
-  margin-top: 0;
-  padding-top: 1.5rem;
-  border-top: 1px solid #e5e7eb;
-  display: block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
+.telegram-input {
   width: 100%;
+  height: 48px;
+  padding: 12px;
+  border: 1.5px solid rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
+  font-size: 16px;
+  background: white;
+  color: #000000;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+  -webkit-appearance: none;
+  appearance: none;
+  margin-bottom: 12px;
+}
+
+.telegram-input:focus {
+  outline: none;
+  border-color: #007AFF;
+}
+
+.telegram-input::placeholder {
+  color: #999999;
+}
+
+.btn-connect-telegram {
+  width: 100%;
+  height: 48px;
+  padding: 12px;
+  border: 1.5px solid rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 500;
+  background: white;
+  color: #007AFF;
+  cursor: pointer;
+  transition: all 0.2s;
   box-sizing: border-box;
 }
 
-.btn-test-notification {
-  width: 100% !important;
-  padding: 0.875rem 1.5rem !important;
-  background: #f3f4f6 !important;
-  color: #374151 !important;
-  border: 2px solid #e5e7eb !important;
-  border-radius: 8px !important;
-  font-size: 0.875rem !important;
-  font-weight: 600 !important;
-  cursor: pointer !important;
-  transition: all 0.2s !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 0.5rem !important;
-  visibility: visible !important;
-  opacity: 1 !important;
+.btn-connect-telegram:hover {
+  background: #f5f5f5;
+  border-color: #007AFF;
 }
 
-.btn-test-notification:hover {
-  background: #e5e7eb;
-  border-color: #d1d5db;
+.time-picker-actions {
+  display: flex;
+  gap: 12px;
+  padding: 20px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
 }
 
-.btn-test-notification:active {
-  transform: scale(0.98);
+.time-picker-actions .btn {
+  flex: 1;
+  height: 48px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.time-picker-actions .btn-secondary {
+  background: #f5f5f5;
+  color: #000000;
+  border: 1.5px solid rgba(0, 0, 0, 0.12);
+}
+
+.time-picker-actions .btn-secondary:hover {
+  background: #e5e5e5;
+}
+
+.time-picker-actions .btn-primary {
+  background: #007AFF;
+  color: #ffffff;
+  border: none;
+}
+
+.time-picker-actions .btn-primary:hover {
+  background: #0051D5;
 }
 
 .ios-contact-section {
