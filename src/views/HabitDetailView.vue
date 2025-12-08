@@ -24,7 +24,8 @@
     >
       <div class="header-section">
         <button class="back-btn" @click="$router.push('/')">
-          ← Назад
+          <span class="back-icon">←</span>
+          <span class="back-text">Назад</span>
         </button>
       </div>
 
@@ -348,22 +349,75 @@ async function handleDelete() {
 }
 
 .header-section {
+  position: sticky;
+  top: 0;
+  z-index: 100;
   padding: 1rem;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  background: inherit;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid;
+  border-bottom-color: rgba(0, 0, 0, 0.1);
+}
+
+.habit-detail-view[style*="--is-light: 1"] .header-section {
+  border-bottom-color: rgba(0, 0, 0, 0.15);
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.habit-detail-view[style*="--is-light: 0"] .header-section {
+  border-bottom-color: rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.3);
 }
 
 .back-btn {
-  background: none;
-  border: none;
+  background: rgba(0, 0, 0, 0.08);
+  border: 1.5px solid var(--text-color);
+  border-radius: 12px;
   color: var(--text-color);
   font-size: 1rem;
+  font-weight: 600;
   cursor: pointer;
-  padding: 0.5rem 0;
-  margin-bottom: 0.5rem;
-  opacity: 0.9;
+  padding: 0.75rem 1.25rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+  opacity: 1;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.habit-detail-view[style*="--is-light: 1"] .back-btn {
+  background: rgba(0, 0, 0, 0.06);
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
+.habit-detail-view[style*="--is-light: 0"] .back-btn {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 .back-btn:hover {
-  opacity: 1;
+  opacity: 0.9;
+  transform: translateX(-2px);
+  background: rgba(0, 0, 0, 0.12);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+.back-btn:active {
+  transform: translateX(-1px) scale(0.98);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.back-icon {
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.back-text {
+  font-weight: 600;
 }
 
 .main-section {

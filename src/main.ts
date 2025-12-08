@@ -44,8 +44,73 @@ app.use(router)
 
 app.mount('#app')
 
-// Регистрируем периодическую проверку уведомлений в Service Worker
+// Регистрируем периодическую проверку уведомлений в Service Worker и принудительное обновление
 if ('serviceWorker' in navigator) {
+  // Принудительно очищаем старые кэши и обновляем Service Worker
+  const APP_VERSION = __APP_VERSION__ || '1.0.0'
+  const CACHE_VERSION_KEY = 'app-cache-version'
+  
+  // Проверяем версию приложения
+  const storedVersion = localStorage.getItem(CACHE_VERSION_KEY)
+  if (storedVersion !== APP_VERSION) {
+    console.log(`🔄 Обнаружена новая версия: ${APP_VERSION} (было: ${storedVersion})`)
+    // Очищаем все кэши
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          console.log(`🗑️ Удаляем кэш: ${cacheName}`)
+          return caches.delete(cacheName)
+        })
+      )
+    }).then(() => {
+      // Удаляем Service Worker
+      navigator.serviceWorker.getRegistrations().then((registrations) => {
+        registrations.forEach((registration) => {
+          registration.unregister().then(() => {
+            console.log('🗑️ Service Worker удален')
+            // Сохраняем новую версию
+            localStorage.setItem(CACHE_VERSION_KEY, APP_VERSION)
+            // Перезагружаем страницу
+            window.location.reload()
+          })
+        })
+      })
+    })
+  } else {
+    // Проверяем обновления Service Worker при загрузке
+    navigator.serviceWorker.getRegistration().then((registration) => {
+      if (registration) {
+        // Проверяем обновления каждые 10 секунд на мобильных
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+        const checkInterval = isMobile ? 10000 : 30000
+        
+        setInterval(() => {
+          registration.update()
+        }, checkInterval)
+        
+        // Принудительно обновляем при фокусе на окне
+        window.addEventListener('focus', () => {
+          registration.update()
+        })
+        
+        // Обрабатываем обновления Service Worker
+        registration.addEventListener('updatefound', () => {
+          const newWorker = registration.installing
+          if (newWorker) {
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                // Новый Service Worker установлен, перезагружаем страницу
+                console.log('🔄 Новый Service Worker установлен, перезагружаем страницу...')
+                localStorage.setItem(CACHE_VERSION_KEY, APP_VERSION)
+                window.location.reload()
+              }
+            })
+          }
+        })
+      }
+    })
+  }
+  
   // Запускаем сразу при загрузке
   navigator.serviceWorker.ready.then(async (registration) => {
     try {

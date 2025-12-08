@@ -11,37 +11,38 @@
     <!-- Секция: Название привычки -->
     <div class="form-section">
       <label class="section-label">НАЗВАНИЕ ПРИВЫЧКИ</label>
-      <input
-        id="habit-name"
-        v-model="formData.name"
-        type="text"
-        placeholder="НЕ КУРИМ"
-        class="ios-input"
-      />
-    </div>
-
-    <!-- Секция: Кто напоминает -->
-    <div class="form-section">
-      <label class="section-label">КТО НАПОМИНАЕТ</label>
-      <div class="character-dropdown">
-        <button class="ios-dropdown-button" @click.prevent="showCharacterDropdown = !showCharacterDropdown">
-          <span>{{ selectedCharacterName }}</span>
-          <span class="dropdown-arrow">›</span>
+      <div class="name-with-icon-container">
+        <button 
+          type="button"
+          class="icon-select-button" 
+          @click.prevent="showIconPicker = !showIconPicker"
+          :aria-label="'Выбрать иконку. Текущая: ' + (formData.icon || '🚫')"
+        >
+          <span class="icon-display">{{ formData.icon || '🚫' }}</span>
+          <span class="icon-dropdown-arrow">▼</span>
         </button>
-        <div v-if="showCharacterDropdown" class="dropdown-list">
-          <div
-            v-for="char in availableCharacters"
-            :key="char.id"
-            class="dropdown-item"
-            :class="{ active: formData.character === char.id }"
-            @click="selectCharacter(char.id)"
-          >
-            {{ char.name }}
-            <span v-if="formData.character === char.id" class="checkmark">✓</span>
-          </div>
+        <div class="icon-separator"></div>
+        <input
+          id="habit-name"
+          v-model="formData.name"
+          type="text"
+          placeholder="НЕ КУРИМ"
+          class="ios-input name-input-with-icon"
+        />
+      </div>
+      <div v-if="showIconPicker" class="icon-picker">
+        <div
+          v-for="icon in projectIcons"
+          :key="icon"
+          class="icon-option"
+          :class="{ active: formData.icon === icon }"
+          @click="selectIcon(icon)"
+        >
+          {{ icon }}
         </div>
       </div>
     </div>
+
 
     <!-- Секция: Оповещения -->
     <div class="form-section">
@@ -74,6 +75,29 @@
         </div>
         
         <div class="time-picker-body">
+          <!-- Секция: Кто напоминает -->
+          <div class="notification-section">
+            <label class="section-label">Кто напоминает</label>
+            <div class="character-dropdown">
+              <button class="ios-dropdown-button" @click.prevent="showCharacterDropdown = !showCharacterDropdown">
+                <span>{{ selectedCharacterName }}</span>
+                <span class="dropdown-arrow">›</span>
+              </button>
+              <div v-if="showCharacterDropdown" class="dropdown-list">
+                <div
+                  v-for="char in availableCharacters"
+                  :key="char.id"
+                  class="dropdown-item"
+                  :class="{ active: formData.character === char.id }"
+                  @click="selectCharacter(char.id)"
+                >
+                  {{ char.name }}
+                  <span v-if="formData.character === char.id" class="checkmark">✓</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
           <!-- Секция: Время напоминания -->
           <div class="notification-section">
             <label class="section-label">Время напоминания</label>
@@ -146,25 +170,6 @@
       </div>
     </div>
 
-    <!-- Секция: Иконка проекта -->
-    <div class="form-section">
-      <label class="section-label">ИКОНКА ПРОЕКТА</label>
-      <button class="ios-dropdown-button" @click.prevent="showIconPicker = !showIconPicker">
-        <span>{{ formData.icon || '🚫' }}</span>
-        <span class="dropdown-arrow">›</span>
-      </button>
-      <div v-if="showIconPicker" class="icon-picker">
-        <div
-          v-for="icon in projectIcons"
-          :key="icon"
-          class="icon-option"
-          :class="{ active: formData.icon === icon }"
-          @click="selectIcon(icon)"
-        >
-          {{ icon }}
-        </div>
-      </div>
-    </div>
 
     <!-- Секция: Цвет проекта -->
     <div class="form-section">
@@ -626,7 +631,7 @@ function handleCancel() {
 .section-label {
   display: block;
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 700;
   color: #6A6A6A;
   text-transform: uppercase;
   letter-spacing: 0.6px;
@@ -656,6 +661,89 @@ function handleCancel() {
 .ios-input:focus {
   outline: none;
   border-color: #007AFF;
+}
+
+/* Контейнер для названия с иконкой */
+.name-with-icon-container {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  border: 1.5px solid rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
+  background: white;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.name-with-icon-container:focus-within {
+  border-color: #007AFF;
+}
+
+.icon-select-button {
+  flex-shrink: 0;
+  width: 64px;
+  height: 48px;
+  padding: 0 8px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: background-color 0.2s;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.icon-select-button:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.icon-select-button:active {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.icon-display {
+  font-size: 24px;
+  line-height: 1;
+  display: block;
+}
+
+.icon-dropdown-arrow {
+  font-size: 12px;
+  color: #007AFF;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 400;
+  flex-shrink: 0;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.icon-select-button:hover .icon-dropdown-arrow {
+  opacity: 1;
+}
+
+.icon-separator {
+  width: 1px;
+  height: 32px;
+  background: rgba(0, 0, 0, 0.12);
+  flex-shrink: 0;
+}
+
+.name-input-with-icon {
+  flex: 1;
+  border: none;
+  border-radius: 0;
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+.name-input-with-icon:focus {
+  border-color: transparent;
 }
 
 .character-dropdown {
@@ -701,7 +789,7 @@ function handleCancel() {
   border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 12px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-  z-index: 100;
+  z-index: 2100;
   max-height: 300px;
   overflow-y: auto;
   margin-top: 4px;
@@ -810,6 +898,7 @@ function handleCancel() {
   border-radius: 12px;
   max-height: 250px;
   overflow-y: auto;
+  border: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .icon-option {

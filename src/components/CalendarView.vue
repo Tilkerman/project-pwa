@@ -100,7 +100,16 @@ const calendarDays = computed(() => {
   const todayMonth = today.getMonth()
   const todayDate = today.getDate()
   
-  for (let i = 0; i < 42; i++) {
+  // Вычисляем количество дней, которые нужно показать
+  // Показываем только дни текущего месяца + дни предыдущего месяца для заполнения первой недели
+  const daysInMonth = lastDay.getDate()
+  const firstDayOfWeek = (firstDay.getDay() || 7) - 1 // 0 = понедельник, 6 = воскресенье
+  const totalDaysToShow = firstDayOfWeek + daysInMonth
+  
+  // Ограничиваем до 35 дней максимум (5 недель), чтобы не показывать лишний ряд следующего месяца
+  const maxDays = 35
+  
+  for (let i = 0; i < Math.min(totalDaysToShow, maxDays); i++) {
     const date = new Date(startDate)
     date.setDate(startDate.getDate() + i)
     
