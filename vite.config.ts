@@ -7,7 +7,7 @@ import packageJson from './package.json'
 export default defineConfig({
   base: process.env.CI ? '/project-pwa/' : '/',
   build: {
-    outDir: 'public'
+    outDir: 'dist'
   },
   plugins: [
     vue(),
