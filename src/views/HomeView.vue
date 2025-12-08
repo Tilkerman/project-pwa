@@ -52,8 +52,8 @@
     </div>
     
     <!-- Модальное окно формы -->
-    <div v-if="showForm" class="modal-overlay" @click.self="closeForm" @touchstart.self="closeForm">
-      <div class="modal-content" @click.stop @touchstart.stop>
+    <div v-if="showForm" class="modal-overlay" @click.self="closeForm">
+      <div class="modal-content" @click.stop>
         <HabitForm
           @submit="handleSubmit"
           @cancel="closeForm"
