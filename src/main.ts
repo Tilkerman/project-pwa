@@ -46,61 +46,50 @@ app.mount('#app')
 
 // Регистрируем периодическую проверку уведомлений в Service Worker и принудительное обновление
 if ('serviceWorker' in navigator) {
-  // Принудительно очищаем старые кэши и обновляем Service Worker
   const APP_VERSION = __APP_VERSION__ || '1.0.0'
   const CACHE_VERSION_KEY = 'app-cache-version'
-  
-  // Проверяем версию приложения
   const storedVersion = localStorage.getItem(CACHE_VERSION_KEY)
-  if (storedVersion !== APP_VERSION) {
-    console.log(`🔄 Обнаружена новая версия: ${APP_VERSION} (было: ${storedVersion})`)
-    // Очищаем все кэши
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          console.log(`🗑️ Удаляем кэш: ${cacheName}`)
-          return caches.delete(cacheName)
-        })
-      )
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+  
+  // На мобильных устройствах принудительно очищаем кэш при каждой загрузке
+  if (isMobile || storedVersion !== APP_VERSION) {
+    console.log(`🔄 Мобильное устройство или новая версия: ${APP_VERSION} (было: ${storedVersion})`)
+    
+    // Удаляем все Service Workers
+    navigator.serviceWorker.getRegistrations().then((registrations) => {
+      return Promise.all(registrations.map((reg) => reg.unregister()))
     }).then(() => {
-      // Удаляем Service Worker
-      navigator.serviceWorker.getRegistrations().then((registrations) => {
-        registrations.forEach((registration) => {
-          registration.unregister().then(() => {
-            console.log('🗑️ Service Worker удален')
-            // Сохраняем новую версию
-            localStorage.setItem(CACHE_VERSION_KEY, APP_VERSION)
-            // Перезагружаем страницу
-            window.location.reload()
-          })
-        })
-      })
+      // Очищаем все кэши
+      return caches.keys()
+    }).then((cacheNames) => {
+      return Promise.all(cacheNames.map((name) => caches.delete(name)))
+    }).then(() => {
+      console.log('✅ Кэши очищены')
+      localStorage.setItem(CACHE_VERSION_KEY, APP_VERSION)
+      // На мобильных всегда перезагружаем для применения изменений
+      if (isMobile || storedVersion !== APP_VERSION) {
+        setTimeout(() => {
+          window.location.reload(true) // Принудительная перезагрузка без кэша
+        }, 500)
+      }
+    }).catch((err) => {
+      console.error('Ошибка очистки:', err)
+      // Даже при ошибке перезагружаем на мобильных
+      if (isMobile) {
+        setTimeout(() => window.location.reload(true), 1000)
+      }
     })
   } else {
-    // Проверяем обновления Service Worker при загрузке
+    // На десктопе обычная логика обновления
     navigator.serviceWorker.getRegistration().then((registration) => {
       if (registration) {
-        // Проверяем обновления каждые 10 секунд на мобильных
-        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
-        const checkInterval = isMobile ? 10000 : 30000
-        
-        setInterval(() => {
-          registration.update()
-        }, checkInterval)
-        
-        // Принудительно обновляем при фокусе на окне
-        window.addEventListener('focus', () => {
-          registration.update()
-        })
-        
-        // Обрабатываем обновления Service Worker
+        setInterval(() => registration.update(), 30000)
+        window.addEventListener('focus', () => registration.update())
         registration.addEventListener('updatefound', () => {
           const newWorker = registration.installing
           if (newWorker) {
             newWorker.addEventListener('statechange', () => {
               if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                // Новый Service Worker установлен, перезагружаем страницу
-                console.log('🔄 Новый Service Worker установлен, перезагружаем страницу...')
                 localStorage.setItem(CACHE_VERSION_KEY, APP_VERSION)
                 window.location.reload()
               }

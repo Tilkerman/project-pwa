@@ -43,14 +43,9 @@ export default defineConfig({
         runtimeCaching: [
           {
             urlPattern: /\.(?:js|css)$/,
-            handler: 'NetworkFirst',
+            handler: 'NetworkOnly', // Вообще не кэшируем JS и CSS
             options: {
               cacheName: `js-css-cache-v${packageJson.version}`,
-              expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 0 // Не кэшируем вообще
-              },
-              networkTimeoutSeconds: 3
             }
           },
           {
