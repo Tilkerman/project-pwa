@@ -51,9 +51,9 @@ if ('serviceWorker' in navigator) {
   const storedVersion = localStorage.getItem(CACHE_VERSION_KEY)
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
   
-  // На мобильных устройствах принудительно очищаем кэш при каждой загрузке
-  if (isMobile || storedVersion !== APP_VERSION) {
-    console.log(`🔄 Мобильное устройство или новая версия: ${APP_VERSION} (было: ${storedVersion})`)
+  // Очищаем кэш только если версия изменилась
+  if (storedVersion !== APP_VERSION) {
+    console.log(`🔄 Обнаружена новая версия: ${APP_VERSION} (было: ${storedVersion})`)
     
     // Удаляем все Service Workers
     navigator.serviceWorker.getRegistrations().then((registrations) => {
@@ -66,18 +66,12 @@ if ('serviceWorker' in navigator) {
     }).then(() => {
       console.log('✅ Кэши очищены')
       localStorage.setItem(CACHE_VERSION_KEY, APP_VERSION)
-      // На мобильных всегда перезагружаем для применения изменений
-      if (isMobile || storedVersion !== APP_VERSION) {
-        setTimeout(() => {
-          window.location.reload(true) // Принудительная перезагрузка без кэша
-        }, 500)
-      }
+      // Перезагружаем только если версия изменилась
+      setTimeout(() => {
+        window.location.reload(true)
+      }, 1000)
     }).catch((err) => {
       console.error('Ошибка очистки:', err)
-      // Даже при ошибке перезагружаем на мобильных
-      if (isMobile) {
-        setTimeout(() => window.location.reload(true), 1000)
-      }
     })
   } else {
     // На десктопе обычная логика обновления

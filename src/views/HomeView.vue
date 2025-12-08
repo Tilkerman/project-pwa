@@ -52,8 +52,8 @@
     </div>
     
     <!-- Модальное окно формы -->
-    <div v-if="showForm" class="modal-overlay" @click.self="closeForm">
-      <div class="modal-content">
+    <div v-if="showForm" class="modal-overlay" @click.self="closeForm" @touchstart.self="closeForm">
+      <div class="modal-content" @click.stop @touchstart.stop>
         <HabitForm
           @submit="handleSubmit"
           @cancel="closeForm"
@@ -491,6 +491,7 @@ function closeForm() {
   z-index: 1000;
   overflow-y: auto;
   animation: fadeIn 0.2s ease-out;
+  touch-action: pan-y;
 }
 
 .modal-content {
@@ -502,6 +503,8 @@ function closeForm() {
   animation: fadeIn 0.3s ease-out;
   display: flex;
   flex-direction: column;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
 }
 
 @keyframes fadeIn {

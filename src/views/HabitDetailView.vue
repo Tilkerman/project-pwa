@@ -372,52 +372,47 @@ async function handleDelete() {
 }
 
 .back-btn {
-  background: rgba(0, 0, 0, 0.08);
-  border: 1.5px solid var(--text-color);
+  background: transparent;
+  border: none;
   border-radius: 12px;
   color: var(--text-color);
-  font-size: 1rem;
+  font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
-  padding: 0.75rem 1.25rem;
+  padding: 0.5rem 0.75rem;
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.375rem;
   transition: all 0.2s ease;
-  opacity: 1;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  opacity: 0.8;
 }
 
 .habit-detail-view[style*="--is-light: 1"] .back-btn {
-  background: rgba(0, 0, 0, 0.06);
-  border-color: rgba(0, 0, 0, 0.2);
+  background: rgba(0, 0, 0, 0.05);
 }
 
 .habit-detail-view[style*="--is-light: 0"] .back-btn {
   background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.3);
 }
 
 .back-btn:hover {
-  opacity: 0.9;
-  transform: translateX(-2px);
-  background: rgba(0, 0, 0, 0.12);
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+  opacity: 1;
 }
 
 .back-btn:active {
-  transform: translateX(-1px) scale(0.98);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  opacity: 0.9;
+  transform: scale(0.98);
 }
 
 .back-icon {
-  font-size: 1.25rem;
+  font-size: 1rem;
   font-weight: 700;
   line-height: 1;
 }
 
 .back-text {
   font-weight: 600;
+  font-size: 0.875rem;
 }
 
 .main-section {
