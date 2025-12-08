@@ -13,22 +13,19 @@ export default defineConfig({
     vue(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'icons/*.png'],
+      includeAssets: ['favicon.ico', 'icon.svg'],
       manifest: {
         name: 'Трекер Привычек',
         short_name: 'Привычки',
         description: 'Приложение для отслеживания привычек с персонажами-мотиваторами',
-        theme_color: '#4f46e5',
+        theme_color: '#6366f1',
+        background_color: '#6366f1',
         icons: [
           {
-            src: 'icons/icon-192x192.png',
-            sizes: '192x192',
-            type: 'image/png'
-          },
-          {
-            src: 'icons/icon-512x512.png',
-            sizes: '512x512',
-            type: 'image/png'
+            src: 'icon.svg',
+            sizes: 'any',
+            type: 'image/svg+xml',
+            purpose: 'any maskable'
           }
         ]
       },
