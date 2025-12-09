@@ -111,12 +111,22 @@ onMounted(async () => {
 <style>
 #app {
   min-height: 100vh;
-  background: var(--bg-primary);
+  background: transparent;
   transition: background-color 0.3s ease;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .main-content {
   min-height: calc(100vh - 60px);
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .app-footer {
@@ -126,5 +136,9 @@ onMounted(async () => {
   font-size: 0.875rem;
   color: var(--text-secondary);
   background: var(--bg-secondary);
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 </style>

@@ -236,6 +236,10 @@ async function toggleDay(date: Date) {
 <style scoped>
 .calendar-view {
   background: transparent;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 .calendar-header {
@@ -277,6 +281,9 @@ async function toggleDay(date: Date) {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 0.5rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .day-label {

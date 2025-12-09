@@ -46,9 +46,8 @@
 
     <!-- Секция: Оповещения -->
     <div class="form-section">
-      <label class="section-label">ОПОВЕЩЕНИЯ</label>
-      <div class="ios-toggle-row">
-        <span class="toggle-label-text">Включить уведомления</span>
+      <div class="section-label-row">
+        <label class="section-label">ОПОВЕЩЕНИЯ</label>
         <label class="ios-toggle">
           <input
             v-model="formData.notificationEnabled"
@@ -157,9 +156,8 @@
 
     <!-- Секция: Дополнительная мотивация -->
     <div class="form-section">
-      <label class="section-label">ДОПОЛНИТЕЛЬНАЯ МОТИВАЦИЯ</label>
-      <div class="ios-toggle-row">
-        <span class="toggle-label-text">Включить дополнительную мотивацию</span>
+      <div class="section-label-row">
+        <label class="section-label">ДОПОЛНИТЕЛЬНАЯ МОТИВАЦИЯ</label>
         <label class="ios-toggle">
           <input
             v-model="formData.additionalMotivation"
@@ -173,31 +171,33 @@
 
     <!-- Секция: Цвет проекта -->
     <div class="form-section">
-      <label class="section-label">ЦВЕТ</label>
-      <div class="color-picker">
-        <!-- Кнопка выбора своего цвета -->
-        <div
-          class="color-option color-option-custom"
-          :class="{ active: formData.color === 'custom' }"
-          @click="openColorPicker"
-          :style="{ 
-            background: formData.color === 'custom' && formData.customColor 
-              ? formData.customColor 
-              : 'linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%)'
-          }"
-          title="Выбрать свой цвет"
-        >
-          <span class="custom-color-icon">+</span>
+      <div class="section-label-row">
+        <label class="section-label">ЦВЕТ</label>
+        <div class="color-picker">
+          <!-- Кнопка выбора своего цвета -->
+          <div
+            class="color-option color-option-custom"
+            :class="{ active: formData.color === 'custom' }"
+            @click="openColorPicker"
+            :style="{ 
+              background: formData.color === 'custom' && formData.customColor 
+                ? formData.customColor 
+                : 'linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%)'
+            }"
+            title="Выбрать свой цвет"
+          >
+            <span class="custom-color-icon">+</span>
+          </div>
+          <!-- Предустановленные цвета -->
+          <div
+            v-for="color in ['blue', 'red', 'green', 'purple', 'pink']"
+            :key="color"
+            class="color-option"
+            :class="{ active: formData.color === color }"
+            :style="{ backgroundColor: projectColors[color].bg }"
+            @click="selectColor(color)"
+          ></div>
         </div>
-        <!-- Предустановленные цвета -->
-        <div
-          v-for="color in ['blue', 'red', 'green', 'purple', 'pink']"
-          :key="color"
-          class="color-option"
-          :class="{ active: formData.color === color }"
-          :style="{ backgroundColor: projectColors[color].bg }"
-          @click="selectColor(color)"
-        ></div>
       </div>
       
       <!-- Полноценный Color Picker -->
@@ -579,11 +579,12 @@ function handleCancel() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px;
+  padding: 12px 20px;
   position: sticky;
   top: 0;
   background: #ffffff;
   z-index: 10;
+  border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
 }
 
 .form-title {
@@ -591,6 +592,8 @@ function handleCancel() {
   font-weight: 600;
   color: #000000;
   margin: 0;
+  text-align: center;
+  flex: 1;
 }
 
 .close-button {
@@ -620,22 +623,30 @@ function handleCancel() {
 
 /* Секции формы */
 .form-section {
-  padding: 20px 20px 0;
+  padding: 16px 20px 0;
   margin-bottom: 0;
 }
 
 .form-section:last-of-type {
-  padding-bottom: 20px;
+  padding-bottom: 16px;
 }
 
 .section-label {
   display: block;
-  font-size: 15px;
-  font-weight: 700;
-  color: #6A6A6A;
+  font-size: 13px;
+  font-weight: 600;
+  color: #8E8E93;
   text-transform: uppercase;
-  letter-spacing: 0.6px;
-  margin-bottom: 6px;
+  letter-spacing: 0.3px;
+  margin-bottom: 0;
+  flex: 1;
+}
+
+.section-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0;
 }
 
 /* iOS стиль input */
@@ -668,8 +679,8 @@ function handleCancel() {
   display: flex;
   align-items: center;
   gap: 0;
-  border: 1.5px solid rgba(0, 0, 0, 0.12);
-  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
   background: white;
   overflow: hidden;
   transition: border-color 0.2s;
@@ -677,6 +688,7 @@ function handleCancel() {
 
 .name-with-icon-container:focus-within {
   border-color: #007AFF;
+  border-width: 1.5px;
 }
 
 .icon-select-button {
@@ -740,6 +752,7 @@ function handleCancel() {
   border-radius: 0;
   padding-left: 12px;
   padding-right: 12px;
+  font-size: 17px;
 }
 
 .name-input-with-icon:focus {
@@ -829,13 +842,13 @@ function handleCancel() {
 
 .ios-toggle-row {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
-  padding: 12px 0;
+  padding: 8px 0;
 }
 
 .toggle-label-text {
-  font-size: 16px;
+  font-size: 17px;
   color: #000000;
   font-weight: 400;
 }
@@ -926,10 +939,11 @@ function handleCancel() {
 
 .color-picker {
   display: flex;
-  gap: 12px;
-  margin-top: 12px;
+  gap: 10px;
+  margin-top: 0;
   flex-wrap: wrap;
-  padding: 8px 0;
+  padding: 0;
+  align-items: center;
 }
 
 .color-option {
@@ -971,22 +985,24 @@ function handleCancel() {
   flex-direction: column;
   gap: 0;
   margin-top: auto;
-  padding: 20px;
+  padding: 16px 20px 20px;
   background: #ffffff;
+  position: sticky;
+  bottom: 0;
 }
 
 .btn-primary-ios {
   width: 100%;
-  padding: 14px 20px;
-  background: #007AFF;
-  color: #ffffff;
+  padding: 16px 20px;
+  background: #C7C7CC;
+  color: #FFFFFF;
   border: none;
   border-radius: 12px;
   font-size: 17px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
-  margin-bottom: 12px;
+  margin-bottom: 0;
 }
 
 .btn-primary-ios:hover:not(:disabled) {
@@ -999,9 +1015,15 @@ function handleCancel() {
 }
 
 .btn-primary-ios:disabled {
-  opacity: 0.5;
+  opacity: 1;
   cursor: not-allowed;
   background: #C7C7CC;
+  color: #FFFFFF;
+}
+
+.btn-primary-ios:not(:disabled) {
+  background: #007AFF;
+  color: #FFFFFF;
 }
 
 .btn-delete-text {

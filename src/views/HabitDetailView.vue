@@ -337,9 +337,18 @@ async function handleDelete() {
 <style scoped>
 .habit-detail-view {
   min-height: 100vh;
+  width: 100%;
+  max-width: 100%;
   padding: 0;
-  position: relative;
+  margin: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   transition: background-color 0.3s ease;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .loading,
@@ -348,31 +357,15 @@ async function handleDelete() {
   padding: 3rem;
 }
 
-.header-section {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  padding: 1rem;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  background: inherit;
-  margin-bottom: 0.5rem;
-  border-bottom: 1px solid;
-  border-bottom-color: rgba(0, 0, 0, 0.1);
+.habit-content {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
-.habit-detail-view[style*="--is-light: 1"] .header-section {
-  border-bottom-color: rgba(0, 0, 0, 0.15);
-  background: rgba(255, 255, 255, 0.95);
-}
-
-.habit-detail-view[style*="--is-light: 0"] .header-section {
-  border-bottom-color: rgba(255, 255, 255, 0.2);
-  background: rgba(0, 0, 0, 0.3);
-}
 
 .back-btn {
-  background: transparent;
+  background: rgba(255, 255, 255, 0.15);
   border: none;
   border-radius: 12px;
   color: var(--text-color);
@@ -385,10 +378,12 @@ async function handleDelete() {
   gap: 0.375rem;
   transition: all 0.2s ease;
   opacity: 0.8;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .habit-detail-view[style*="--is-light: 1"] .back-btn {
-  background: rgba(0, 0, 0, 0.05);
+  background: rgba(0, 0, 0, 0.1);
 }
 
 .habit-detail-view[style*="--is-light: 0"] .back-btn {
@@ -418,6 +413,10 @@ async function handleDelete() {
 .main-section {
   padding: 1rem 1rem 0;
   text-align: center;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 .arrow-up {
@@ -465,8 +464,33 @@ async function handleDelete() {
   color: var(--text-color);
 }
 
+.header-section {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  padding: 0;
+  margin: 1rem 0 0.25rem;
+  background: transparent;
+  border: none;
+  display: flex;
+  align-items: center;
+  padding-left: 1rem;
+}
+
+.habit-detail-view[style*="--is-light: 1"] .header-section {
+  background: transparent;
+}
+
+.habit-detail-view[style*="--is-light: 0"] .header-section {
+  background: transparent;
+}
+
 .calendar-section {
   margin-top: 1.75rem;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 .footer-section {
@@ -561,6 +585,9 @@ async function handleDelete() {
   flex-direction: column;
   z-index: 1000;
   overflow-y: auto;
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100%;
 }
 
 .settings-content {

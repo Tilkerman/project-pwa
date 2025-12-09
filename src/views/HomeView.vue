@@ -3,12 +3,25 @@
     <!-- Header с логотипом и иконкой настроек -->
     <header class="page-header">
       <div class="header-logo-container">
-        <AppLogo size="32px" />
+        <AppLogo size="40px" />
         <span class="app-name">Привычки</span>
       </div>
-      <button class="settings-btn" @click="goToSettings" aria-label="Настройки">
-        <span class="settings-icon">⚙️</span>
-      </button>
+      <div class="header-actions">
+        <button
+          class="theme-toggle"
+          :aria-label="isDark ? 'Переключить на день' : 'Переключить на ночь'"
+          @click="toggleTheme"
+        >
+          <span class="toggle-track" :class="{ 'is-dark': isDark }">
+            <span class="toggle-thumb" :class="{ 'is-dark': isDark }">
+              <span class="toggle-icon">{{ isDark ? '🌙' : '☀️' }}</span>
+            </span>
+          </span>
+        </button>
+        <button class="settings-btn" @click="goToSettings" aria-label="Настройки">
+          <span class="settings-icon">⚙️</span>
+        </button>
+      </div>
     </header>
     
     <!-- Заголовок H1 -->
@@ -64,18 +77,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import HabitForm from '@/components/HabitForm.vue'
 import AppLogo from '@/components/AppLogo.vue'
 import { useHabitsStore } from '@/stores/habitsStore'
 import { getProjectColorStyles } from '@/utils/projectColors'
 import { getCurrentStreak } from '@/utils/characters'
+import { useThemeStore } from '@/stores/themeStore'
 import type { Habit } from '@/types'
 
 const router = useRouter()
 const store = useHabitsStore()
+const themeStore = useThemeStore()
 const showForm = ref(false)
+const isDark = computed(() => themeStore.isDark)
+const toggleTheme = () => themeStore.toggleTheme()
 
 onMounted(async () => {
   try {
@@ -189,10 +206,13 @@ function closeForm() {
 
 <style scoped>
 .home-view {
+  width: 100%;
   max-width: 600px;
   margin: 0 auto;
   padding: 1rem 1rem 2rem;
   min-height: 100vh;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 /* Header с логотипом и иконкой настроек */
@@ -202,22 +222,21 @@ function closeForm() {
   align-items: center;
   padding: 12px 20px;
   margin-bottom: 1rem;
-  position: relative;
+  position: sticky;
+  top: 0;
+  z-index: 20;
   width: 100%;
+  max-width: 100%;
   box-sizing: border-box;
+  background: transparent;
+  border-bottom: 1px solid var(--border-color);
+  overflow-x: hidden;
 }
 
 .header-logo-container {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-}
-
-
-.app-name {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: var(--text-primary);
 }
 
 .settings-btn {
@@ -232,6 +251,59 @@ function closeForm() {
   height: 40px;
   border-radius: 50%;
   transition: background-color 0.2s ease;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.theme-toggle {
+  border: none;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.toggle-track {
+  width: 58px;
+  height: 30px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  padding: 3px;
+  background: var(--bg-hover);
+  position: relative;
+  transition: background 0.2s ease;
+}
+
+.toggle-track.is-dark {
+  background: var(--primary-color);
+}
+
+.toggle-thumb {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--bg-secondary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+  transform: translateX(0);
+  color: var(--text-primary);
+}
+
+.toggle-thumb.is-dark {
+  transform: translateX(28px);
+  background: var(--bg-secondary);
+}
+
+.toggle-icon {
+  font-size: 14px;
+  line-height: 1;
 }
 
 .settings-btn:hover {
@@ -294,6 +366,10 @@ function closeForm() {
 /* Секция привычек */
 .habits-section {
   margin-bottom: 1.5rem;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 .habits-list {
@@ -301,6 +377,9 @@ function closeForm() {
   flex-direction: column;
   gap: 0.75rem;
   margin-bottom: 1rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 /* Карточка привычки - улучшенная */
@@ -316,6 +395,9 @@ function closeForm() {
   min-height: 72px;
   position: relative;
   border: 1px solid var(--border-color);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .habit-card:hover {
@@ -490,6 +572,9 @@ function closeForm() {
   flex-direction: column;
   z-index: 1000;
   overflow-y: auto;
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100%;
   animation: fadeIn 0.2s ease-out;
   touch-action: pan-y;
 }
@@ -500,11 +585,13 @@ function closeForm() {
   max-width: 100%;
   min-height: 100vh;
   overflow-y: auto;
+  overflow-x: hidden;
   animation: fadeIn 0.3s ease-out;
   display: flex;
   flex-direction: column;
   touch-action: pan-y;
   -webkit-overflow-scrolling: touch;
+  box-sizing: border-box;
 }
 
 @keyframes fadeIn {
@@ -522,10 +609,6 @@ function closeForm() {
 @media (max-width: 480px) {
   .page-header {
     padding: 12px 16px;
-  }
-  
-  .app-name {
-    font-size: 1rem;
   }
   
   .header-logo-container {
