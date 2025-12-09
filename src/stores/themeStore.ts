@@ -10,9 +10,13 @@ export const useThemeStore = defineStore('theme', () => {
     if (savedTheme) {
       isDark.value = savedTheme === 'dark'
     } else {
-      // Проверяем системные настройки
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-      isDark.value = prefersDark
+      // Мобильным по умолчанию включаем тёмную, если пользователь ещё не выбирал
+      const ua = typeof navigator !== 'undefined' ? navigator.userAgent : ''
+      const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(ua)
+      const prefersDark = typeof window !== 'undefined'
+        ? window.matchMedia('(prefers-color-scheme: dark)').matches
+        : false
+      isDark.value = isMobile ? true : prefersDark
     }
     applyTheme()
   }
