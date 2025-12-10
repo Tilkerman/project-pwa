@@ -1,6 +1,7 @@
 import type { Habit } from '@/types'
 import { getCharacterMessage } from './characters'
 import { sendTelegramNotification, isTelegramEnabled } from './telegram'
+import { isTelegramMiniApp } from './telegramMiniApp'
 
 // Хранилище для timeout ID, чтобы можно было их очищать
 const notificationTimeouts = new Map<string, number>()
@@ -112,10 +113,15 @@ export async function scheduleNotifications(habit: Habit): Promise<void> {
     return
   }
 
-  // Проверяем разрешение перед планированием
-  if (!('Notification' in window) || Notification.permission !== 'granted') {
-    console.warn('⚠️ Нет разрешения на уведомления для привычки:', habit.name)
-    return
+  const inTelegram = isTelegramMiniApp()
+
+  // Если это Telegram Mini App — не требуем разрешение браузера, опираемся на бота
+  if (!inTelegram) {
+    // Проверяем разрешение перед планированием для обычного браузера/PWA
+    if (!('Notification' in window) || Notification.permission !== 'granted') {
+      console.warn('⚠️ Нет разрешения на уведомления для привычки:', habit.name)
+      return
+    }
   }
 
   // Для iOS показываем предупреждение о ограничениях
@@ -214,6 +220,27 @@ async function scheduleRecurringNotification(habit: Habit): Promise<void> {
 }
 
 export async function showNotification(habit: Habit): Promise<void> {
+  const inTelegram = isTelegramMiniApp()
+
+  // Если запущено как Telegram Mini App — шлем уведомление через бота и выходим
+  if (inTelegram && isTelegramEnabled()) {
+    try {
+      const character = habit.character
+      const characterName = character === 'babushka' ? 'Добрая Бабушка' :
+                            character === 'gopnik' ? 'Гопник' :
+                            character === 'teacher' ? 'Строгий Учитель' :
+                            character === 'grandpa' ? 'Старый Дед' : 'Друг'
+      const message = habit.customNotificationMessage || getCharacterMessage(habit.character, habit, 'daily')
+      const title = `${characterName} напоминает: ${habit.name}`
+      await sendTelegramNotification(title, message)
+      console.log(`✅ Telegram уведомление отправлено для "${habit.name}" (Mini App)`)
+      return
+    } catch (error) {
+      console.warn('⚠️ Ошибка при отправке Telegram уведомления (Mini App):', error)
+      // не падаем, пробуем дальше через браузерный канал при наличии разрешений
+    }
+  }
+
   // Пытаемся использовать Service Worker для показа уведомления (работает даже когда приложение закрыто)
   if ('serviceWorker' in navigator && 'Notification' in window && Notification.permission === 'granted') {
     try {
