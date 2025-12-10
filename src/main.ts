@@ -11,6 +11,17 @@ if (telegramApp) {
   console.log('📱 Telegram Mini App активен')
   console.log('👤 Пользователь:', telegramApp.user)
   console.log('🎨 Тема:', telegramApp.theme)
+  
+  // Автоматически сохраняем chat_id для уведомлений
+  import('./utils/telegram').then(({ autoSaveTelegramChatId }) => {
+    try {
+      autoSaveTelegramChatId()
+    } catch (error) {
+      console.warn('⚠️ Не удалось автоматически сохранить chat_id:', error)
+    }
+  }).catch((error) => {
+    console.warn('⚠️ Не удалось загрузить модуль telegram:', error)
+  })
 }
 
 const app = createApp(App)

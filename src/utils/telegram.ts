@@ -21,6 +21,30 @@ export function getTelegramConfig(): TelegramConfig | null {
   }
 }
 
+// Автоматическое сохранение chat_id из Telegram Mini App
+export function autoSaveTelegramChatId(): void {
+  try {
+    if (typeof window === 'undefined') return
+    
+    const tg = (window as any).Telegram?.WebApp || (window as any).TelegramWebApp
+    if (!tg?.initDataUnsafe?.user?.id) return
+    
+    const chatId = String(tg.initDataUnsafe.user.id)
+    const currentConfig = getTelegramConfig()
+    
+    // Сохраняем только если еще не сохранен или отличается
+    if (!currentConfig || currentConfig.chatId !== chatId) {
+      saveTelegramConfig({
+        chatId: chatId,
+        enabled: true, // Автоматически включаем для Mini App
+      })
+      console.log('✅ Chat ID автоматически сохранен из Telegram Mini App:', chatId)
+    }
+  } catch (error) {
+    console.warn('⚠️ Ошибка при автоматическом сохранении chat_id:', error)
+  }
+}
+
 // Сохранение конфигурации Telegram в localStorage и IndexedDB (для Service Worker)
 export async function saveTelegramConfig(config: TelegramConfig): Promise<void> {
   try {
@@ -78,7 +102,23 @@ export function getIOSContactInfo(): string | null {
 // Проверка, включены ли Telegram уведомления
 export function isTelegramEnabled(): boolean {
   if (!isTelegramBotConfigured()) return false
+  
+  // ПРИОРИТЕТ 1: Если приложение запущено в Telegram Mini App, уведомления доступны автоматически
+  try {
+    if (typeof window !== 'undefined') {
+      const tg = (window as any).Telegram?.WebApp || (window as any).TelegramWebApp
+      if (tg?.initDataUnsafe?.user?.id) {
+        console.log('📱 Telegram Mini App активен - уведомления доступны автоматически')
+        return true
+      }
+    }
+  } catch (error) {
+    console.warn('⚠️ Ошибка при проверке Telegram Mini App:', error)
+  }
+  
+  // ПРИОРИТЕТ 2: Проверяем сохраненную конфигурацию
   const config = getTelegramConfig()
+  
   // Для iOS также проверяем наличие контакта
   try {
     if (/iPad|iPhone|iPod/.test(navigator.userAgent) || 
@@ -89,6 +129,7 @@ export function isTelegramEnabled(): boolean {
   } catch (error) {
     console.warn('⚠️ Ошибка при проверке iOS устройства:', error)
   }
+  
   return config?.enabled === true && !!config?.chatId
 }
 
@@ -102,37 +143,56 @@ export async function sendTelegramNotification(
     return false
   }
   
-  const config = getTelegramConfig()
-  const iosContact = getIOSContactInfo()
-  
   // Определяем chatId для отправки
   let chatId: string | null = null
   
-  // Сначала пытаемся использовать сохраненный Chat ID
-  if (config?.enabled && config?.chatId) {
-    chatId = config.chatId
-  }
-  // Для iOS пытаемся использовать сохраненный контакт
-  else if (iosContact) {
-    try {
-      const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
-                          (navigator.platform === 'MacIntel' && (navigator.maxTouchPoints || 0) > 1)
-      if (isIOSDevice) {
-        // Если контакт начинается с @, используем его как username
-        if (iosContact.startsWith('@')) {
-          chatId = iosContact
-        }
-        // Если это номер телефона, пытаемся использовать его
-        else if (iosContact.startsWith('+') || /^\d{10,15}$/.test(iosContact)) {
-          chatId = iosContact
-        }
-        // Иначе считаем это username
-        else {
-          chatId = `@${iosContact}`
-        }
+  // ПРИОРИТЕТ 1: Если приложение запущено в Telegram Mini App, используем chat_id оттуда
+  try {
+    if (typeof window !== 'undefined') {
+      const tg = (window as any).Telegram?.WebApp || (window as any).TelegramWebApp
+      if (tg?.initDataUnsafe?.user?.id) {
+        chatId = String(tg.initDataUnsafe.user.id)
+        console.log('📱 Используем chat_id из Telegram Mini App:', chatId)
       }
-    } catch (error) {
-      console.warn('⚠️ Ошибка при проверке iOS устройства:', error)
+    }
+  } catch (error) {
+    console.warn('⚠️ Ошибка при получении chat_id из Telegram Mini App:', error)
+  }
+  
+  // ПРИОРИТЕТ 2: Используем сохраненный Chat ID из настроек
+  if (!chatId) {
+    const config = getTelegramConfig()
+    if (config?.enabled && config?.chatId) {
+      chatId = config.chatId
+      console.log('💾 Используем сохраненный chat_id из настроек:', chatId)
+    }
+  }
+  
+  // ПРИОРИТЕТ 3: Для iOS пытаемся использовать сохраненный контакт
+  if (!chatId) {
+    const iosContact = getIOSContactInfo()
+    if (iosContact) {
+      try {
+        const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                            (navigator.platform === 'MacIntel' && (navigator.maxTouchPoints || 0) > 1)
+        if (isIOSDevice) {
+          // Если контакт начинается с @, используем его как username
+          if (iosContact.startsWith('@')) {
+            chatId = iosContact
+          }
+          // Если это номер телефона, пытаемся использовать его
+          else if (iosContact.startsWith('+') || /^\d{10,15}$/.test(iosContact)) {
+            chatId = iosContact
+          }
+          // Иначе считаем это username
+          else {
+            chatId = `@${iosContact}`
+          }
+          console.log('🍎 Используем iOS контакт:', chatId)
+        }
+      } catch (error) {
+        console.warn('⚠️ Ошибка при проверке iOS устройства:', error)
+      }
     }
   }
   
