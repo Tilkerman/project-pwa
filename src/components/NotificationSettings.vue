@@ -35,8 +35,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, onMounted, computed } from 'vue'
 import { requestNotificationPermission } from '@/utils/notifications'
+import { isTelegramMiniApp } from '@/utils/telegramMiniApp'
 
 const props = defineProps<{
   enabled: boolean
@@ -51,9 +52,15 @@ const emit = defineEmits<{
 const enabled = ref(props.enabled)
 const time = ref(props.time || '09:00')
 const hasPermission = ref(false)
+const inTelegram = computed(() => isTelegramMiniApp())
 
 onMounted(async () => {
-  hasPermission.value = 'Notification' in window && Notification.permission === 'granted'
+  if (inTelegram.value) {
+    // В Telegram Mini App не требуем браузерные разрешения
+    hasPermission.value = true
+  } else {
+    hasPermission.value = 'Notification' in window && Notification.permission === 'granted'
+  }
 })
 
 watch(() => props.enabled, (newVal) => {
@@ -65,7 +72,8 @@ watch(() => props.time, (newVal) => {
 })
 
 async function requestPermission() {
-  const granted = await requestNotificationPermission()
+  // В Telegram Mini App просто подтверждаем — уведомления идут через бота
+  const granted = inTelegram.value ? true : await requestNotificationPermission()
   hasPermission.value = granted
   if (granted) {
     enabled.value = true

@@ -75,6 +75,11 @@ async function registerPeriodicSync(): Promise<void> {
 }
 
 export async function requestNotificationPermission(): Promise<boolean> {
+  // В Telegram Mini App не запрашиваем браузерные разрешения — используем бота
+  if (isTelegramMiniApp()) {
+    return true
+  }
+
   if (!('Notification' in window)) {
     console.warn('Браузер не поддерживает уведомления')
     return false
