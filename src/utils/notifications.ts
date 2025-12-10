@@ -217,10 +217,16 @@ async function scheduleRecurringNotification(habit: Habit): Promise<void> {
   }
 
   const interval = 24 * 60 * 60 * 1000 // 24 часа
+  const inTelegram = isTelegramMiniApp() || isTelegramUA()
 
   const intervalId = window.setInterval(async () => {
     // Проверяем актуальное состояние привычки
-    if (habit.notificationEnabled && Notification.permission === 'granted') {
+    // Для Telegram Mini App не требуем разрешение браузера
+    const canSend = inTelegram 
+      ? habit.notificationEnabled 
+      : (habit.notificationEnabled && Notification.permission === 'granted')
+    
+    if (canSend) {
       console.log(`🔔 Повторяющееся уведомление для "${habit.name}"`)
       await showNotification(habit)
     } else {
@@ -236,9 +242,13 @@ async function scheduleRecurringNotification(habit: Habit): Promise<void> {
 export async function showNotification(habit: Habit): Promise<void> {
   const inTelegram = isTelegramMiniApp() || isTelegramUA()
 
-  // Если запущено как Telegram Mini App — шлем уведомление через бота и выходим
-  if (inTelegram && isTelegramEnabled()) {
+  // Если запущено как Telegram Mini App — всегда шлем уведомление через бота
+  if (inTelegram) {
     try {
+      // Автоматически сохраняем chat_id если еще не сохранен
+      const { autoSaveTelegramChatId } = await import('./telegram')
+      autoSaveTelegramChatId()
+      
       const character = habit.character
       const characterName = character === 'babushka' ? 'Добрая Бабушка' :
                             character === 'gopnik' ? 'Гопник' :
@@ -246,12 +256,17 @@ export async function showNotification(habit: Habit): Promise<void> {
                             character === 'grandpa' ? 'Старый Дед' : 'Друг'
       const message = habit.customNotificationMessage || getCharacterMessage(habit.character, habit, 'daily')
       const title = `${characterName} напоминает: ${habit.name}`
-      await sendTelegramNotification(title, message)
-      console.log(`✅ Telegram уведомление отправлено для "${habit.name}" (Mini App)`)
-      return
+      
+      const sent = await sendTelegramNotification(title, message)
+      if (sent) {
+        console.log(`✅ Telegram уведомление отправлено для "${habit.name}" (Mini App)`)
+        return
+      } else {
+        console.warn('⚠️ Не удалось отправить Telegram уведомление, возможно chat_id не сохранен')
+      }
     } catch (error) {
-      console.warn('⚠️ Ошибка при отправке Telegram уведомления (Mini App):', error)
-      // не падаем, пробуем дальше через браузерный канал при наличии разрешений
+      console.error('❌ Ошибка при отправке Telegram уведомления (Mini App):', error)
+      // Продолжаем попытку через браузерные уведомления если есть разрешение
     }
   }
 
