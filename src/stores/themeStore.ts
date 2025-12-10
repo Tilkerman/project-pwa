@@ -1,11 +1,25 @@
 import { defineStore } from 'pinia'
 import { ref, watch } from 'vue'
+import { isTelegramMiniApp, getTelegramTheme } from '@/utils/telegramMiniApp'
 
 export const useThemeStore = defineStore('theme', () => {
   const isDark = ref(false)
 
   // Загружаем тему из localStorage при инициализации
   function initTheme() {
+    // Сначала проверяем, запущено ли приложение в Telegram Mini App
+    if (isTelegramMiniApp()) {
+      const telegramTheme = getTelegramTheme()
+      if (telegramTheme) {
+        // Используем тему из Telegram
+        isDark.value = telegramTheme.colorScheme === 'dark'
+        applyTheme()
+        applyTelegramTheme(telegramTheme)
+        return
+      }
+    }
+
+    // Если не в Telegram, используем стандартную логику
     const savedTheme = localStorage.getItem('theme')
     if (savedTheme) {
       isDark.value = savedTheme === 'dark'
@@ -19,6 +33,27 @@ export const useThemeStore = defineStore('theme', () => {
       isDark.value = isMobile ? true : prefersDark
     }
     applyTheme()
+  }
+
+  // Применяем цвета Telegram к документу
+  function applyTelegramTheme(theme: any) {
+    if (!theme) return
+    
+    const root = document.documentElement
+    
+    // Применяем цвета Telegram как CSS переменные (опционально)
+    if (theme.backgroundColor) {
+      root.style.setProperty('--tg-bg-color', theme.backgroundColor)
+    }
+    if (theme.textColor) {
+      root.style.setProperty('--tg-text-color', theme.textColor)
+    }
+    if (theme.buttonColor) {
+      root.style.setProperty('--tg-button-color', theme.buttonColor)
+    }
+    if (theme.buttonTextColor) {
+      root.style.setProperty('--tg-button-text-color', theme.buttonTextColor)
+    }
   }
 
   // Применяем тему к документу

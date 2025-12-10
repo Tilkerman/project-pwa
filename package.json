@@ -9,10 +9,11 @@
     "type-check": "vue-tsc --noEmit"
   },
   "dependencies": {
-    "vue": "^3.4.0",
-    "vue-router": "^4.2.5",
+    "@twa-dev/sdk": "^8.0.2",
+    "idb": "^7.1.1",
     "pinia": "^2.1.7",
-    "idb": "^7.1.1"
+    "vue": "^3.4.0",
+    "vue-router": "^4.2.5"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.0",

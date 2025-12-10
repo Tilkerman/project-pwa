@@ -3,6 +3,15 @@ import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router'
 import './style.css'
+import { initTelegramMiniApp } from './utils/telegramMiniApp'
+
+// Инициализация Telegram Mini App (если запущено в Telegram)
+const telegramApp = initTelegramMiniApp()
+if (telegramApp) {
+  console.log('📱 Telegram Mini App активен')
+  console.log('👤 Пользователь:', telegramApp.user)
+  console.log('🎨 Тема:', telegramApp.theme)
+}
 
 const app = createApp(App)
 
