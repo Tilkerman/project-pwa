@@ -1,6 +1,7 @@
 import type { Habit } from '@/types'
 import { getCharacterMessage } from './characters'
-import { sendTelegramNotification, isTelegramEnabled } from './telegram'
+import { sendTelegramNotification, isTelegramEnabled, getTelegramUser } from './telegram'
+import { scheduleNotificationOnServer, removeNotificationFromServer } from './notificationServer'
 import { isTelegramMiniApp } from './telegramMiniApp'
 
 function isTelegramUA(): boolean {
@@ -193,7 +194,79 @@ export async function scheduleNotifications(habit: Habit): Promise<void> {
     }
   }
 
-  // Для iOS: сохраняем расписание в localStorage для восстановления при следующем открытии
+  // Отправляем расписание на сервер уведомлений (работает даже когда приложение закрыто)
+  try {
+    // Получаем chat_id для отправки на сервер
+    let chatId: string | null = null
+    
+    // Пытаемся получить из Telegram Mini App
+    if (typeof window !== 'undefined') {
+      const tg = (window as any).Telegram?.WebApp || (window as any).TelegramWebApp
+      if (tg?.initDataUnsafe?.user?.id) {
+        chatId = String(tg.initDataUnsafe.user.id)
+      }
+    }
+    
+    // Если не получили из Mini App, пытаемся получить из настроек
+    if (!chatId) {
+      const { getTelegramConfig } = await import('./telegram')
+      const config = getTelegramConfig()
+      if (config?.chatId) {
+        chatId = config.chatId
+      }
+    }
+    
+    // Если есть chat_id, отправляем расписание на сервер
+    if (chatId) {
+      const result = await scheduleNotificationOnServer(habit, chatId)
+      if (result.success) {
+        console.log('✅ Расписание отправлено на сервер уведомлений')
+      } else {
+        console.warn('⚠️ Не удалось отправить расписание на сервер:', result.error)
+      }
+    } else {
+      console.log('ℹ️ Chat ID не найден, расписание не отправлено на сервер')
+    }
+  } catch (error) {
+    console.warn('⚠️ Ошибка при отправке расписания на сервер:', error)
+  }
+
+  // Сохраняем расписание в IndexedDB для Service Worker (работает для всех платформ)
+  try {
+    const request = indexedDB.open('NotificationCache', 1)
+    request.onsuccess = () => {
+      const db = request.result
+      const transaction = db.transaction(['cache'], 'readwrite')
+      const store = transaction.objectStore('cache')
+      
+      // Получаем существующие расписания
+      const getRequest = store.get('notification_schedules')
+      getRequest.onsuccess = () => {
+        const schedules = getRequest.result?.value || {}
+        schedules[habit.id] = {
+          id: habit.id,
+          name: habit.name,
+          time: habit.notificationTime,
+          enabled: habit.notificationEnabled,
+          customNotificationMessage: habit.customNotificationMessage,
+          character: habit.character,
+          updatedAt: new Date().toISOString()
+        }
+        store.put({ value: schedules }, 'notification_schedules')
+        console.log('💾 Расписание уведомления сохранено в IndexedDB для Service Worker')
+      }
+    }
+    request.onupgradeneeded = () => {
+      const db = request.result
+      if (!db.objectStoreNames.contains('cache')) {
+        db.createObjectStore('cache')
+      }
+    }
+  } catch (error) {
+    console.warn('⚠️ Ошибка при сохранении расписания в IndexedDB:', error)
+  }
+
+  // Для iOS: также сохраняем в localStorage для совместимости
   if (isIOS()) {
     try {
       const schedules = JSON.parse(localStorage.getItem('ios_notification_schedules') || '{}')
@@ -427,6 +500,13 @@ export async function clearNotifications(habitId: string): Promise<void> {
   if (intervalId) {
     clearInterval(intervalId)
     notificationIntervals.delete(habitId)
+  }
+  
+  // Удаляем расписание с сервера уведомлений
+  try {
+    await removeNotificationFromServer(habitId)
+  } catch (error) {
+    console.warn('⚠️ Ошибка при удалении расписания с сервера:', error)
   }
   
   // Уведомляем Service Worker об отмене уведомления
