@@ -39,6 +39,14 @@ import { ref, watch, onMounted, computed } from 'vue'
 import { requestNotificationPermission } from '@/utils/notifications'
 import { isTelegramMiniApp } from '@/utils/telegramMiniApp'
 
+function isTelegramUA(): boolean {
+  try {
+    return typeof navigator !== 'undefined' && /Telegram/i.test(navigator.userAgent)
+  } catch {
+    return false
+  }
+}
+
 const props = defineProps<{
   enabled: boolean
   time?: string
@@ -52,7 +60,7 @@ const emit = defineEmits<{
 const enabled = ref(props.enabled)
 const time = ref(props.time || '09:00')
 const hasPermission = ref(false)
-const inTelegram = computed(() => isTelegramMiniApp())
+const inTelegram = computed(() => isTelegramMiniApp() || isTelegramUA())
 
 onMounted(async () => {
   if (inTelegram.value) {

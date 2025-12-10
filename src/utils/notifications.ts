@@ -3,6 +3,14 @@ import { getCharacterMessage } from './characters'
 import { sendTelegramNotification, isTelegramEnabled } from './telegram'
 import { isTelegramMiniApp } from './telegramMiniApp'
 
+function isTelegramUA(): boolean {
+  try {
+    return typeof navigator !== 'undefined' && /Telegram/i.test(navigator.userAgent)
+  } catch {
+    return false
+  }
+}
+
 // Хранилище для timeout ID, чтобы можно было их очищать
 const notificationTimeouts = new Map<string, number>()
 const notificationIntervals = new Map<string, number>()
@@ -76,7 +84,7 @@ async function registerPeriodicSync(): Promise<void> {
 
 export async function requestNotificationPermission(): Promise<boolean> {
   // В Telegram Mini App не запрашиваем браузерные разрешения — используем бота
-  if (isTelegramMiniApp()) {
+  if (isTelegramMiniApp() || isTelegramUA()) {
     return true
   }
 
@@ -119,9 +127,10 @@ export async function scheduleNotifications(habit: Habit): Promise<void> {
   }
 
   const inTelegram = isTelegramMiniApp()
+  const inTelegramUA = isTelegramUA()
 
   // Если это Telegram Mini App — не требуем разрешение браузера, опираемся на бота
-  if (!inTelegram) {
+  if (!inTelegram && !inTelegramUA) {
     // Проверяем разрешение перед планированием для обычного браузера/PWA
     if (!('Notification' in window) || Notification.permission !== 'granted') {
       console.warn('⚠️ Нет разрешения на уведомления для привычки:', habit.name)
@@ -225,7 +234,7 @@ async function scheduleRecurringNotification(habit: Habit): Promise<void> {
 }
 
 export async function showNotification(habit: Habit): Promise<void> {
-  const inTelegram = isTelegramMiniApp()
+  const inTelegram = isTelegramMiniApp() || isTelegramUA()
 
   // Если запущено как Telegram Mini App — шлем уведомление через бота и выходим
   if (inTelegram && isTelegramEnabled()) {

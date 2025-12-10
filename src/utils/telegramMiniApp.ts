@@ -3,6 +3,15 @@
 
 import { initDataRaw, initData, viewport, backButton, mainButton, themeParams, initDataUnsafe } from '@twa-dev/sdk'
 
+// Дополнительная проверка на Telegram по User-Agent (на случай, если WebApp не проинициализировался)
+function isTelegramUserAgent(): boolean {
+  try {
+    return typeof navigator !== 'undefined' && /Telegram/i.test(navigator.userAgent)
+  } catch {
+    return false
+  }
+}
+
 /**
  * Проверяет, запущено ли приложение внутри Telegram Mini App
  */
@@ -13,7 +22,8 @@ export function isTelegramMiniApp(): boolean {
   return !!(
     window.Telegram?.WebApp ||
     (window as any).TelegramWebApp ||
-    initDataRaw !== undefined
+    initDataRaw !== undefined ||
+    isTelegramUserAgent()
   )
 }
 
