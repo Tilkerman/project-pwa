@@ -10,7 +10,8 @@ import {
 import { getCurrentStreak, getCharacterMessage } from '@/utils/characters'
 import {
   scheduleNotifications,
-  requestNotificationPermission
+  requestNotificationPermission,
+  clearNotifications
 } from '@/utils/notifications'
 
 export const useHabitsStore = defineStore('habits', () => {
@@ -71,15 +72,37 @@ export const useHabitsStore = defineStore('habits', () => {
   async function loadHabits() {
     loading.value = true
     try {
-      habits.value = await getAllHabits()
-      // Schedule notifications for all habits
-      for (const habit of habits.value) {
-        if (habit.notificationEnabled) {
-          await scheduleNotifications(habit)
-        }
-      }
+      // Загружаем привычки с таймаутом
+      const loadPromise = getAllHabits()
+      const timeoutPromise = new Promise<Habit[]>((resolve) => {
+        setTimeout(() => {
+          console.warn('⚠️ Таймаут при загрузке привычек, используем пустой массив')
+          resolve([])
+        }, 5000) // 5 секунд таймаут
+      })
+      
+      habits.value = await Promise.race([loadPromise, timeoutPromise])
+      
+      // Schedule notifications for all habits (не блокируем загрузку при ошибках)
+      // Делаем это асинхронно, чтобы не блокировать UI
+      Promise.all(
+        habits.value
+          .filter(habit => habit.notificationEnabled)
+          .map(async (habit) => {
+            try {
+              await scheduleNotifications(habit)
+            } catch (error) {
+              // Логируем ошибку, но не прерываем загрузку
+              console.warn(`⚠️ Не удалось запланировать уведомление для привычки "${habit.name}":`, error)
+            }
+          })
+      ).catch(error => {
+        console.warn('⚠️ Ошибка при планировании уведомлений:', error)
+      })
     } catch (error) {
-      console.error('Failed to load habits:', error)
+      console.error('❌ Ошибка при загрузке привычек:', error)
+      // Устанавливаем пустой массив, чтобы приложение не зависло
+      habits.value = []
     } finally {
       loading.value = false
     }
@@ -116,8 +139,16 @@ export const useHabitsStore = defineStore('habits', () => {
     habits.value.push(newHabit)
 
     if (newHabit.notificationEnabled) {
-      await requestNotificationPermission()
-      await scheduleNotifications(newHabit)
+      // Не блокируем UI ожиданием сети/разрешений
+      requestNotificationPermission()
+        .then(async (granted) => {
+          if (granted) {
+            await scheduleNotifications(newHabit)
+          }
+        })
+        .catch((error) => {
+          console.warn('⚠️ Не удалось настроить уведомления для новой привычки:', error)
+        })
     }
 
     return newHabit
@@ -144,9 +175,21 @@ export const useHabitsStore = defineStore('habits', () => {
         habits.value.push(habitForLocal)
       }
 
+      // Планируем/очищаем уведомления асинхронно, чтобы не блокировать UI
       if (habit.notificationEnabled) {
-        await requestNotificationPermission()
-        await scheduleNotifications(habit)
+        requestNotificationPermission()
+          .then(async (granted) => {
+            if (granted) {
+              await scheduleNotifications(habit)
+            }
+          })
+          .catch((error) => {
+            console.warn('⚠️ Не удалось запланировать уведомления при обновлении привычки:', error)
+          })
+      } else {
+        clearNotifications(habit.id).catch((error) => {
+          console.warn('⚠️ Не удалось очистить уведомления при обновлении привычки:', error)
+        })
       }
     } catch (error) {
       console.error('Failed to update habit:', error)

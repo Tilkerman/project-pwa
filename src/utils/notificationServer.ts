@@ -2,8 +2,11 @@
 // Сервер работает на Render.com и отправляет уведомления по расписанию
 
 // URL сервера уведомлений (замените на ваш URL после деплоя)
-const NOTIFICATION_SERVER_URL = process.env.VITE_NOTIFICATION_SERVER_URL || 
-  'https://habit-tracker-notifications.onrender.com'
+const NOTIFICATION_SERVER_URL =
+  (typeof import.meta !== 'undefined'
+    ? import.meta.env.VITE_NOTIFICATION_SERVER_URL
+    : undefined) ||
+  'http://localhost:3000' // Для локальной разработки
 
 interface Habit {
   id: string
@@ -21,7 +24,7 @@ export async function scheduleNotificationOnServer(
   habit: Habit,
   chatId: string
 ): Promise<{ success: boolean; error?: string }> {
-  if (!NOTIFICATION_SERVER_URL || NOTIFICATION_SERVER_URL.includes('localhost')) {
+  if (!NOTIFICATION_SERVER_URL) {
     console.warn('⚠️ Сервер уведомлений не настроен')
     return { success: false, error: 'Server not configured' }
   }
@@ -75,7 +78,7 @@ export async function scheduleNotificationOnServer(
 export async function removeNotificationFromServer(
   habitId: string
 ): Promise<{ success: boolean; error?: string }> {
-  if (!NOTIFICATION_SERVER_URL || NOTIFICATION_SERVER_URL.includes('localhost')) {
+  if (!NOTIFICATION_SERVER_URL) {
     return { success: false, error: 'Server not configured' }
   }
 
@@ -107,7 +110,7 @@ export async function removeNotificationFromServer(
  * Проверяет доступность сервера уведомлений
  */
 export async function checkServerHealth(): Promise<boolean> {
-  if (!NOTIFICATION_SERVER_URL || NOTIFICATION_SERVER_URL.includes('localhost')) {
+  if (!NOTIFICATION_SERVER_URL) {
     return false
   }
 

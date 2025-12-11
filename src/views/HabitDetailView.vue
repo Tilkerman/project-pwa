@@ -103,6 +103,7 @@ const store = useHabitsStore()
 
 const loading = ref(true)
 const showSettings = ref(false)
+const saving = ref(false)
 
 // Для обработки свайпов
 const touchStartY = ref(0)
@@ -252,9 +253,12 @@ async function handleUpdate(data: {
   additionalMotivation?: boolean
 }) {
   console.log('handleUpdate called with data:', data)
-  
+  if (saving.value) return
+  saving.value = true
+
   if (!habit.value) {
     console.error('habit.value is null')
+    saving.value = false
     return
   }
 
@@ -263,6 +267,7 @@ async function handleUpdate(data: {
     const currentHabit = store.getHabitById(habit.value.id)
     if (!currentHabit) {
       console.error('Habit not found in store')
+      saving.value = false
       return
     }
 
@@ -286,16 +291,22 @@ async function handleUpdate(data: {
     await store.updateHabit(updatedHabit)
     console.log('Habit updated successfully')
     
-    // Перезагружаем привычки для обновления UI
-    await store.loadHabits()
-    console.log('Habits reloaded')
-    
-    // Закрываем модальное окно
+    // Сразу закрываем модалку, чтобы пользователь видел результат
     showSettings.value = false
     console.log('Modal closed')
+    
+    // Перезагружаем привычки для обновления UI (не блокирует закрытие)
+    store.loadHabits()
+      .then(() => console.log('Habits reloaded'))
+      .catch((err) => console.warn('⚠️ Не удалось перезагрузить привычки:', err))
+    
+    // Показываем подтверждение пользователю
+    alert('Изменения сохранены')
   } catch (error) {
     console.error('Failed to update habit:', error)
     alert('Ошибка при сохранении: ' + (error instanceof Error ? error.message : String(error)))
+  } finally {
+    saving.value = false
   }
 }
 

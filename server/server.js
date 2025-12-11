@@ -3,6 +3,7 @@
 
 import express from 'express'
 import cron from 'node-cron'
+import { handleUpdate, sendMessage } from './bot.js'
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -148,6 +149,18 @@ app.get('/api/schedules', (req, res) => {
   res.json({ success: true, schedules })
 })
 
+// Webhook endpoint для получения обновлений от Telegram
+app.post('/webhook', express.json(), async (req, res) => {
+  try {
+    const update = req.body
+    await handleUpdate(update)
+    res.json({ ok: true })
+  } catch (error) {
+    console.error('Ошибка при обработке webhook:', error)
+    res.status(500).json({ ok: false, error: error.message })
+  }
+})
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', time: new Date().toISOString() })
@@ -161,9 +174,45 @@ cron.schedule('* * * * *', () => {
 // Проверяем сразу при запуске
 checkAndSendNotifications()
 
+// Запускаем polling для бота (чтобы отвечать на команды)
+async function startBotPolling() {
+  let offset = 0
+  
+  async function pollUpdates() {
+    try {
+      const url = `${BOT_API_URL}${TELEGRAM_BOT_TOKEN}/getUpdates?offset=${offset}&timeout=10`
+      const response = await fetch(url)
+      
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error('Ошибка при получении обновлений:', errorText)
+        return
+      }
+      
+      const data = await response.json()
+      
+      if (data.ok && data.result.length > 0) {
+        for (const update of data.result) {
+          await handleUpdate(update)
+          offset = update.update_id + 1
+        }
+      }
+    } catch (error) {
+      console.error('Ошибка при polling:', error)
+    }
+    
+    // Повторяем через 1 секунду
+    setTimeout(pollUpdates, 1000)
+  }
+  
+  console.log('🤖 Запуск polling для бота...')
+  pollUpdates()
+}
+
 // Запускаем сервер
 app.listen(PORT, () => {
   console.log(`🚀 Сервер запущен на порту ${PORT}`)
   console.log(`📅 Проверка уведомлений каждую минуту`)
+  startBotPolling()
 })
 

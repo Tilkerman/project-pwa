@@ -29,11 +29,7 @@
       <div v-else class="config-section">
         <div v-if="!chatId" class="telegram-login-section">
           <p class="login-description">
-            Авторизуйтесь через Telegram, чтобы получать уведомления:
-          </p>
-          <div id="telegram-login-container"></div>
-          <p class="login-hint">
-            Или введите ваш username Telegram (например: @username) или номер телефона
+            Чтобы получать уведомления в Telegram, введите ваш Chat ID ниже:
           </p>
           <div class="alternative-input">
             <input
@@ -41,7 +37,7 @@
               v-model="telegramInput"
               type="text"
               class="config-input"
-              placeholder="@username или Chat ID"
+              placeholder="Введите Chat ID (например: 123456789)"
               @keyup.enter="processTelegramInput"
             />
             <button 
@@ -53,7 +49,11 @@
               {{ testing ? 'Проверка...' : 'Подключить' }}
             </button>
             <p class="input-hint">
-              Введите ваш username Telegram (например: @ivanov) или Chat ID (если знаете)
+              <strong>Как узнать Chat ID?</strong><br>
+              1. Найдите вашего бота в Telegram<br>
+              2. Отправьте ему команду <code>/start</code><br>
+              3. Бот отправит вам ваш Chat ID<br>
+              4. Скопируйте Chat ID и вставьте выше
             </p>
           </div>
         </div>
@@ -77,11 +77,25 @@
             Отключить
           </button>
         </div>
-      </div>
+        
+        <!-- Кнопка теста всегда видна, если бот настроен -->
+        <div v-if="isBotConfigured" class="test-section">
+          <button 
+            class="btn-test"
+            @click="testConnection"
+            :disabled="testing"
+          >
+            {{ testing ? 'Проверка...' : 'Отправить тест' }}
+          </button>
+          <p class="test-hint">
+            Нажмите, чтобы проверить, работает ли отправка уведомлений в Telegram
+          </p>
+        </div>
 
-      <div v-if="testResult" class="test-result" :class="testResult.success ? 'success' : 'error'">
-        <span class="result-icon">{{ testResult.success ? '✅' : '❌' }}</span>
-        <span>{{ testResult.message }}</span>
+        <div v-if="testResult" class="test-result" :class="testResult.success ? 'success' : 'error'">
+          <span class="result-icon">{{ testResult.success ? '✅' : '❌' }}</span>
+          <span>{{ testResult.message }}</span>
+        </div>
       </div>
 
       <div v-if="isBotConfigured && !chatId" class="instructions">
@@ -131,10 +145,39 @@ const isBotConfigured = computed(() => isTelegramBotConfigured())
 
 onMounted(async () => {
   try {
+    // Сначала пытаемся автоматически сохранить Chat ID из Telegram Mini App
+    try {
+      const { autoSaveTelegramChatId } = await import('@/utils/telegram')
+      autoSaveTelegramChatId()
+    } catch (error) {
+      console.warn('⚠️ Не удалось автоматически сохранить Chat ID:', error)
+    }
+    
+    // Затем загружаем конфигурацию
     const config = getTelegramConfig()
     if (config) {
       enabled.value = config.enabled
       chatId.value = config.chatId
+    } else {
+      // Если конфигурации нет, но мы в Telegram Mini App, пытаемся получить Chat ID напрямую
+      try {
+        if (typeof window !== 'undefined') {
+          const tg = (window as any).Telegram?.WebApp || (window as any).TelegramWebApp
+          if (tg?.initDataUnsafe?.user?.id) {
+            const telegramChatId = String(tg.initDataUnsafe.user.id)
+            chatId.value = telegramChatId
+            enabled.value = true
+            // Сохраняем автоматически
+            await saveTelegramConfig({
+              chatId: telegramChatId,
+              enabled: true,
+            })
+            console.log('✅ Chat ID автоматически сохранен из Telegram Mini App:', telegramChatId)
+          }
+        }
+      } catch (error) {
+        console.warn('⚠️ Не удалось получить Chat ID из Telegram Mini App:', error)
+      }
     }
     
     // Показываем информацию о боте, если он настроен
@@ -232,15 +275,113 @@ async function processTelegramInput() {
 }
 
 async function testConnection() {
-  if (!chatId.value) return
-  
   testing.value = true
   testResult.value = null
   
   try {
+    // Пытаемся получить Chat ID из разных источников
+    let testChatId: string | null = null
+    
+    // 1. Из сохраненной конфигурации
+    if (chatId.value) {
+      testChatId = chatId.value
+    }
+    // 2. Из Telegram Mini App напрямую (проверяем несколько способов)
+    else if (typeof window !== 'undefined') {
+      console.log('🔍 Пытаемся получить Chat ID из Telegram Mini App...')
+      
+      // Способ 1: через window.Telegram.WebApp
+      const tg = (window as any).Telegram?.WebApp
+      console.log('📱 Telegram.WebApp:', tg ? 'найден' : 'не найден')
+      if (tg?.initDataUnsafe?.user?.id) {
+        testChatId = String(tg.initDataUnsafe.user.id)
+        console.log('✅ Chat ID получен из Telegram.WebApp:', testChatId)
+      } else {
+        console.log('⚠️ Telegram.WebApp.initDataUnsafe.user.id:', tg?.initDataUnsafe?.user?.id || 'не найден')
+      }
+      
+      // Способ 2: через window.TelegramWebApp
+      if (!testChatId) {
+        const tgAlt = (window as any).TelegramWebApp
+        console.log('📱 TelegramWebApp:', tgAlt ? 'найден' : 'не найден')
+        if (tgAlt?.initDataUnsafe?.user?.id) {
+          testChatId = String(tgAlt.initDataUnsafe.user.id)
+          console.log('✅ Chat ID получен из TelegramWebApp:', testChatId)
+        }
+      }
+      
+      // Способ 3: через @twa-dev/sdk
+      if (!testChatId) {
+        try {
+          const { initDataUnsafe } = await import('@twa-dev/sdk')
+          console.log('📱 @twa-dev/sdk initDataUnsafe:', initDataUnsafe ? 'найден' : 'не найден')
+          if (initDataUnsafe?.user?.id) {
+            testChatId = String(initDataUnsafe.user.id)
+            console.log('✅ Chat ID получен из @twa-dev/sdk:', testChatId)
+          }
+        } catch (error) {
+          console.warn('⚠️ Не удалось импортировать @twa-dev/sdk:', error)
+        }
+      }
+      
+      // Способ 4: через функцию getTelegramUser
+      if (!testChatId) {
+        try {
+          const { getTelegramUser } = await import('@/utils/telegramMiniApp')
+          const user = getTelegramUser()
+          if (user?.id) {
+            testChatId = String(user.id)
+            console.log('✅ Chat ID получен через getTelegramUser():', testChatId)
+          }
+        } catch (error) {
+          console.warn('⚠️ Не удалось использовать getTelegramUser():', error)
+        }
+      }
+      
+      // Сохраняем автоматически, если нашли
+      if (testChatId) {
+        chatId.value = testChatId
+        enabled.value = true
+        await saveTelegramConfig({
+          chatId: testChatId,
+          enabled: true,
+        })
+        console.log('✅ Chat ID автоматически сохранен:', testChatId)
+      } else {
+        console.warn('❌ Chat ID не найден ни в одном источнике')
+      }
+    }
+    // 3. Из конфигурации еще раз (на случай если обновилась)
+    if (!testChatId) {
+      const config = getTelegramConfig()
+      if (config?.chatId) {
+        testChatId = config.chatId
+        chatId.value = testChatId
+      }
+    }
+    
+    if (!testChatId) {
+      // Показываем более подробное сообщение с инструкцией
+      const isInTelegram = typeof window !== 'undefined' && 
+                          ((window as any).Telegram?.WebApp || (window as any).TelegramWebApp)
+      
+      if (isInTelegram) {
+        testResult.value = {
+          success: false,
+          message: 'Chat ID не найден в Telegram Mini App. Попробуйте: 1) Обновить страницу (потяните вниз), 2) Или введите ваш Chat ID вручную в поле выше. Чтобы узнать Chat ID, отправьте /start боту @ваш_бот',
+        }
+      } else {
+        testResult.value = {
+          success: false,
+          message: 'Chat ID не найден. Откройте приложение в Telegram Mini App или введите Chat ID вручную выше.',
+        }
+      }
+      return
+    }
+    
     let result
     try {
-      result = await testTelegramConnection(chatId.value)
+      result = await testTelegramConnection(testChatId)
     } catch (error) {
       console.error('Ошибка при проверке подключения:', error)
       result = { success: false, error: 'Не удалось проверить подключение' }
@@ -282,6 +423,8 @@ function disconnectTelegram() {
   padding: 1.25rem 1rem;
   box-shadow: var(--shadow-sm);
   margin-top: 0;
+  overflow: visible;
+  min-height: auto;
 }
 
 .settings-title {
@@ -330,6 +473,8 @@ function disconnectTelegram() {
   margin-top: 1rem;
   padding-top: 1rem;
   border-top: 1px solid var(--border-color);
+  overflow: visible;
+  min-height: auto;
 }
 
 .config-section {
@@ -561,6 +706,19 @@ function disconnectTelegram() {
   font-size: 0.8125rem;
   color: #92400e;
   line-height: 1.5;
+}
+
+.test-section {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.test-hint {
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
 }
 </style>
 
