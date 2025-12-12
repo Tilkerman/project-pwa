@@ -4,12 +4,19 @@
     <header class="page-header">
       <div class="header-logo-container">
         <AppLogo size="40px" />
-        <span class="app-name">Привычки</span>
+        <span class="app-name">{{ t('app.name') }}</span>
       </div>
       <div class="header-actions">
         <button
+          class="lang-toggle"
+          :aria-label="t('language.toggle')"
+          @click="toggleLanguage"
+        >
+          <span class="lang-text">{{ currentLocale === 'ru' ? 'RU' : 'EN' }}</span>
+        </button>
+        <button
           class="theme-toggle"
-          :aria-label="isDark ? 'Переключить на день' : 'Переключить на ночь'"
+          :aria-label="isDark ? t('theme.toggleToDay') : t('theme.toggleToNight')"
           @click="toggleTheme"
         >
           <span class="toggle-track" :class="{ 'is-dark': isDark }">
@@ -18,19 +25,19 @@
             </span>
           </span>
         </button>
-        <button class="settings-btn" @click="goToSettings" aria-label="Настройки">
+        <button class="settings-btn" @click="goToSettings" :aria-label="t('settings.title')">
           <span class="settings-icon">⚙️</span>
         </button>
       </div>
     </header>
     
     <!-- Заголовок H1 -->
-    <h1 class="main-title">Привет! Начнём новую привычку?</h1>
+    <h1 class="main-title">{{ t('home.greeting') }}</h1>
     
     <!-- Подзаголовок -->
-    <p class="subtitle">Отмечайте прогресс каждый день и двигайтесь к целям</p>
+    <p class="subtitle">{{ t('home.subtitle') }}</p>
     
-    <div v-if="store.loading" class="loading">Загрузка...</div>
+    <div v-if="store.loading" class="loading">{{ t('home.loading') }}</div>
 
     <!-- Блок привычек -->
     <div v-else class="habits-section">
@@ -60,7 +67,7 @@
       <!-- Кнопка добавления привычки - показываем всегда -->
       <button class="btn-add-habit" @click="showForm = true">
         <span class="add-icon">+</span>
-        <span class="add-text">Создать новую привычку</span>
+        <span class="add-text">{{ t('home.createHabit') }}</span>
       </button>
     </div>
     
@@ -85,11 +92,13 @@ import { useHabitsStore } from '@/stores/habitsStore'
 import { getProjectColorStyles } from '@/utils/projectColors'
 import { getCurrentStreak } from '@/utils/characters'
 import { useThemeStore } from '@/stores/themeStore'
+import { useI18n } from '@/composables/useI18n'
 import type { Habit } from '@/types'
 
 const router = useRouter()
 const store = useHabitsStore()
 const themeStore = useThemeStore()
+const { t, locale: currentLocale, toggleLanguage } = useI18n()
 const showForm = ref(false)
 const isDark = computed(() => themeStore.isDark)
 const toggleTheme = () => themeStore.toggleTheme()
@@ -116,11 +125,11 @@ function getHabitProgress(habit: Habit): string {
   const streak = getCurrentStreak(habit)
   
   if (totalDays === 0) {
-    return 'Начните сегодня'
+    return t('home.startToday')
   }
   
   if (streak > 0) {
-    return `${streak} ${getDayWord(streak)} подряд`
+    return `${streak} ${getDayWord(streak)} ${t('home.days.inRow')}`
   }
   
   return `${totalDays} ${getDayWord(totalDays)}`
@@ -128,22 +137,26 @@ function getHabitProgress(habit: Habit): string {
 
 // Склонение слова "день"
 function getDayWord(count: number): string {
+  if (currentLocale.value === 'en') {
+    return count === 1 ? t('home.days.day') : t('home.days.days')
+  }
+  
   const lastDigit = count % 10
   const lastTwoDigits = count % 100
   
   if (lastTwoDigits >= 11 && lastTwoDigits <= 14) {
-    return 'дней'
+    return t('home.days.days')
   }
   
   if (lastDigit === 1) {
-    return 'день'
+    return t('home.days.day')
   }
   
   if (lastDigit >= 2 && lastDigit <= 4) {
-    return 'дня'
+    return t('home.days.day2')
   }
   
-  return 'дней'
+  return t('home.days.days')
 }
 
 // Проверка, выполнена ли привычка сегодня
@@ -257,6 +270,32 @@ function closeForm() {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+}
+
+.lang-toggle {
+  border: none;
+  padding: 0.375rem 0.75rem;
+  background: var(--bg-hover);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  transition: background 0.2s ease;
+  min-width: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lang-toggle:hover {
+  background: var(--border-color);
+}
+
+.lang-text {
+  font-size: 0.875rem;
+  font-weight: 600;
+  user-select: none;
 }
 
 .theme-toggle {

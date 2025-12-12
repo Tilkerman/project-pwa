@@ -1,0 +1,46 @@
+{
+  "app": {
+    "name": "Habits",
+    "title": "Habit Tracker"
+  },
+  "home": {
+    "greeting": "Hello! Let's start a new habit?",
+    "subtitle": "Track your progress every day and move towards your goals",
+    "loading": "Loading...",
+    "noHabits": "You don't have any habits yet",
+    "createFirst": "Create your first habit",
+    "createHabit": "Create habit",
+    "startToday": "Start today",
+    "days": {
+      "day": "day",
+      "days": "days",
+      "day2": "days",
+      "inRow": "in a row"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "notifications": {
+      "title": "Notification Settings",
+      "description": "Manage notifications and Telegram"
+    },
+    "about": {
+      "title": "About",
+      "description": "Philosophy, advantages, about the author"
+    },
+    "share": {
+      "title": "Share",
+      "description": "QR code and link for friends"
+    }
+  },
+  "theme": {
+    "toggleToDay": "Switch to day mode",
+    "toggleToNight": "Switch to night mode"
+  },
+  "language": {
+    "ru": "Русский",
+    "en": "English",
+    "toggle": "Toggle language"
+  }
+}
+
