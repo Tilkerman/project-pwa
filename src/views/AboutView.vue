@@ -1,100 +1,83 @@
 <template>
   <div class="about-view">
     <header class="page-header">
-      <button class="back-btn" @click="goBack" aria-label="Назад">
+      <button class="back-btn" @click="goBack" :aria-label="t('settings.back')">
         <span class="back-icon">←</span>
       </button>
-      <h1 class="page-title">О проекте</h1>
+      <h1 class="page-title">{{ t('settings.about.title') }}</h1>
       <div style="width: 40px;"></div> <!-- Spacer для выравнивания -->
     </header>
 
     <div class="about-content">
       <div class="about-section">
-        <h2 class="section-title">Трекер Привычек</h2>
+        <h2 class="section-title">{{ t('settings.about.appName') }}</h2>
         <p class="section-text">
-          Приложение для отслеживания привычек с персонажами-мотиваторами. 
-          Версия {{ appVersion }}
+          {{ t('settings.about.appDescription') }} {{ t('settings.about.version') }} {{ appVersion }}
         </p>
         <p class="section-text">
-          Можно пользоваться прямо в Telegram (Mini App), а можно установить приложение на телефон.
-          После установки оно работает без интернета, все данные хранятся локально.
+          {{ t('settings.about.usageInfo') }}
         </p>
       </div>
 
       <div class="about-section">
-        <h2 class="section-title">🎯 Философия проекта</h2>
+        <h2 class="section-title">{{ t('settings.about.philosophy.title') }}</h2>
         <p class="section-text">
-          Мы верим, что избавление от вредных привычек — это не просто счетчик дней, 
-          а путешествие с поддержкой и мотивацией. Каждый день без вредной привычки — 
-          это маленькая победа, которую стоит отмечать и праздновать.
+          {{ t('settings.about.philosophy.text1') }}
         </p>
         <p class="section-text">
-          Наши персонажи-мотиваторы созданы для того, чтобы вы не чувствовали себя одиноко 
-          в этом путешествии. Они будут рядом, поддерживая вас каждый день, отмечая ваши 
-          достижения и помогая не сбиться с пути.
+          {{ t('settings.about.philosophy.text2') }}
         </p>
       </div>
 
       <div class="about-section">
-        <h2 class="section-title">✨ Преимущества</h2>
+        <h2 class="section-title">{{ t('settings.about.advantages.title') }}</h2>
         <ul class="advantages-list">
           <li>
-            <strong>Локальное хранение данных</strong> — все ваши данные хранятся только 
-            на вашем устройстве. Никто, кроме вас, не имеет к ним доступа.
+            <strong>{{ t('settings.about.advantages.localStorage') }}</strong> — {{ t('settings.about.advantages.localStorageDesc') }}
           </li>
           <li>
-            <strong>Работа офлайн</strong> — приложение работает без интернета. 
-            Вы можете использовать его в любое время и в любом месте.
+            <strong>{{ t('settings.about.advantages.offline') }}</strong> — {{ t('settings.about.advantages.offlineDesc') }}
           </li>
           <li>
-            <strong>Персонажи-мотиваторы</strong> — уникальные персонажи с разными стилями 
-            поддержки помогут вам не сбиться с пути.
+            <strong>{{ t('settings.about.advantages.characters') }}</strong> — {{ t('settings.about.advantages.charactersDesc') }}
           </li>
           <li>
-            <strong>Система достижений</strong> — получайте награды за ваши успехи и 
-            отслеживайте прогресс.
+            <strong>{{ t('settings.about.advantages.achievements') }}</strong> — {{ t('settings.about.advantages.achievementsDesc') }}
           </li>
           <li>
-            <strong>Гибкие уведомления</strong> — настройте напоминания через браузер 
-            или Telegram для каждой привычки отдельно.
+            <strong>{{ t('settings.about.advantages.notifications') }}</strong> — {{ t('settings.about.advantages.notificationsDesc') }}
           </li>
           <li>
-            <strong>Telegram Mini App</strong> — используйте приложение прямо в Telegram 
-            без установки дополнительных приложений.
+            <strong>{{ t('settings.about.advantages.telegram') }}</strong> — {{ t('settings.about.advantages.telegramDesc') }}
           </li>
           <li>
-            <strong>Адаптивный дизайн</strong> — удобно использовать на любом устройстве: 
-            телефоне, планшете или компьютере.
+            <strong>{{ t('settings.about.advantages.responsive') }}</strong> — {{ t('settings.about.advantages.responsiveDesc') }}
           </li>
         </ul>
       </div>
 
       <div class="about-section">
-        <h2 class="section-title">👨‍💻 Об авторе</h2>
+        <h2 class="section-title">{{ t('settings.about.author.title') }}</h2>
         <p class="section-text">
-          Приложение создано с любовью и заботой о тех, кто решил изменить свою жизнь 
-          к лучшему. Мы понимаем, как сложно бороться с вредными привычками в одиночку, 
-          и создали это приложение, чтобы сделать путь к здоровой жизни более приятным 
-          и мотивирующим.
+          {{ t('settings.about.author.text1') }}
         </p>
         <p class="section-text">
-          Если у вас есть предложения по улучшению приложения или вы нашли ошибку, 
-          мы будем рады вашей обратной связи!
+          {{ t('settings.about.author.text2') }}
         </p>
       </div>
 
       <div class="about-section">
-        <h2 class="section-title">🛠 Технологии</h2>
+        <h2 class="section-title">{{ t('settings.about.tech.title') }}</h2>
         <p class="section-text">
-          Приложение построено на современных веб-технологиях:
+          {{ t('settings.about.tech.text') }}
         </p>
         <ul class="tech-list">
-          <li>Vue 3 + TypeScript</li>
-          <li>Vite</li>
-          <li>Pinia</li>
-          <li>IndexedDB для локального хранения</li>
-          <li>PWA для работы офлайн</li>
-          <li>Telegram Mini App SDK</li>
+          <li>{{ t('settings.about.tech.vue') }}</li>
+          <li>{{ t('settings.about.tech.vite') }}</li>
+          <li>{{ t('settings.about.tech.pinia') }}</li>
+          <li>{{ t('settings.about.tech.indexeddb') }}</li>
+          <li>{{ t('settings.about.tech.pwa') }}</li>
+          <li>{{ t('settings.about.tech.telegram') }}</li>
         </ul>
       </div>
     </div>
@@ -103,8 +86,10 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
+import { useI18n } from '@/composables/useI18n'
 
 const router = useRouter()
+const { t } = useI18n()
 const appVersion = __APP_VERSION__ || '1.0.0'
 
 function goBack() {

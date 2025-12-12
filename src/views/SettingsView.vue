@@ -1,10 +1,10 @@
 <template>
   <div class="settings-view">
     <header class="page-header">
-      <button class="back-btn" @click="goBack" aria-label="Назад">
+      <button class="back-btn" @click="goBack" :aria-label="t('settings.back')">
         <span class="back-icon">←</span>
       </button>
-      <h1 class="page-title">Настройки</h1>
+      <h1 class="page-title">{{ t('settings.title') }}</h1>
       <div style="width: 40px;"></div> <!-- Spacer для выравнивания -->
     </header>
 
@@ -16,8 +16,8 @@
         >
           <span class="menu-icon">🔔</span>
           <div class="menu-content">
-            <span class="menu-title">Настройки Оповещений</span>
-            <span class="menu-description">Управление уведомлениями и Telegram</span>
+            <span class="menu-title">{{ t('settings.notifications.title') }}</span>
+            <span class="menu-description">{{ t('settings.notifications.description') }}</span>
           </div>
           <span class="menu-arrow">→</span>
         </button>
@@ -28,8 +28,8 @@
         >
           <span class="menu-icon">ℹ️</span>
           <div class="menu-content">
-            <span class="menu-title">О проекте</span>
-            <span class="menu-description">Философия, преимущества, об авторе</span>
+            <span class="menu-title">{{ t('settings.about.title') }}</span>
+            <span class="menu-description">{{ t('settings.about.description') }}</span>
           </div>
           <span class="menu-arrow">→</span>
         </button>
@@ -40,8 +40,8 @@
         >
           <span class="menu-icon">📤</span>
           <div class="menu-content">
-            <span class="menu-title">Поделиться</span>
-            <span class="menu-description">QR код и ссылка для друзей</span>
+            <span class="menu-title">{{ t('settings.share.title') }}</span>
+            <span class="menu-description">{{ t('settings.share.description') }}</span>
           </div>
           <span class="menu-arrow">→</span>
         </button>
@@ -52,8 +52,10 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
+import { useI18n } from '@/composables/useI18n'
 
 const router = useRouter()
+const { t } = useI18n()
 
 function goBack() {
   router.push('/')

@@ -1,10 +1,10 @@
 <template>
   <div class="notification-settings-view">
     <header class="page-header">
-      <button class="back-btn" @click="goBack" aria-label="Назад">
+      <button class="back-btn" @click="goBack" :aria-label="t('settings.back')">
         <span class="back-icon">←</span>
       </button>
-      <h1 class="page-title">Настройки Оповещений</h1>
+      <h1 class="page-title">{{ t('settings.notifications.title') }}</h1>
       <div style="width: 40px;"></div> <!-- Spacer для выравнивания -->
     </header>
 
@@ -16,9 +16,9 @@
 
       <!-- Настройки уведомлений для каждой привычки -->
       <div class="settings-section">
-        <h3 class="section-title">Уведомления для привычек</h3>
+        <h3 class="section-title">{{ t('settings.notifications.habitNotifications') }}</h3>
         <p class="section-description">
-          Настройте уведомления для каждой привычки отдельно на странице деталей привычки.
+          {{ t('settings.notifications.habitNotificationsDesc') }}
         </p>
       </div>
     </div>
@@ -27,9 +27,11 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
+import { useI18n } from '@/composables/useI18n'
 import TelegramSettings from '@/components/TelegramSettings.vue'
 
 const router = useRouter()
+const { t } = useI18n()
 
 function goBack() {
   router.push('/settings')

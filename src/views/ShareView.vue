@@ -1,31 +1,31 @@
 <template>
   <div class="share-view">
     <header class="page-header">
-      <button class="back-btn" @click="goBack" aria-label="Назад">
+      <button class="back-btn" @click="goBack" :aria-label="t('settings.back')">
         <span class="back-icon">←</span>
       </button>
-      <h1 class="page-title">Поделиться</h1>
+      <h1 class="page-title">{{ t('settings.share.title') }}</h1>
       <div style="width: 40px;"></div> <!-- Spacer для выравнивания -->
     </header>
 
     <div class="share-content">
       <div class="share-section">
-        <h2 class="section-title">Поделитесь приложением</h2>
+        <h2 class="section-title">{{ t('settings.share.shareApp') }}</h2>
         <p class="section-description">
-          Отправьте ссылку или QR код друзьям, чтобы они тоже могли начать отслеживать свои привычки!
+          {{ t('settings.share.shareDesc') }}
         </p>
       </div>
 
       <div class="share-section">
-        <h2 class="section-title">Как установить и пользоваться офлайн</h2>
+        <h2 class="section-title">{{ t('settings.share.installTitle') }}</h2>
         <p class="section-description">
-          Приложение можно установить как PWA и пользоваться без интернета.
+          {{ t('settings.share.installDesc') }}
         </p>
         <ul class="instructions-list">
-          <li><strong>Мобильный (Chrome/Edge/Telegram WebView):</strong> откройте меню браузера → «Добавить на экран» / «Установить приложение».</li>
-          <li><strong>iOS (Safari/Telegram):</strong> кнопка «Поделиться» → «На экран Домой».</li>
-          <li><strong>Desktop (Chrome/Edge):</strong> иконка установки справа от адресной строки → «Установить».</li>
-          <li>После установки приложение работает офлайн: данные хранятся локально, синхронизация не требуется.</li>
+          <li><strong>{{ t('settings.share.mobile') }}</strong> {{ t('settings.share.mobileDesc') }}</li>
+          <li><strong>{{ t('settings.share.ios') }}</strong> {{ t('settings.share.iosDesc') }}</li>
+          <li><strong>{{ t('settings.share.desktop') }}</strong> {{ t('settings.share.desktopDesc') }}</li>
+          <li>{{ t('settings.share.afterInstall') }}</li>
         </ul>
       </div>
 
@@ -33,7 +33,7 @@
         <div class="qr-container">
           <canvas ref="qrCanvas" class="qr-code"></canvas>
         </div>
-        <p class="qr-hint">Отсканируйте QR код, чтобы открыть приложение</p>
+        <p class="qr-hint">{{ t('settings.share.qrHint') }}</p>
       </div>
 
       <div class="share-section">
@@ -48,8 +48,8 @@
           />
         </div>
         <button class="copy-btn" @click="copyLink">
-          <span v-if="copied">✓ Скопировано</span>
-          <span v-else>📋 Копировать</span>
+          <span v-if="copied">{{ t('settings.share.copied') }}</span>
+          <span v-else>📋 {{ t('settings.share.copy') }}</span>
         </button>
       </div>
     </div>
@@ -59,8 +59,10 @@
 <script setup lang="ts">
 import { ref, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from '@/composables/useI18n'
 
 const router = useRouter()
+const { t } = useI18n()
 const qrCanvas = ref<HTMLCanvasElement | null>(null)
 const linkInput = ref<HTMLInputElement | null>(null)
 const copied = ref(false)
