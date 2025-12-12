@@ -12,20 +12,20 @@
       <div class="share-section">
         <h2 class="section-title">{{ t('settings.share.shareApp') }}</h2>
         <p class="section-description">
-          {{ t('settings.share.shareDesc') }}
+          {{ t('settings.share.shareDescription') }}
         </p>
       </div>
 
       <div class="share-section">
         <h2 class="section-title">{{ t('settings.share.installTitle') }}</h2>
         <p class="section-description">
-          {{ t('settings.share.installDesc') }}
+          {{ t('settings.share.installDescription') }}
         </p>
         <ul class="instructions-list">
-          <li><strong>{{ t('settings.share.mobile') }}</strong> {{ t('settings.share.mobileDesc') }}</li>
-          <li><strong>{{ t('settings.share.ios') }}</strong> {{ t('settings.share.iosDesc') }}</li>
-          <li><strong>{{ t('settings.share.desktop') }}</strong> {{ t('settings.share.desktopDesc') }}</li>
-          <li>{{ t('settings.share.afterInstall') }}</li>
+          <li><strong>{{ t('settings.share.installMobile') }}</strong> {{ t('settings.share.installMobileDesc') }}</li>
+          <li><strong>{{ t('settings.share.installIOS') }}</strong> {{ t('settings.share.installIOSDesc') }}</li>
+          <li><strong>{{ t('settings.share.installDesktop') }}</strong> {{ t('settings.share.installDesktopDesc') }}</li>
+          <li>{{ t('settings.share.installOffline') }}</li>
         </ul>
       </div>
 

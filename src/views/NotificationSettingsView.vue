@@ -16,9 +16,9 @@
 
       <!-- Настройки уведомлений для каждой привычки -->
       <div class="settings-section">
-        <h3 class="section-title">{{ t('settings.notifications.habitNotifications') }}</h3>
+        <h3 class="section-title">{{ t('settings.notifications.habitsNotifications') }}</h3>
         <p class="section-description">
-          {{ t('settings.notifications.habitNotificationsDesc') }}
+          {{ t('settings.notifications.habitsNotificationsDesc') }}
         </p>
       </div>
     </div>

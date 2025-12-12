@@ -30,7 +30,7 @@
           <div class="menu-content">
             <span class="menu-title">{{ t('settings.about.title') }}</span>
             <span class="menu-description">{{ t('settings.about.description') }}</span>
-          </div>
+      </div>
           <span class="menu-arrow">→</span>
         </button>
 
@@ -42,7 +42,7 @@
           <div class="menu-content">
             <span class="menu-title">{{ t('settings.share.title') }}</span>
             <span class="menu-description">{{ t('settings.share.description') }}</span>
-          </div>
+        </div>
           <span class="menu-arrow">→</span>
         </button>
       </div>

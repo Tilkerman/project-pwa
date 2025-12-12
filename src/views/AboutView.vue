@@ -12,72 +12,73 @@
       <div class="about-section">
         <h2 class="section-title">{{ t('settings.about.appName') }}</h2>
         <p class="section-text">
-          {{ t('settings.about.appDescription') }} {{ t('settings.about.version') }} {{ appVersion }}
+          {{ t('settings.about.appDescription') }} 
+          Версия {{ appVersion }}
         </p>
         <p class="section-text">
-          {{ t('settings.about.usageInfo') }}
+          {{ t('settings.about.offlineInfo') }}
         </p>
       </div>
 
       <div class="about-section">
-        <h2 class="section-title">{{ t('settings.about.philosophy.title') }}</h2>
+        <h2 class="section-title">{{ t('settings.about.philosophy') }}</h2>
         <p class="section-text">
-          {{ t('settings.about.philosophy.text1') }}
+          {{ t('settings.about.philosophyText1') }}
         </p>
         <p class="section-text">
-          {{ t('settings.about.philosophy.text2') }}
+          {{ t('settings.about.philosophyText2') }}
         </p>
       </div>
 
       <div class="about-section">
-        <h2 class="section-title">{{ t('settings.about.advantages.title') }}</h2>
+        <h2 class="section-title">{{ t('settings.about.advantages') }}</h2>
         <ul class="advantages-list">
           <li>
-            <strong>{{ t('settings.about.advantages.localStorage') }}</strong> — {{ t('settings.about.advantages.localStorageDesc') }}
+            <strong>{{ t('settings.about.advantage1') }}</strong> — {{ t('settings.about.advantage1Desc') }}
           </li>
           <li>
-            <strong>{{ t('settings.about.advantages.offline') }}</strong> — {{ t('settings.about.advantages.offlineDesc') }}
+            <strong>{{ t('settings.about.advantage2') }}</strong> — {{ t('settings.about.advantage2Desc') }}
           </li>
           <li>
-            <strong>{{ t('settings.about.advantages.characters') }}</strong> — {{ t('settings.about.advantages.charactersDesc') }}
+            <strong>{{ t('settings.about.advantage3') }}</strong> — {{ t('settings.about.advantage3Desc') }}
           </li>
           <li>
-            <strong>{{ t('settings.about.advantages.achievements') }}</strong> — {{ t('settings.about.advantages.achievementsDesc') }}
+            <strong>{{ t('settings.about.advantage4') }}</strong> — {{ t('settings.about.advantage4Desc') }}
           </li>
           <li>
-            <strong>{{ t('settings.about.advantages.notifications') }}</strong> — {{ t('settings.about.advantages.notificationsDesc') }}
+            <strong>{{ t('settings.about.advantage5') }}</strong> — {{ t('settings.about.advantage5Desc') }}
           </li>
           <li>
-            <strong>{{ t('settings.about.advantages.telegram') }}</strong> — {{ t('settings.about.advantages.telegramDesc') }}
+            <strong>{{ t('settings.about.advantage6') }}</strong> — {{ t('settings.about.advantage6Desc') }}
           </li>
           <li>
-            <strong>{{ t('settings.about.advantages.responsive') }}</strong> — {{ t('settings.about.advantages.responsiveDesc') }}
+            <strong>{{ t('settings.about.advantage7') }}</strong> — {{ t('settings.about.advantage7Desc') }}
           </li>
         </ul>
       </div>
 
       <div class="about-section">
-        <h2 class="section-title">{{ t('settings.about.author.title') }}</h2>
+        <h2 class="section-title">{{ t('settings.about.author') }}</h2>
         <p class="section-text">
-          {{ t('settings.about.author.text1') }}
+          {{ t('settings.about.authorText1') }}
         </p>
         <p class="section-text">
-          {{ t('settings.about.author.text2') }}
+          {{ t('settings.about.authorText2') }}
         </p>
       </div>
 
       <div class="about-section">
-        <h2 class="section-title">{{ t('settings.about.tech.title') }}</h2>
+        <h2 class="section-title">{{ t('settings.about.technologies') }}</h2>
         <p class="section-text">
-          {{ t('settings.about.tech.text') }}
+          {{ t('settings.about.technologiesText') }}
         </p>
         <ul class="tech-list">
-          <li>{{ t('settings.about.tech.vue') }}</li>
-          <li>{{ t('settings.about.tech.vite') }}</li>
-          <li>{{ t('settings.about.tech.pinia') }}</li>
-          <li>{{ t('settings.about.tech.indexeddb') }}</li>
-          <li>{{ t('settings.about.tech.pwa') }}</li>
-          <li>{{ t('settings.about.tech.telegram') }}</li>
+          <li>Vue 3 + TypeScript</li>
+          <li>Vite</li>
+          <li>Pinia</li>
+          <li>IndexedDB для локального хранения</li>
+          <li>PWA для работы офлайн</li>
+          <li>Telegram Mini App SDK</li>
         </ul>
       </div>
     </div>
