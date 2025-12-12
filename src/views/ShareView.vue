@@ -46,11 +46,11 @@
             class="link-input"
             @click="selectLink"
           />
-          <button class="copy-btn" @click="copyLink">
-            <span v-if="copied">✓ Скопировано</span>
-            <span v-else>📋 Копировать</span>
-          </button>
         </div>
+        <button class="copy-btn" @click="copyLink">
+          <span v-if="copied">✓ Скопировано</span>
+          <span v-else>📋 Копировать</span>
+        </button>
       </div>
     </div>
   </div>
@@ -275,13 +275,12 @@ function goBack() {
 }
 
 .link-container {
-  display: flex;
-  gap: 0.75rem;
   margin-top: 1rem;
+  margin-bottom: 0.75rem;
 }
 
 .link-input {
-  flex: 1;
+  width: 100%;
   padding: 0.75rem 1rem;
   border: 2px solid var(--border-color);
   border-radius: 8px;
@@ -291,6 +290,7 @@ function goBack() {
   color: var(--text-primary);
   cursor: text;
   transition: border-color 0.2s;
+  box-sizing: border-box;
 }
 
 .link-input:focus {
@@ -299,6 +299,7 @@ function goBack() {
 }
 
 .copy-btn {
+  width: 100%;
   padding: 0.75rem 1.5rem;
   background: #4f46e5;
   color: white;
@@ -308,7 +309,6 @@ function goBack() {
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s;
-  white-space: nowrap;
 }
 
 .copy-btn:hover {
