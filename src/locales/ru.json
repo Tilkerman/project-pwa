@@ -75,6 +75,41 @@
       "november": "Ноябрь",
       "december": "Декабрь"
     }
+  },
+  "habitForm": {
+    "editHabit": "Редактировать привычку",
+    "newHabit": "Новая привычка",
+    "close": "Закрыть",
+    "habitName": "НАЗВАНИЕ ПРИВЫЧКИ",
+    "selectIcon": "Выбрать иконку. Текущая:",
+    "namePlaceholder": "НЕ КУРИМ",
+    "notifications": "ОПОВЕЩЕНИЯ",
+    "back": "Назад",
+    "whoReminds": "Кто напоминает",
+    "reminderTime": "Время напоминания",
+    "reminderText": "Текст напоминания",
+    "reminderTextPlaceholder": "Введите текст напоминания...",
+    "or": "— или —",
+    "useDefaultText": "Использовать стандартный текст",
+    "telegramNotifications": "Telegram уведомления",
+    "telegramSubtitle": "Получайте напоминания даже когда приложение закрыто.",
+    "telegramPlaceholder": "username / телефон",
+    "connectTelegram": "Подключить Telegram",
+    "cancel": "Отмена",
+    "save": "Сохранить",
+    "additionalMotivation": "ДОПОЛНИТЕЛЬНАЯ МОТИВАЦИЯ",
+    "color": "ЦВЕТ",
+    "selectCustomColor": "Выбрать свой цвет",
+    "deleteHabit": "Удалить привычку",
+    "deleteConfirmTitle": "Точно удалить?",
+    "deleteConfirmText": "Вы уверены, что хотите удалить эту привычку? Это действие нельзя отменить.",
+    "delete": "Удалить",
+    "characters": {
+      "babushka": "Добрая Бабушка",
+      "gopnik": "Гопник",
+      "teacher": "Строгий Учитель",
+      "grandpa": "Старый Дед"
+    }
   }
 }
 

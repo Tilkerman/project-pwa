@@ -2,21 +2,21 @@
   <div class="habit-form">
     <!-- Header с крестиком -->
     <header class="form-header">
-      <h2 class="form-title">{{ isEditing ? 'Редактировать привычку' : 'Новая привычка' }}</h2>
-      <button class="close-button" @click="handleCancel" aria-label="Закрыть">
+      <h2 class="form-title">{{ isEditing ? t('habitForm.editHabit') : t('habitForm.newHabit') }}</h2>
+      <button class="close-button" @click="handleCancel" :aria-label="t('habitForm.close')">
         <span class="close-icon">✕</span>
       </button>
     </header>
 
     <!-- Секция: Название привычки -->
     <div class="form-section">
-      <label class="section-label">НАЗВАНИЕ ПРИВЫЧКИ</label>
+      <label class="section-label">{{ t('habitForm.habitName') }}</label>
       <div class="name-with-icon-container">
         <button 
           type="button"
           class="icon-select-button" 
           @click.prevent="showIconPicker = !showIconPicker"
-          :aria-label="'Выбрать иконку. Текущая: ' + (formData.icon || '🚫')"
+          :aria-label="t('habitForm.selectIcon') + ': ' + (formData.icon || '🚫')"
         >
           <span class="icon-display">{{ formData.icon || '🚫' }}</span>
           <span class="icon-dropdown-arrow">▼</span>
@@ -26,7 +26,7 @@
           id="habit-name"
           v-model="formData.name"
           type="text"
-          placeholder="НЕ КУРИМ"
+          :placeholder="t('habitForm.namePlaceholder')"
           class="ios-input name-input-with-icon"
         />
       </div>
@@ -47,7 +47,7 @@
     <!-- Секция: Оповещения -->
     <div class="form-section">
       <div class="section-label-row">
-        <label class="section-label">ОПОВЕЩЕНИЯ</label>
+        <label class="section-label">{{ t('habitForm.notifications') }}</label>
         <label class="ios-toggle">
           <input
             v-model="formData.notificationEnabled"
@@ -64,11 +64,11 @@
       <div class="time-picker-content" @click.stop>
         <!-- Header -->
         <div class="time-picker-header">
-          <button class="back-btn" @click="cancelTimePicker" aria-label="Назад">
+          <button class="back-btn" @click="cancelTimePicker" :aria-label="t('habitForm.back')">
             <span class="back-icon">←</span>
           </button>
           <h2 class="time-picker-header-title">{{ selectedCharacterName }}</h2>
-          <button class="close-btn" @click="closeTimePicker" aria-label="Закрыть">
+          <button class="close-btn" @click="closeTimePicker" :aria-label="t('habitForm.close')">
             <span class="close-icon">✕</span>
           </button>
         </div>
@@ -76,7 +76,7 @@
         <div class="time-picker-body">
           <!-- Секция: Кто напоминает -->
           <div class="notification-section">
-            <label class="section-label">Кто напоминает</label>
+            <label class="section-label">{{ t('habitForm.whoReminds') }}</label>
             <div class="character-dropdown">
               <button class="ios-dropdown-button" @click.prevent="showCharacterDropdown = !showCharacterDropdown">
                 <span>{{ selectedCharacterName }}</span>
@@ -90,7 +90,7 @@
                   :class="{ active: formData.character === char.id }"
                   @click="selectCharacter(char.id)"
                 >
-                  {{ char.name }}
+                  {{ t(`habitForm.characters.${char.id}`) }}
                   <span v-if="formData.character === char.id" class="checkmark">✓</span>
                 </div>
               </div>
@@ -99,7 +99,7 @@
           
           <!-- Секция: Время напоминания -->
           <div class="notification-section">
-            <label class="section-label">Время напоминания</label>
+            <label class="section-label">{{ t('habitForm.reminderTime') }}</label>
             <input
               v-model="formData.notificationTime"
               type="time"
@@ -109,32 +109,32 @@
           
           <!-- Секция: Текст напоминания -->
           <div class="notification-section">
-            <label class="section-label">Текст напоминания</label>
+            <label class="section-label">{{ t('habitForm.reminderText') }}</label>
             <textarea
               v-model="formData.customNotificationMessage"
               class="message-textarea"
-              placeholder="Введите текст напоминания..."
+              :placeholder="t('habitForm.reminderTextPlaceholder')"
               rows="3"
             ></textarea>
-            <div class="default-text-divider">— или —</div>
+            <div class="default-text-divider">{{ t('habitForm.or') }}</div>
             <button 
               class="btn-use-default-text" 
               @click="useDefaultMessage"
               type="button"
             >
-              Использовать стандартный текст
+              {{ t('habitForm.useDefaultText') }}
             </button>
           </div>
           
           <!-- Секция: Telegram уведомления -->
           <div class="notification-section">
-            <label class="section-label">Telegram уведомления</label>
-            <p class="telegram-subtitle">Получайте напоминания даже когда приложение закрыто.</p>
+            <label class="section-label">{{ t('habitForm.telegramNotifications') }}</label>
+            <p class="telegram-subtitle">{{ t('habitForm.telegramSubtitle') }}</p>
             <input
               v-model="iosContactInfo"
               type="text"
               class="telegram-input"
-              placeholder="username / телефон"
+              :placeholder="t('habitForm.telegramPlaceholder')"
               @input="saveIOSContactInfo"
             />
             <button 
@@ -142,14 +142,14 @@
               @click="testNotification"
               type="button"
             >
-              Подключить Telegram
+              {{ t('habitForm.connectTelegram') }}
             </button>
           </div>
         </div>
         
         <div class="time-picker-actions">
-          <button class="btn btn-secondary" @click="cancelTimePicker">Отмена</button>
-          <button class="btn btn-primary" @click="confirmTimePicker">Сохранить</button>
+          <button class="btn btn-secondary" @click="cancelTimePicker">{{ t('habitForm.cancel') }}</button>
+          <button class="btn btn-primary" @click="confirmTimePicker">{{ t('habitForm.save') }}</button>
         </div>
       </div>
     </div>
@@ -157,7 +157,7 @@
     <!-- Секция: Дополнительная мотивация -->
     <div class="form-section">
       <div class="section-label-row">
-        <label class="section-label">ДОПОЛНИТЕЛЬНАЯ МОТИВАЦИЯ</label>
+        <label class="section-label">{{ t('habitForm.additionalMotivation') }}</label>
         <label class="ios-toggle">
           <input
             v-model="formData.additionalMotivation"
@@ -172,7 +172,7 @@
     <!-- Секция: Цвет проекта -->
     <div class="form-section">
       <div class="section-label-row">
-        <label class="section-label">ЦВЕТ</label>
+        <label class="section-label">{{ t('habitForm.color') }}</label>
         <div class="color-picker">
           <!-- Кнопка выбора своего цвета -->
           <div
@@ -184,7 +184,7 @@
                 ? formData.customColor 
                 : 'linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%)'
             }"
-            title="Выбрать свой цвет"
+            :title="t('habitForm.selectCustomColor')"
           >
             <span class="custom-color-icon">+</span>
           </div>
@@ -217,7 +217,7 @@
         :disabled="!formData.name.trim()"
         @click="handleSubmit"
       >
-        Сохранить
+        {{ t('habitForm.save') }}
       </button>
       <button
         v-if="isEditing"
@@ -225,24 +225,23 @@
         class="btn-delete-text"
         @click.stop="showDeleteConfirm = true"
       >
-        Удалить привычку
+        {{ t('habitForm.deleteHabit') }}
       </button>
     </div>
 
     <!-- Модальное окно подтверждения удаления -->
     <div v-if="showDeleteConfirm" class="delete-confirm-modal" @click.self="showDeleteConfirm = false">
       <div class="delete-confirm-content" @click.stop>
-        <h3 class="delete-confirm-title">Точно удалить?</h3>
+        <h3 class="delete-confirm-title">{{ t('habitForm.deleteConfirmTitle') }}</h3>
         <p class="delete-confirm-text">
-          Вы уверены, что хотите удалить эту привычку? 
-          Это действие нельзя отменить.
+          {{ t('habitForm.deleteConfirmText') }}
         </p>
         <div class="delete-confirm-actions">
           <button class="btn btn-secondary" @click="showDeleteConfirm = false">
-            Отмена
+            {{ t('habitForm.cancel') }}
           </button>
           <button class="btn btn-danger" @click="handleDelete">
-            Удалить
+            {{ t('habitForm.delete') }}
           </button>
         </div>
       </div>
@@ -255,6 +254,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import type { Habit, CharacterType, ProjectColor } from '@/types'
 import { characters } from '@/utils/characters'
 import { projectColors, availableColors, projectIcons } from '@/utils/projectColors'
+import { useI18n } from '@/composables/useI18n'
 import ColorPicker from './ColorPicker.vue'
 
 const props = defineProps<{
@@ -348,10 +348,13 @@ function saveIOSContactInfo() {
   }
 }
 
+const { t, locale: currentLocale } = useI18n()
+
 const availableCharacters = computed(() => Object.values(characters))
 
 const selectedCharacterName = computed(() => {
-  return characters[formData.value.character].name.toUpperCase()
+  const characterKey = formData.value.character
+  return t(`habitForm.characters.${characterKey}`).toUpperCase()
 })
 
 const selectedCharacterIcon = computed(() => {

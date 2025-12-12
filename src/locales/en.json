@@ -74,6 +74,41 @@
       "november": "November",
       "december": "December"
     }
+  },
+  "habitForm": {
+    "editHabit": "Edit habit",
+    "newHabit": "New habit",
+    "close": "Close",
+    "habitName": "HABIT NAME",
+    "selectIcon": "Select icon. Current:",
+    "namePlaceholder": "DON'T SMOKE",
+    "notifications": "NOTIFICATIONS",
+    "back": "Back",
+    "whoReminds": "Who reminds",
+    "reminderTime": "Reminder time",
+    "reminderText": "Reminder text",
+    "reminderTextPlaceholder": "Enter reminder text...",
+    "or": "— or —",
+    "useDefaultText": "Use default text",
+    "telegramNotifications": "Telegram notifications",
+    "telegramSubtitle": "Receive reminders even when the app is closed.",
+    "telegramPlaceholder": "username / phone",
+    "connectTelegram": "Connect Telegram",
+    "cancel": "Cancel",
+    "save": "Save",
+    "additionalMotivation": "ADDITIONAL MOTIVATION",
+    "color": "COLOR",
+    "selectCustomColor": "Select custom color",
+    "deleteHabit": "Delete habit",
+    "deleteConfirmTitle": "Delete for sure?",
+    "deleteConfirmText": "Are you sure you want to delete this habit? This action cannot be undone.",
+    "delete": "Delete",
+    "characters": {
+      "babushka": "Kind Grandma",
+      "gopnik": "Gopnik",
+      "teacher": "Strict Teacher",
+      "grandpa": "Old Grandpa"
+    }
   }
 }
 
