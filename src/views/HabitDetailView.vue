@@ -8,11 +8,11 @@
       '--is-light': isLightBackground ? '1' : '0'
     }"
   >
-    <div v-if="loading" class="loading">Загрузка...</div>
+    <div v-if="loading" class="loading">{{ t('habitDetail.loading') }}</div>
     
     <div v-else-if="!habit" class="not-found">
-      <h2>Привычка не найдена</h2>
-      <router-link to="/" class="btn btn-primary">Вернуться на главную</router-link>
+      <h2>{{ t('habitDetail.notFound') }}</h2>
+      <router-link to="/" class="btn btn-primary">{{ t('habitDetail.backToHome') }}</router-link>
     </div>
 
     <div 
@@ -25,7 +25,7 @@
       <div class="header-section">
         <button class="back-btn" @click="$router.push('/')">
           <span class="back-icon">←</span>
-          <span class="back-text">Назад</span>
+          <span class="back-text">{{ t('habitDetail.back') }}</span>
         </button>
       </div>
 
@@ -40,7 +40,7 @@
           </svg>
         </button>
         <h1 class="habit-title">{{ habit.name }}</h1>
-        <p class="habit-days">уже {{ stats.totalDays }} дней</p>
+        <p class="habit-days">{{ t('habitDetail.alreadyDays', { count: stats.totalDays, days: getDayWord(stats.totalDays) }) }}</p>
 
         <div class="calendar-section">
           <CalendarView 
@@ -59,7 +59,7 @@
           @click="showSettings = true"
         >
           <span class="settings-icon">⚙️</span>
-          <span class="settings-text">Настройки</span>
+          <span class="settings-text">{{ t('habitDetail.settings') }}</span>
         </button>
         <button 
           class="arrow-down" 
@@ -95,11 +95,13 @@ import CalendarView from '@/components/CalendarView.vue'
 import HabitForm from '@/components/HabitForm.vue'
 import { useHabitsStore } from '@/stores/habitsStore'
 import { getProjectColorStyles, calculateLuminance } from '@/utils/projectColors'
+import { useI18n } from '@/composables/useI18n'
 import type { Habit } from '@/types'
 
 const route = useRoute()
 const router = useRouter()
 const store = useHabitsStore()
+const { t, locale: currentLocale } = useI18n()
 
 const loading = ref(true)
 const showSettings = ref(false)
@@ -217,6 +219,29 @@ const stats = computed(() => {
   if (!habit.value) return { totalDays: 0, streak: 0, successRate: 0, daysSinceCreation: 0 }
   return store.getHabitStats(habit.value)
 })
+
+function getDayWord(count: number): string {
+  if (currentLocale.value === 'en') {
+    return count === 1 ? t('home.days.day') : t('home.days.days')
+  }
+  
+  const lastDigit = count % 10
+  const lastTwoDigits = count % 100
+  
+  if (lastTwoDigits >= 11 && lastTwoDigits <= 14) {
+    return t('home.days.days')
+  }
+  
+  if (lastDigit === 1) {
+    return t('home.days.day')
+  }
+  
+  if (lastDigit >= 2 && lastDigit <= 4) {
+    return t('home.days.day2')
+  }
+  
+  return t('home.days.days')
+}
 
 const projectColorStyles = computed(() => {
   return getProjectColorStyles(habit.value?.color || 'blue', habit.value?.customColor)

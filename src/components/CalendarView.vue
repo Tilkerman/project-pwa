@@ -42,6 +42,7 @@ import { ref, computed, watch } from 'vue'
 import type { Habit, ProjectColor } from '@/types'
 import { useHabitsStore } from '@/stores/habitsStore'
 import { getProjectColorStyles } from '@/utils/projectColors'
+import { useI18n } from '@/composables/useI18n'
 
 const props = defineProps<{
   habit: Habit
@@ -51,6 +52,7 @@ const props = defineProps<{
 }>()
 
 const store = useHabitsStore()
+const { t, locale: currentLocale } = useI18n()
 
 const currentDate = ref(new Date())
 
@@ -59,13 +61,38 @@ watch(() => store.habits, () => {
   // Принудительно обновляем computed при изменении habits
 }, { deep: true })
 
-const dayLabels = ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС']
+const dayLabels = computed(() => {
+  return [
+    t('calendar.weekdays.mon'),
+    t('calendar.weekdays.tue'),
+    t('calendar.weekdays.wed'),
+    t('calendar.weekdays.thu'),
+    t('calendar.weekdays.fri'),
+    t('calendar.weekdays.sat'),
+    t('calendar.weekdays.sun')
+  ]
+})
 
 const monthYear = computed(() => {
-  return currentDate.value.toLocaleDateString('ru-RU', {
-    month: 'long',
-    year: 'numeric'
-  })
+  const month = currentDate.value.getMonth()
+  const year = currentDate.value.getFullYear()
+  
+  const monthNames = [
+    t('calendar.months.january'),
+    t('calendar.months.february'),
+    t('calendar.months.march'),
+    t('calendar.months.april'),
+    t('calendar.months.may'),
+    t('calendar.months.june'),
+    t('calendar.months.july'),
+    t('calendar.months.august'),
+    t('calendar.months.september'),
+    t('calendar.months.october'),
+    t('calendar.months.november'),
+    t('calendar.months.december')
+  ]
+  
+  return `${monthNames[month]} ${year}`
 })
 
 const projectColorStyles = computed(() => {

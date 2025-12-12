@@ -41,6 +41,40 @@
     "ru": "Русский",
     "en": "English",
     "toggle": "Переключить язык"
+  },
+  "habitDetail": {
+    "back": "Назад",
+    "settings": "Настройки",
+    "alreadyDays": "уже {count} {days}",
+    "loading": "Загрузка...",
+    "notFound": "Привычка не найдена",
+    "backToHome": "Вернуться на главную",
+    "days": "дней"
+  },
+  "calendar": {
+    "weekdays": {
+      "mon": "ПН",
+      "tue": "ВТ",
+      "wed": "СР",
+      "thu": "ЧТ",
+      "fri": "ПТ",
+      "sat": "СБ",
+      "sun": "ВС"
+    },
+    "months": {
+      "january": "Январь",
+      "february": "Февраль",
+      "march": "Март",
+      "april": "Апрель",
+      "may": "Май",
+      "june": "Июнь",
+      "july": "Июль",
+      "august": "Август",
+      "september": "Сентябрь",
+      "october": "Октябрь",
+      "november": "Ноябрь",
+      "december": "Декабрь"
+    }
   }
 }
 
