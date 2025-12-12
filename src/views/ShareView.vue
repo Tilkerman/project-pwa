@@ -335,5 +335,21 @@ function goBack() {
 .instructions-list li:last-child {
   margin-bottom: 0;
 }
+
+@media (max-width: 520px) {
+  .link-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .link-input {
+    width: 100%;
+  }
+
+  .copy-btn {
+    width: 100%;
+    text-align: center;
+  }
+}
 </style>
 
