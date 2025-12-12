@@ -9,42 +9,67 @@
     </header>
 
     <div class="settings-content">
-      <!-- Настройки Telegram -->
-      <div class="settings-section">
-        <TelegramSettings />
-      </div>
+      <div class="settings-menu">
+        <button 
+          class="menu-item" 
+          @click="goToNotifications"
+        >
+          <span class="menu-icon">🔔</span>
+          <div class="menu-content">
+            <span class="menu-title">Настройки Оповещений</span>
+            <span class="menu-description">Управление уведомлениями и Telegram</span>
+          </div>
+          <span class="menu-arrow">→</span>
+        </button>
 
-      <!-- Информация о приложении -->
-      <div class="settings-section">
-        <div class="app-info">
-          <h3 class="info-title">О приложении</h3>
-          <p class="info-text">Трекер Привычек v{{ appVersion }}</p>
-          <p class="info-text">Приложение для отслеживания привычек с персонажами-мотиваторами</p>
-        </div>
+        <button 
+          class="menu-item" 
+          @click="goToAbout"
+        >
+          <span class="menu-icon">ℹ️</span>
+          <div class="menu-content">
+            <span class="menu-title">О проекте</span>
+            <span class="menu-description">Философия, преимущества, об авторе</span>
+          </div>
+          <span class="menu-arrow">→</span>
+        </button>
+
+        <button 
+          class="menu-item" 
+          @click="goToShare"
+        >
+          <span class="menu-icon">📤</span>
+          <div class="menu-content">
+            <span class="menu-title">Поделиться</span>
+            <span class="menu-description">QR код и ссылка для друзей</span>
+          </div>
+          <span class="menu-arrow">→</span>
+        </button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import TelegramSettings from '@/components/TelegramSettings.vue'
-import { useHabitsStore } from '@/stores/habitsStore'
 
 const router = useRouter()
-const store = useHabitsStore()
-
-const appVersion = __APP_VERSION__ || '1.0.0'
 
 function goBack() {
   router.push('/')
 }
 
-onMounted(() => {
-  // Можно загрузить сохраненные настройки уведомлений
-  // Пока используем значения по умолчанию
-})
+function goToNotifications() {
+  router.push('/settings/notifications')
+}
+
+function goToAbout() {
+  router.push('/settings/about')
+}
+
+function goToShare() {
+  router.push('/settings/share')
+}
 </script>
 
 <style scoped>
@@ -102,29 +127,59 @@ onMounted(() => {
   padding: 1.5rem;
 }
 
-.settings-section {
-  margin-bottom: 1.5rem;
+.settings-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
-.app-info {
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
   background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+  width: 100%;
 }
 
-.info-title {
-  font-size: 1.125rem;
+.menu-item:hover {
+  background: var(--bg-hover);
+  border-color: #4f46e5;
+  transform: translateX(4px);
+}
+
+.menu-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.menu-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.menu-title {
+  font-size: 1rem;
   font-weight: 600;
   color: var(--text-primary);
-  margin: 0 0 1rem 0;
 }
 
-.info-text {
+.menu-description {
   font-size: 0.875rem;
   color: var(--text-secondary);
-  margin: 0.5rem 0;
-  line-height: 1.5;
+}
+
+.menu-arrow {
+  font-size: 1.25rem;
+  color: var(--text-secondary);
+  flex-shrink: 0;
 }
 </style>
 

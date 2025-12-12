@@ -12,6 +12,7 @@
     "@twa-dev/sdk": "^8.0.2",
     "idb": "^7.1.1",
     "pinia": "^2.1.7",
+    "qrcode-generator": "^2.0.4",
     "vue": "^3.4.0",
     "vue-router": "^4.2.5"
   },

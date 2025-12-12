@@ -4,6 +4,9 @@ import HabitDetailView from '../views/HabitDetailView.vue'
 import StatsView from '../views/StatsView.vue'
 import AchievementsView from '../views/AchievementsView.vue'
 import SettingsView from '../views/SettingsView.vue'
+import NotificationSettingsView from '../views/NotificationSettingsView.vue'
+import AboutView from '../views/AboutView.vue'
+import ShareView from '../views/ShareView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -32,6 +35,21 @@ const router = createRouter({
       path: '/settings',
       name: 'settings',
       component: SettingsView
+    },
+    {
+      path: '/settings/notifications',
+      name: 'settings-notifications',
+      component: NotificationSettingsView
+    },
+    {
+      path: '/settings/about',
+      name: 'settings-about',
+      component: AboutView
+    },
+    {
+      path: '/settings/share',
+      name: 'settings-share',
+      component: ShareView
     }
   ]
 })
