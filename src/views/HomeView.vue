@@ -2,32 +2,34 @@
   <div class="home-view">
     <!-- Header с логотипом и иконкой настроек -->
     <header class="page-header">
-      <div class="header-logo-container">
-        <AppLogo size="40px" />
-        <span class="app-name">{{ t('app.name') }}</span>
-      </div>
-      <div class="header-actions">
-        <button
-          class="lang-toggle"
-          :aria-label="t('language.toggle')"
-          @click="toggleLanguage"
-        >
-          <span class="lang-text">{{ currentLocale === 'ru' ? 'RU' : 'EN' }}</span>
-        </button>
-        <button
-          class="theme-toggle"
-          :aria-label="isDark ? t('theme.toggleToDay') : t('theme.toggleToNight')"
-          @click="toggleTheme"
-        >
-          <span class="toggle-track" :class="{ 'is-dark': isDark }">
-            <span class="toggle-thumb" :class="{ 'is-dark': isDark }">
-              <span class="toggle-icon">{{ isDark ? '🌙' : '☀️' }}</span>
+      <div class="header-container">
+        <div class="header-logo-container">
+          <AppLogo size="40px" />
+          <span class="app-name">{{ t('app.name') }}</span>
+        </div>
+        <div class="header-actions">
+          <button
+            class="lang-toggle"
+            :aria-label="t('language.toggle')"
+            @click="toggleLanguage"
+          >
+            <span class="lang-text">{{ currentLocale === 'ru' ? 'RU' : 'EN' }}</span>
+          </button>
+          <button
+            class="theme-toggle"
+            :aria-label="isDark ? t('theme.toggleToDay') : t('theme.toggleToNight')"
+            @click="toggleTheme"
+          >
+            <span class="toggle-track" :class="{ 'is-dark': isDark }">
+              <span class="toggle-thumb" :class="{ 'is-dark': isDark }">
+                <span class="toggle-icon">{{ isDark ? '🌙' : '☀️' }}</span>
+              </span>
             </span>
-          </span>
-        </button>
-        <button class="settings-btn" @click="goToSettings" :aria-label="t('settings.title')">
-          <span class="settings-icon">⚙️</span>
-        </button>
+          </button>
+          <button class="settings-btn" @click="goToSettings" :aria-label="t('settings.title')">
+            <span class="settings-icon">⚙️</span>
+          </button>
+        </div>
       </div>
     </header>
     
@@ -307,6 +309,7 @@ function closeForm() {
   max-width: 600px;
   margin: 0 auto;
   padding: 0 1rem 2rem;
+  padding-top: 60px;
   min-height: 100vh;
   overflow-x: hidden;
   box-sizing: border-box;
@@ -314,25 +317,28 @@ function closeForm() {
 
 /* Header с логотипом и иконкой настроек */
 .page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 0;
-  padding-left: 1rem;
-  padding-right: 1rem;
-  margin: 0 -1rem 1rem -1rem;
-  position: -webkit-sticky;
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 100;
-  width: calc(100% + 2rem);
-  max-width: calc(100% + 2rem);
-  box-sizing: border-box;
+  width: 100%;
   background: var(--bg-secondary);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border-color);
   overflow-x: hidden;
+}
+
+.header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 1rem;
+  max-width: 600px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .header-logo-container {
