@@ -59,16 +59,28 @@ export async function scheduleNotificationOnServer(
   }
 
   // Сначала пробуждаем сервер (если он заснул на Render.com)
+  // На бесплатном тарифе Render.com сервер засыпает после 15 минут бездействия
+  // Первый запрос после пробуждения может занять до 50 секунд
+  console.log('🔔 Пробуждение сервера перед отправкой расписания...')
   try {
-    await fetch(`${NOTIFICATION_SERVER_URL}/wake`, {
+    const wakeResponse = await fetch(`${NOTIFICATION_SERVER_URL}/wake`, {
       method: 'GET',
-      signal: AbortSignal.timeout(5000),
-    }).catch(() => {
-      // Игнорируем ошибки пробуждения
+      signal: AbortSignal.timeout(60000), // 60 секунд - достаточно для холодного старта Render.com
     })
+    
+    if (wakeResponse.ok) {
+      const wakeData = await wakeResponse.json().catch(() => ({}))
+      console.log('✅ Сервер пробужден:', wakeData.message || 'Server is awake')
+    } else {
+      console.warn('⚠️ Сервер не ответил на пробуждение, но продолжаем...')
+    }
   } catch (error) {
-    // Игнорируем ошибки пробуждения
+    // Игнорируем ошибки пробуждения, но логируем
+    console.warn('⚠️ Ошибка при пробуждении сервера (продолжаем):', error instanceof Error ? error.message : 'Unknown error')
   }
+  
+  // Даем серверу немного времени на полное пробуждение (если он спал)
+  await new Promise(resolve => setTimeout(resolve, 2000)) // 2 секунды задержки
 
   try {
     // Конвертируем локальное время в UTC для сервера
@@ -90,6 +102,7 @@ export async function scheduleNotificationOnServer(
       utcTime: utcTime
     })
 
+    // Отправляем запрос с увеличенным таймаутом (на случай, если сервер только проснулся)
     const response = await fetch(`${NOTIFICATION_SERVER_URL}/api/schedule`, {
       method: 'POST',
       headers: {
@@ -106,7 +119,7 @@ export async function scheduleNotificationOnServer(
           character: habit.character,
         },
       }),
-      signal: AbortSignal.timeout(10000), // Таймаут 10 секунд
+      signal: AbortSignal.timeout(60000), // 60 секунд - достаточно для холодного старта Render.com
     })
 
     if (!response.ok) {
