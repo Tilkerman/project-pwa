@@ -86,7 +86,13 @@ async function checkAndSendNotifications() {
   const now = new Date()
   const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`
   
-  console.log(`🕐 Проверка уведомлений в ${currentTime} (UTC: ${now.toISOString()})`)
+  // Получаем время в разных часовых поясах для отладки
+  const moscowTime = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Moscow' }))
+  const saratovTime = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Saratov' }))
+  
+  console.log(`🕐 Проверка уведомлений в ${currentTime} UTC`)
+  console.log(`🌍 Время по Москве: ${moscowTime.getHours().toString().padStart(2, '0')}:${moscowTime.getMinutes().toString().padStart(2, '0')}`)
+  console.log(`🌍 Время по Саратову: ${saratovTime.getHours().toString().padStart(2, '0')}:${saratovTime.getMinutes().toString().padStart(2, '0')}`)
   console.log(`📊 Всего расписаний в памяти: ${notificationSchedules.size}`)
 
   let checkedCount = 0
