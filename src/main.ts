@@ -71,12 +71,17 @@ app.mount('#app')
 if ('serviceWorker' in navigator) {
   const APP_VERSION = __APP_VERSION__ || '1.0.0'
   const CACHE_VERSION_KEY = 'app-cache-version'
+  const RELOAD_FLAG_KEY = 'app-reload-flag'
   const storedVersion = localStorage.getItem(CACHE_VERSION_KEY)
+  const reloadFlag = sessionStorage.getItem(RELOAD_FLAG_KEY)
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
   
-  // Очищаем кэш только если версия изменилась
-  if (storedVersion !== APP_VERSION) {
+  // Очищаем кэш только если версия изменилась И мы еще не перезагружались
+  if (storedVersion !== APP_VERSION && !reloadFlag) {
     console.log(`🔄 Обнаружена новая версия: ${APP_VERSION} (было: ${storedVersion})`)
+    
+    // Устанавливаем флаг перезагрузки, чтобы избежать бесконечного цикла
+    sessionStorage.setItem(RELOAD_FLAG_KEY, 'true')
     
     // Удаляем все Service Workers
     navigator.serviceWorker.getRegistrations().then((registrations) => {
@@ -91,11 +96,16 @@ if ('serviceWorker' in navigator) {
       localStorage.setItem(CACHE_VERSION_KEY, APP_VERSION)
       // Перезагружаем только если версия изменилась
       setTimeout(() => {
-        window.location.reload(true)
+        window.location.reload()
       }, 1000)
     }).catch((err) => {
       console.error('Ошибка очистки:', err)
+      // Убираем флаг при ошибке, чтобы можно было попробовать снова
+      sessionStorage.removeItem(RELOAD_FLAG_KEY)
     })
+  } else if (reloadFlag && storedVersion === APP_VERSION) {
+    // Если мы уже перезагрузились и версия совпадает, убираем флаг
+    sessionStorage.removeItem(RELOAD_FLAG_KEY)
   } else {
     // На десктопе обычная логика обновления
     navigator.serviceWorker.getRegistration().then((registration) => {
@@ -106,9 +116,13 @@ if ('serviceWorker' in navigator) {
           const newWorker = registration.installing
           if (newWorker) {
             newWorker.addEventListener('statechange', () => {
+              // Не перезагружаем автоматически в Telegram Desktop, только обновляем версию
               if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
                 localStorage.setItem(CACHE_VERSION_KEY, APP_VERSION)
-                window.location.reload()
+                // Перезагружаем только на мобильных устройствах
+                if (isMobile) {
+                  window.location.reload()
+                }
               }
             })
           }
