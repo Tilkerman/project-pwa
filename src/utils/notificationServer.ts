@@ -98,6 +98,29 @@ export async function scheduleNotificationOnServer(
 
     const result = await response.json().catch(() => ({}))
     console.log(`✅ Расписание уведомления отправлено на сервер для "${habit.name}"`, result)
+    
+    // Проверяем, что расписание действительно сохранилось
+    if (result.success !== false) {
+      // Дополнительная проверка через /api/schedules
+      try {
+        const verifyResponse = await fetch(`${NOTIFICATION_SERVER_URL}/api/schedules`, {
+          method: 'GET',
+          signal: AbortSignal.timeout(5000),
+        })
+        if (verifyResponse.ok) {
+          const verifyData = await verifyResponse.json().catch(() => ({}))
+          const savedSchedule = verifyData.schedules?.find((s: any) => s.id === habit.id)
+          if (savedSchedule) {
+            console.log(`✅ Расписание подтверждено на сервере:`, savedSchedule)
+          } else {
+            console.warn(`⚠️ Расписание не найдено в списке на сервере (возможно, еще обрабатывается)`)
+          }
+        }
+      } catch (verifyError) {
+        console.warn('⚠️ Не удалось проверить сохранение расписания:', verifyError)
+      }
+    }
+    
     return { success: true }
   } catch (error) {
     console.error('❌ Ошибка при отправке расписания на сервер:', error)

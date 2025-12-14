@@ -1,7 +1,7 @@
 import type { Habit } from '@/types'
 import { getCharacterMessage } from './characters'
 import { sendTelegramNotification, isTelegramEnabled, getTelegramUser } from './telegram'
-import { scheduleNotificationOnServer, removeNotificationFromServer } from './notificationServer'
+import { scheduleNotificationOnServer, removeNotificationFromServer, NOTIFICATION_SERVER_URL } from './notificationServer'
 import { isTelegramMiniApp } from './telegramMiniApp'
 
 function isTelegramUA(): boolean {
@@ -218,17 +218,34 @@ export async function scheduleNotifications(habit: Habit): Promise<void> {
     
     // Если есть chat_id, отправляем расписание на сервер
     if (chatId) {
-      console.log(`📤 Отправка расписания на сервер для привычки "${habit.name}" (chatId: ${chatId})`)
-      const result = await scheduleNotificationOnServer(habit, chatId)
+      const chatIdStr = String(chatId).trim()
+      console.log(`📤 Отправка расписания на сервер для привычки "${habit.name}"`)
+      console.log(`📋 Детали:`, {
+        habitId: habit.id,
+        chatId: chatIdStr.substring(0, 3) + '***',
+        notificationTime: habit.notificationTime,
+        notificationEnabled: habit.notificationEnabled,
+        serverUrl: NOTIFICATION_SERVER_URL
+      })
+      
+      const result = await scheduleNotificationOnServer(habit, chatIdStr)
       if (result.success) {
-        console.log('✅ Расписание отправлено на сервер уведомлений')
+        console.log('✅ Расписание успешно отправлено на сервер уведомлений')
+        console.log('💡 Уведомления будут приходить даже когда приложение закрыто')
       } else {
         console.error('❌ Не удалось отправить расписание на сервер:', result.error)
-        console.error('💡 Проверьте, что сервер задеплоен на Render.com и URL правильный')
+        console.error('💡 Проверьте:')
+        console.error('   1. Сервер задеплоен на Render.com')
+        console.error('   2. URL сервера правильный')
+        console.error('   3. Сервер не спит (проверьте логи на Render.com)')
+        console.error('   4. Chat ID правильный')
       }
     } else {
       console.warn('⚠️ Chat ID не найден, расписание не отправлено на сервер')
-      console.warn('💡 Откройте приложение в Telegram Mini App или настройте Chat ID вручную')
+      console.warn('💡 Решения:')
+      console.warn('   1. Откройте приложение в Telegram Mini App (Chat ID подставится автоматически)')
+      console.warn('   2. Или настройте Chat ID вручную в настройках уведомлений')
+      console.warn('   3. Получите Chat ID, написав боту @habitnotibot команду /start')
     }
   } catch (error) {
     console.warn('⚠️ Ошибка при отправке расписания на сервер:', error)
