@@ -60,12 +60,23 @@ export async function scheduleNotificationOnServer(
   }
 
   try {
+    // Конвертируем локальное время в UTC для сервера
+    const [localHours, localMinutes] = habit.notificationTime.split(':').map(Number)
+    const localDate = new Date()
+    localDate.setHours(localHours, localMinutes, 0, 0)
+    
+    // Получаем UTC время
+    const utcHours = localDate.getUTCHours()
+    const utcMinutes = localDate.getUTCMinutes()
+    const utcTime = `${utcHours.toString().padStart(2, '0')}:${utcMinutes.toString().padStart(2, '0')}`
+    
     console.log(`📤 Отправка расписания на сервер: ${NOTIFICATION_SERVER_URL}/api/schedule`)
     console.log(`📋 Данные:`, {
       habitId: habit.id,
-      chatId: chatId,
+      chatId: chatId ? `${chatId.substring(0, 3)}***` : 'не указан',
       name: habit.name,
-      time: habit.notificationTime
+      localTime: habit.notificationTime,
+      utcTime: utcTime
     })
 
     const response = await fetch(`${NOTIFICATION_SERVER_URL}/api/schedule`, {
@@ -78,7 +89,7 @@ export async function scheduleNotificationOnServer(
         chatId: chatId,
         habit: {
           name: habit.name,
-          notificationTime: habit.notificationTime,
+          notificationTime: utcTime, // Отправляем время в UTC
           notificationEnabled: habit.notificationEnabled,
           customNotificationMessage: habit.customNotificationMessage,
           character: habit.character,
