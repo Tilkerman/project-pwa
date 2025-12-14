@@ -94,6 +94,8 @@ import { getCurrentStreak } from '@/utils/characters'
 import { useThemeStore } from '@/stores/themeStore'
 import { useI18n } from '@/composables/useI18n'
 import type { Habit } from '@/types'
+import ruLocale from '@/locales/ru.json'
+import enLocale from '@/locales/en.json'
 
 const router = useRouter()
 const store = useHabitsStore()
@@ -103,13 +105,16 @@ const showForm = ref(false)
 const isDark = computed(() => themeStore.isDark)
 const toggleTheme = () => themeStore.toggleTheme()
 
-// Получаем мотивирующие фразы из локализации
+// Получаем мотивирующие фразы напрямую из локализации
 const motivationalQuotes = computed(() => {
   try {
-    const quotes = t('home.motivationalQuotes', { returnObjects: true })
-    console.log('📖 Загружены фразы из локализации:', Array.isArray(quotes) ? quotes.length : 'не массив', quotes)
-    if (!Array.isArray(quotes)) {
-      console.error('❌ Фразы не являются массивом!', typeof quotes, quotes)
+    // Загружаем напрямую из JSON файлов, а не через i18n
+    const locale = currentLocale.value === 'ru' ? ruLocale : enLocale
+    const quotes = locale.home?.motivationalQuotes || []
+    
+    console.log('📖 Загружены фразы из локализации:', quotes.length, 'язык:', currentLocale.value)
+    if (!Array.isArray(quotes) || quotes.length === 0) {
+      console.error('❌ Фразы не найдены или не являются массивом!', quotes)
       return []
     }
     return quotes
