@@ -1,19 +1,21 @@
 <template>
   <div class="achievements-view">
-    <h1 class="page-title">Достижения</h1>
+    <header class="page-header">
+      <h1 class="page-title">{{ t('achievements.title') }}</h1>
+    </header>
 
-    <div v-if="store.loading" class="loading">Загрузка...</div>
+    <div v-if="store.loading" class="loading">{{ t('achievements.loading') }}</div>
 
     <div v-else-if="store.habits.length === 0" class="empty-state">
-      <p>Нет привычек для отслеживания достижений. Создайте привычку, чтобы начать зарабатывать достижения!</p>
+      <p>{{ t('achievements.empty') }}</p>
     </div>
 
     <div v-else class="achievements-content">
       <div class="overall-progress">
-        <h2 class="section-title">Общий прогресс</h2>
+        <h2 class="section-title">{{ t('achievements.overallProgress') }}</h2>
         <div class="progress-card">
           <div class="progress-info">
-            <span class="progress-label">Разблокировано достижений</span>
+            <span class="progress-label">{{ t('achievements.unlocked') }}</span>
             <span class="progress-value">{{ unlockedCount }} / {{ totalCount }}</span>
           </div>
           <div class="progress-bar-large">
@@ -57,8 +59,10 @@ import { computed, onMounted } from 'vue'
 import AchievementBadge from '@/components/AchievementBadge.vue'
 import { useHabitsStore } from '@/stores/habitsStore'
 import { characters } from '@/utils/characters'
+import { useI18n } from '@/composables/useI18n'
 
 const store = useHabitsStore()
+const { t } = useI18n()
 
 const totalCount = computed(() => {
   return store.allAchievements.length * store.habits.length
@@ -90,14 +94,28 @@ onMounted(async () => {
 .achievements-view {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem 1rem;
+  padding: 0 1rem 2rem;
+  min-height: 100vh;
+}
+
+.page-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--bg-primary);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border-color);
+  padding: 1rem 0;
+  margin: 0 -1rem 2rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
 }
 
 .page-title {
   font-size: 2rem;
   font-weight: 700;
   color: var(--text-primary);
-  margin-bottom: 2rem;
+  margin: 0;
 }
 
 .loading,

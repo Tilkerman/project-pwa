@@ -1,11 +1,13 @@
 <template>
   <div class="stats-view">
-    <h1 class="page-title">Общая статистика</h1>
+    <header class="page-header">
+      <h1 class="page-title">{{ t('stats.title') }}</h1>
+    </header>
 
-    <div v-if="store.loading" class="loading">Загрузка...</div>
+    <div v-if="store.loading" class="loading">{{ t('stats.loading') }}</div>
 
     <div v-else-if="store.habits.length === 0" class="empty-state">
-      <p>Нет данных для отображения. Создайте привычку, чтобы увидеть статистику.</p>
+      <p>{{ t('stats.empty') }}</p>
     </div>
 
     <div v-else class="stats-content">
@@ -13,22 +15,22 @@
         <div class="stat-card">
           <div class="stat-icon">📊</div>
           <div class="stat-value">{{ store.habits.length }}</div>
-          <div class="stat-label">Всего привычек</div>
+          <div class="stat-label">{{ t('stats.totalHabits') }}</div>
         </div>
         <div class="stat-card">
           <div class="stat-icon">✅</div>
           <div class="stat-value">{{ totalDays }}</div>
-          <div class="stat-label">Всего отмеченных дней</div>
+          <div class="stat-label">{{ t('stats.totalMarkedDays') }}</div>
         </div>
         <div class="stat-card">
           <div class="stat-icon">🔥</div>
           <div class="stat-value">{{ bestStreak }}</div>
-          <div class="stat-label">Лучшая серия</div>
+          <div class="stat-label">{{ t('stats.bestStreak') }}</div>
         </div>
       </div>
 
       <div class="habits-stats">
-        <h2 class="section-title">Статистика по привычкам</h2>
+        <h2 class="section-title">{{ t('stats.habitsStats') }}</h2>
         <div class="habits-list">
           <div
             v-for="habit in store.habits"
@@ -43,15 +45,15 @@
             <StatsChart :habit="habit" :days="30" />
             <div class="habit-stat-numbers">
               <div class="stat-number">
-                <span class="label">Дней:</span>
+                <span class="label">{{ t('stats.days') }}</span>
                 <span class="value">{{ store.getHabitStats(habit).totalDays }}</span>
               </div>
               <div class="stat-number">
-                <span class="label">Серия:</span>
+                <span class="label">{{ t('stats.streak') }}</span>
                 <span class="value streak">{{ store.getHabitStats(habit).streak }}</span>
               </div>
               <div class="stat-number">
-                <span class="label">Успех:</span>
+                <span class="label">{{ t('stats.success') }}</span>
                 <span class="value">{{ store.getHabitStats(habit).successRate }}%</span>
               </div>
             </div>
@@ -67,8 +69,10 @@ import { computed, onMounted } from 'vue'
 import StatsChart from '@/components/StatsChart.vue'
 import { useHabitsStore } from '@/stores/habitsStore'
 import { characters } from '@/utils/characters'
+import { useI18n } from '@/composables/useI18n'
 
 const store = useHabitsStore()
+const { t } = useI18n()
 
 const totalDays = computed(() => {
   return store.habits.reduce((sum, habit) => {
@@ -90,14 +94,28 @@ onMounted(async () => {
 .stats-view {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem 1rem;
+  padding: 0 1rem 2rem;
+  min-height: 100vh;
+}
+
+.page-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--bg-primary);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border-color);
+  padding: 1rem 0;
+  margin: 0 -1rem 2rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
 }
 
 .page-title {
   font-size: 2rem;
   font-weight: 700;
   color: var(--text-primary);
-  margin-bottom: 2rem;
+  margin: 0;
 }
 
 .loading,

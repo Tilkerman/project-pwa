@@ -325,7 +325,8 @@ function closeForm() {
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
-  background: transparent;
+  background: var(--bg-primary);
+  backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border-color);
   overflow-x: hidden;
 }

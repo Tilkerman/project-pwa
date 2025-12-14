@@ -326,10 +326,10 @@ async function handleUpdate(data: {
       .catch((err) => console.warn('⚠️ Не удалось перезагрузить привычки:', err))
     
     // Показываем подтверждение пользователю
-    alert('Изменения сохранены')
+    alert(t('habitDetail.saved'))
   } catch (error) {
     console.error('Failed to update habit:', error)
-    alert('Ошибка при сохранении: ' + (error instanceof Error ? error.message : String(error)))
+    alert(t('habitDetail.saveError', { error: error instanceof Error ? error.message : String(error) }))
   } finally {
     saving.value = false
   }
@@ -365,7 +365,7 @@ async function handleDelete() {
     router.push('/')
   } catch (error) {
     console.error('Failed to delete habit:', error)
-    alert('Ошибка при удалении: ' + (error instanceof Error ? error.message : String(error)))
+    alert(t('habitDetail.deleteError', { error: error instanceof Error ? error.message : String(error) }))
   }
 }
 </script>
@@ -504,13 +504,13 @@ async function handleDelete() {
   position: sticky;
   top: 0;
   z-index: 100;
-  padding: 0;
-  margin: 1rem 0 0.25rem;
-  background: transparent;
-  border: none;
+  padding: 1rem;
+  margin: 0;
+  background: var(--bg-primary);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border-color);
   display: flex;
   align-items: center;
-  padding-left: 1rem;
 }
 
 .habit-detail-view[style*="--is-light: 1"] .header-section {
