@@ -84,8 +84,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted, onActivated, computed, watch } from 'vue'
+import { useRouter, onBeforeRouteEnter } from 'vue-router'
 import HabitForm from '@/components/HabitForm.vue'
 import AppLogo from '@/components/AppLogo.vue'
 import { useHabitsStore } from '@/stores/habitsStore'
@@ -105,8 +105,13 @@ const toggleTheme = () => themeStore.toggleTheme()
 
 // Получаем мотивирующие фразы из локализации
 const motivationalQuotes = computed(() => {
-  const quotes = t('home.motivationalQuotes', { returnObjects: true })
-  return Array.isArray(quotes) ? quotes : []
+  try {
+    const quotes = t('home.motivationalQuotes', { returnObjects: true })
+    return Array.isArray(quotes) ? quotes : []
+  } catch (error) {
+    console.warn('⚠️ Ошибка загрузки мотивирующих фраз:', error)
+    return []
+  }
 })
 
 // Текущая мотивирующая фраза
@@ -118,21 +123,41 @@ function getNextMotivationalQuote() {
     return t('home.subtitle') // Fallback к старой фразе
   }
   
-  // Получаем индекс последней показанной фразы из localStorage
-  const lastIndexKey = 'lastMotivationalQuoteIndex'
-  const lastIndex = parseInt(localStorage.getItem(lastIndexKey) || '-1', 10)
-  
-  // Вычисляем следующий индекс (циклически)
-  const nextIndex = (lastIndex + 1) % motivationalQuotes.value.length
-  
-  // Сохраняем новый индекс
-  localStorage.setItem(lastIndexKey, nextIndex.toString())
-  
-  return motivationalQuotes.value[nextIndex]
+  try {
+    // Используем timestamp для отслеживания последнего обновления
+    // Обновляем фразу при каждом открытии страницы (если прошло больше 1 секунды)
+    const lastIndexKey = 'lastMotivationalQuoteIndex'
+    const lastUpdateKey = 'lastMotivationalQuoteUpdate'
+    const lastUpdate = parseInt(localStorage.getItem(lastUpdateKey) || '0', 10)
+    const now = Date.now()
+    
+    // Если прошло меньше секунды, возвращаем текущую фразу
+    if (now - lastUpdate < 1000 && currentMotivationalQuote.value) {
+      return currentMotivationalQuote.value
+    }
+    
+    // Получаем следующий индекс
+    const lastIndex = parseInt(localStorage.getItem(lastIndexKey) || '-1', 10)
+    const nextIndex = (lastIndex + 1) % motivationalQuotes.value.length
+    
+    // Сохраняем индекс и время обновления
+    localStorage.setItem(lastIndexKey, nextIndex.toString())
+    localStorage.setItem(lastUpdateKey, now.toString())
+    
+    return motivationalQuotes.value[nextIndex]
+  } catch (error) {
+    console.warn('⚠️ Ошибка при получении мотивирующей фразы:', error)
+    return t('home.subtitle')
+  }
 }
 
 // Обновляем фразу при смене языка
 watch(currentLocale, () => {
+  currentMotivationalQuote.value = getNextMotivationalQuote()
+})
+
+// Обновляем фразу при активации компонента (когда пользователь возвращается на страницу)
+onActivated(() => {
   currentMotivationalQuote.value = getNextMotivationalQuote()
 })
 

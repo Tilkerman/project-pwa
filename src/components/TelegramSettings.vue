@@ -154,37 +154,41 @@ onMounted(async () => {
     }
     
     // Затем загружаем конфигурацию
-    const config = getTelegramConfig()
-    if (config) {
-      enabled.value = config.enabled
-      chatId.value = config.chatId
-    } else {
-      // Если конфигурации нет, но мы в Telegram Mini App, пытаемся получить Chat ID напрямую
-      try {
-        if (typeof window !== 'undefined') {
-          const tg = (window as any).Telegram?.WebApp || (window as any).TelegramWebApp
-          if (tg?.initDataUnsafe?.user?.id) {
-            const telegramChatId = String(tg.initDataUnsafe.user.id)
-            chatId.value = telegramChatId
-            enabled.value = true
-            // Сохраняем автоматически
-            await saveTelegramConfig({
-              chatId: telegramChatId,
-              enabled: true,
-            })
-            console.log('✅ Chat ID автоматически сохранен из Telegram Mini App:', telegramChatId)
+    try {
+      const config = getTelegramConfig()
+      if (config) {
+        enabled.value = config.enabled
+        chatId.value = config.chatId
+      } else {
+        // Если конфигурации нет, но мы в Telegram Mini App, пытаемся получить Chat ID напрямую
+        try {
+          if (typeof window !== 'undefined') {
+            const tg = (window as any).Telegram?.WebApp || (window as any).TelegramWebApp
+            if (tg?.initDataUnsafe?.user?.id) {
+              const telegramChatId = String(tg.initDataUnsafe.user.id)
+              chatId.value = telegramChatId
+              enabled.value = true
+              // Сохраняем автоматически
+              await saveTelegramConfig({
+                chatId: telegramChatId,
+                enabled: true,
+              })
+              console.log('✅ Chat ID автоматически сохранен из Telegram Mini App:', telegramChatId)
+            }
           }
+        } catch (error) {
+          console.warn('⚠️ Не удалось получить Chat ID из Telegram Mini App:', error)
         }
-      } catch (error) {
-        console.warn('⚠️ Не удалось получить Chat ID из Telegram Mini App:', error)
       }
+    } catch (error) {
+      console.warn('⚠️ Ошибка при загрузке конфигурации Telegram:', error)
     }
     
     // Показываем информацию о боте, если он настроен
     if (isBotConfigured.value) {
       try {
         const info = await getBotInfo()
-        if (info.success) {
+        if (info && info.success) {
           botInfo.value = {
             username: info.username,
             firstName: info.firstName,
@@ -192,10 +196,12 @@ onMounted(async () => {
         }
       } catch (error) {
         console.warn('⚠️ Не удалось получить информацию о боте:', error)
+        // Не показываем ошибку пользователю, просто логируем
       }
     }
   } catch (error) {
     console.error('⚠️ Ошибка при инициализации Telegram настроек:', error)
+    // Не пробрасываем ошибку дальше, чтобы не показывать глобальное сообщение об ошибке
   }
 })
 
