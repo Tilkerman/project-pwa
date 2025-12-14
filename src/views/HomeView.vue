@@ -317,16 +317,20 @@ function closeForm() {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 20px;
-  margin-bottom: 1rem;
+  padding: 12px 0;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  margin: 0 -1rem 1rem -1rem;
+  position: -webkit-sticky;
   position: sticky;
   top: 0;
-  z-index: 20;
-  width: 100%;
-  max-width: 100%;
+  z-index: 100;
+  width: calc(100% + 2rem);
+  max-width: calc(100% + 2rem);
   box-sizing: border-box;
-  background: var(--bg-primary);
+  background: var(--bg-secondary);
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border-color);
   overflow-x: hidden;
 }
