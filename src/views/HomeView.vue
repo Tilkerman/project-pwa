@@ -84,7 +84,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onActivated, computed, watch } from 'vue'
+import { ref, onMounted, onActivated, computed, watch, nextTick } from 'vue'
 import { useRouter, onBeforeRouteEnter } from 'vue-router'
 import HabitForm from '@/components/HabitForm.vue'
 import AppLogo from '@/components/AppLogo.vue'
@@ -107,9 +107,14 @@ const toggleTheme = () => themeStore.toggleTheme()
 const motivationalQuotes = computed(() => {
   try {
     const quotes = t('home.motivationalQuotes', { returnObjects: true })
-    return Array.isArray(quotes) ? quotes : []
+    console.log('📖 Загружены фразы из локализации:', Array.isArray(quotes) ? quotes.length : 'не массив', quotes)
+    if (!Array.isArray(quotes)) {
+      console.error('❌ Фразы не являются массивом!', typeof quotes, quotes)
+      return []
+    }
+    return quotes
   } catch (error) {
-    console.warn('⚠️ Ошибка загрузки мотивирующих фраз:', error)
+    console.error('❌ Ошибка загрузки мотивирующих фраз:', error)
     return []
   }
 })
@@ -118,67 +123,69 @@ const motivationalQuotes = computed(() => {
 const currentMotivationalQuote = ref('')
 
 // Функция для получения следующей фразы в цикле
-function getNextMotivationalQuote() {
+function getNextMotivationalQuote(forceUpdate = false) {
   if (motivationalQuotes.value.length === 0) {
+    console.warn('⚠️ Мотивирующие фразы не загружены, используем fallback')
     return t('home.subtitle') // Fallback к старой фразе
   }
   
   try {
-    // Используем sessionStorage для отслеживания текущего визита
-    // и localStorage для хранения индекса между сессиями
     const lastIndexKey = 'lastMotivationalQuoteIndex'
-    const visitKey = 'motivationalQuoteVisitId'
-    
-    // Генерируем уникальный ID для текущего визита
-    const currentVisitId = Date.now().toString()
-    const lastVisitId = sessionStorage.getItem(visitKey)
-    
-    // Если это тот же визит (компонент просто перерендерился), не обновляем
-    if (lastVisitId === currentVisitId) {
-      // Возвращаем текущую фразу, если она есть
-      if (currentMotivationalQuote.value) {
-        return currentMotivationalQuote.value
-      }
-    }
-    
-    // Это новый визит - сохраняем ID визита
-    sessionStorage.setItem(visitKey, currentVisitId)
-    
-    // Получаем следующий индекс
     const lastIndex = parseInt(localStorage.getItem(lastIndexKey) || '-1', 10)
     const nextIndex = (lastIndex + 1) % motivationalQuotes.value.length
     
     // Сохраняем индекс для следующего раза
     localStorage.setItem(lastIndexKey, nextIndex.toString())
     
-    return motivationalQuotes.value[nextIndex]
+    const quote = motivationalQuotes.value[nextIndex]
+    console.log(`📝 Показываем фразу ${nextIndex + 1}/${motivationalQuotes.value.length}:`, quote.substring(0, 50) + '...')
+    
+    return quote
   } catch (error) {
-    console.warn('⚠️ Ошибка при получении мотивирующей фразы:', error)
+    console.error('⚠️ Ошибка при получении мотивирующей фразы:', error)
     return t('home.subtitle')
   }
 }
 
 // Обновляем фразу при смене языка
 watch(currentLocale, () => {
-  currentMotivationalQuote.value = getNextMotivationalQuote()
+  console.log('🌐 Язык изменен, обновляем фразу')
+  currentMotivationalQuote.value = getNextMotivationalQuote(true)
 })
 
 // Обновляем фразу при активации компонента (когда пользователь возвращается на страницу)
 onActivated(() => {
-  // Очищаем ID визита, чтобы при следующем вызове getNextMotivationalQuote обновилась фраза
-  sessionStorage.removeItem('motivationalQuoteVisitId')
-  currentMotivationalQuote.value = getNextMotivationalQuote()
+  console.log('🔄 Компонент активирован, обновляем фразу')
+  currentMotivationalQuote.value = getNextMotivationalQuote(true)
 })
 
 onMounted(async () => {
   try {
+    console.log('🚀 Компонент монтирован, загружаем привычки и фразу')
     await store.loadHabits()
+    
+    // Ждем, пока computed обновится
+    await nextTick()
+    
+    // Проверяем, что фразы загружены
+    console.log('📚 Загружено фраз:', motivationalQuotes.value.length)
+    if (motivationalQuotes.value.length === 0) {
+      console.warn('⚠️ Массив фраз пуст! Проверяем локализацию...')
+      // Пробуем загрузить напрямую
+      try {
+        const directQuotes = t('home.motivationalQuotes', { returnObjects: true })
+        console.log('📖 Прямая загрузка:', Array.isArray(directQuotes) ? directQuotes.length : 'не массив')
+      } catch (e) {
+        console.error('❌ Ошибка прямой загрузки:', e)
+      }
+    }
+    
     // Устанавливаем мотивирующую фразу при монтировании
-    // Очищаем ID визита, чтобы гарантировать обновление
-    sessionStorage.removeItem('motivationalQuoteVisitId')
-    currentMotivationalQuote.value = getNextMotivationalQuote()
+    const quote = getNextMotivationalQuote(true)
+    currentMotivationalQuote.value = quote
+    console.log('✅ Фраза установлена:', quote.substring(0, 50) + '...')
   } catch (error) {
-    console.error('⚠️ Ошибка при загрузке привычек:', error)
+    console.error('❌ Ошибка при загрузке привычек:', error)
     currentMotivationalQuote.value = t('home.subtitle')
   }
 })
