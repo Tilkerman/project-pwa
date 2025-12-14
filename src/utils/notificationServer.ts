@@ -37,9 +37,20 @@ export async function scheduleNotificationOnServer(
   habit: Habit,
   chatId: string
 ): Promise<{ success: boolean; error?: string }> {
+  console.log('🔍 scheduleNotificationOnServer вызван:', {
+    habitName: habit.name,
+    chatId: chatId ? `${chatId.substring(0, 3)}***` : 'НЕ УКАЗАН!',
+    serverUrl: NOTIFICATION_SERVER_URL
+  })
+  
   if (!NOTIFICATION_SERVER_URL || NOTIFICATION_SERVER_URL.includes('localhost')) {
-    console.warn('⚠️ Сервер уведомлений не настроен или использует localhost')
+    console.error('❌ Сервер уведомлений не настроен или использует localhost:', NOTIFICATION_SERVER_URL)
     return { success: false, error: 'Server not configured' }
+  }
+  
+  if (!chatId || !chatId.trim()) {
+    console.error('❌ Chat ID не указан или пустой!')
+    return { success: false, error: 'Chat ID is required' }
   }
 
   if (!habit.notificationEnabled || !habit.notificationTime) {
