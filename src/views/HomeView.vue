@@ -37,8 +37,16 @@
     <h1 v-if="!store.loading && store.habits.length < 3" class="main-title">{{ t('home.greeting') }}</h1>
     
     <!-- Подзаголовок - мотивационная фраза, показываем всегда -->
-    <p v-if="currentMotivationalQuote" class="subtitle">{{ currentMotivationalQuote }}</p>
-    <p v-else class="subtitle">{{ t('home.subtitle') }}</p>
+    <p 
+      v-if="currentMotivationalQuote" 
+      class="subtitle"
+      :class="{ 'subtitle-no-title': store.habits.length >= 3 }"
+    >{{ currentMotivationalQuote }}</p>
+    <p 
+      v-else 
+      class="subtitle"
+      :class="{ 'subtitle-no-title': store.habits.length >= 3 }"
+    >{{ t('home.subtitle') }}</p>
     
     <div v-if="store.loading" class="loading">{{ t('home.loading') }}</div>
 
@@ -310,7 +318,7 @@ function closeForm() {
   max-width: 600px;
   margin: 0 auto;
   padding: 0 1rem 2rem;
-  padding-top: 60px;
+  padding-top: 80px;
   min-height: 100vh;
   overflow-x: hidden;
   box-sizing: border-box;
@@ -486,13 +494,18 @@ function closeForm() {
   font-weight: 400;
   color: var(--text-secondary);
   text-align: center;
-  margin: 1rem 0 2rem 0;
+  margin: 0.5rem 0 2rem 0;
   line-height: 1.5;
   padding: 0 1rem;
   min-height: 1.5rem;
   display: block;
   visibility: visible;
   opacity: 1;
+}
+
+/* Дополнительный отступ сверху, когда заголовка H1 нет */
+.subtitle-no-title {
+  margin-top: 1.5rem;
 }
 
 
