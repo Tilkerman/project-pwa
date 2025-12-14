@@ -221,10 +221,40 @@ export async function scheduleNotifications(habit: Habit): Promise<void> {
         console.log('💾 Chat ID получен из настроек:', chatId)
       } else {
         console.warn('⚠️ Chat ID не найден в настройках. Config:', config)
+        
+        // Попытка получить напрямую из localStorage (на случай проблем с функцией)
+        try {
+          const directConfig = localStorage.getItem('telegram_notification_config')
+          console.log('🔍 Прямая проверка localStorage:', directConfig)
+          if (directConfig) {
+            const parsed = JSON.parse(directConfig)
+            if (parsed?.chatId) {
+              chatId = parsed.chatId
+              chatIdSource = 'localStorage (прямой доступ)'
+              console.log('💾 Chat ID получен напрямую из localStorage:', chatId)
+            }
+          }
+        } catch (error) {
+          console.error('❌ Ошибка при прямом чтении localStorage:', error)
+        }
       }
     }
     
     console.log('🔍 Итоговый Chat ID:', chatId ? `${chatId.substring(0, 3)}*** (${chatIdSource})` : 'НЕ НАЙДЕН')
+    
+    // Если Chat ID не найден, выводим детальную диагностику
+    if (!chatId) {
+      console.error('❌ КРИТИЧЕСКАЯ ОШИБКА: Chat ID не найден!')
+      console.error('🔍 Диагностика:')
+      console.error('  1. Проверка Telegram Mini App:', typeof window !== 'undefined' && (window as any).Telegram?.WebApp?.initDataUnsafe?.user?.id ? '✅ Найден' : '❌ Не найден')
+      console.error('  2. Проверка localStorage ключа:', localStorage.getItem('telegram_notification_config') ? '✅ Есть' : '❌ Нет')
+      console.error('  3. Все ключи localStorage:', Object.keys(localStorage).filter(k => k.includes('telegram') || k.includes('chat')))
+      console.error('💡 Решения:')
+      console.error('  1. Откройте приложение в Telegram Mini App (Chat ID подставится автоматически)')
+      console.error('  2. Или настройте Chat ID вручную в настройках уведомлений')
+      console.error('  3. Проверьте, что Chat ID сохранен: откройте "Настройки" → "Настройки уведомлений"')
+      return // Прерываем выполнение, если Chat ID не найден
+    }
     
     // Если есть chat_id, отправляем расписание на сервер
     if (chatId) {
