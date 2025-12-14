@@ -4,7 +4,39 @@ import App from './App.vue'
 import router from './router'
 import i18n from './i18n'
 import './style.css'
-import { initTelegramMiniApp } from './utils/telegramMiniApp'
+import { initTelegramMiniApp, getTelegramTheme, isTelegramMiniApp } from './utils/telegramMiniApp'
+
+// Применяем фон Telegram СРАЗУ, до монтирования Vue приложения
+function applyTelegramBackgroundImmediately() {
+  if (!isTelegramMiniApp()) return
+  
+  try {
+    const tg = (window as any).Telegram?.WebApp || (window as any).TelegramWebApp
+    if (!tg) return
+    
+    // Инициализируем Telegram WebApp
+    tg.ready()
+    tg.expand()
+    
+    // Применяем фон сразу к body и html
+    const bgColor = tg.backgroundColor || '#ffffff'
+    if (document.body) {
+      document.body.style.backgroundColor = bgColor
+      document.body.style.setProperty('background-color', bgColor, 'important')
+    }
+    if (document.documentElement) {
+      document.documentElement.style.backgroundColor = bgColor
+      document.documentElement.style.setProperty('background-color', bgColor, 'important')
+    }
+    
+    console.log('✅ Фон Telegram применен сразу:', bgColor)
+  } catch (error) {
+    console.warn('⚠️ Не удалось применить фон Telegram сразу:', error)
+  }
+}
+
+// Применяем фон ДО создания Vue приложения
+applyTelegramBackgroundImmediately()
 
 // Инициализация Telegram Mini App (если запущено в Telegram)
 const telegramApp = initTelegramMiniApp()
@@ -12,6 +44,15 @@ if (telegramApp) {
   console.log('📱 Telegram Mini App активен')
   console.log('👤 Пользователь:', telegramApp.user)
   console.log('🎨 Тема:', telegramApp.theme)
+  
+  // Применяем тему еще раз для надежности
+  const telegramTheme = getTelegramTheme()
+  if (telegramTheme && telegramTheme.backgroundColor) {
+    document.body.style.backgroundColor = telegramTheme.backgroundColor
+    document.body.style.setProperty('background-color', telegramTheme.backgroundColor, 'important')
+    document.documentElement.style.backgroundColor = telegramTheme.backgroundColor
+    document.documentElement.style.setProperty('background-color', telegramTheme.backgroundColor, 'important')
+  }
   
   // Автоматически сохраняем chat_id для уведомлений
   import('./utils/telegram').then(({ autoSaveTelegramChatId }) => {

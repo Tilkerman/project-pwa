@@ -40,11 +40,21 @@ export const useThemeStore = defineStore('theme', () => {
     if (!theme) return
     
     const root = document.documentElement
+    const body = document.body
+    const html = document.documentElement
     
-    // Применяем цвета Telegram как CSS переменные (опционально)
+    // Применяем фон Telegram к body и html с высоким приоритетом
     if (theme.backgroundColor) {
       root.style.setProperty('--tg-bg-color', theme.backgroundColor)
+      // Используем setProperty с important для переопределения CSS
+      body.style.setProperty('background-color', theme.backgroundColor, 'important')
+      html.style.setProperty('background-color', theme.backgroundColor, 'important')
+      // Также устанавливаем напрямую для совместимости
+      body.style.backgroundColor = theme.backgroundColor
+      html.style.backgroundColor = theme.backgroundColor
     }
+    
+    // Применяем цвета Telegram как CSS переменные (опционально)
     if (theme.textColor) {
       root.style.setProperty('--tg-text-color', theme.textColor)
     }
