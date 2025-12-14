@@ -119,8 +119,8 @@ const motivationalQuotes = computed(() => {
   }
 })
 
-// Текущая мотивирующая фраза
-const currentMotivationalQuote = ref('')
+// Текущая мотивирующая фраза - инициализируем сразу fallback
+const currentMotivationalQuote = ref(t('home.subtitle'))
 
 // Функция для получения следующей фразы в цикле
 function getNextMotivationalQuote(forceUpdate = false) {
