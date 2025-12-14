@@ -84,7 +84,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onActivated, computed, watch, nextTick } from 'vue'
+import { ref, onMounted, onActivated, onBeforeUnmount, computed, watch, nextTick } from 'vue'
 import { useRouter, onBeforeRouteEnter } from 'vue-router'
 import HabitForm from '@/components/HabitForm.vue'
 import AppLogo from '@/components/AppLogo.vue'
@@ -324,18 +324,15 @@ function closeForm() {
   position: -webkit-sticky;
   position: sticky;
   top: 0;
-  left: 0;
-  right: 0;
   z-index: 100;
   width: calc(100% + 2rem);
   max-width: calc(100% + 2rem);
   box-sizing: border-box;
-  background: var(--bg-secondary) !important;
+  background: var(--bg-secondary);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border-color);
   overflow-x: hidden;
-  will-change: transform;
 }
 
 .header-logo-container {
