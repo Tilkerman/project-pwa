@@ -509,20 +509,20 @@ async function handleDelete() {
   z-index: 100;
   padding: 1rem;
   margin: 0;
-  background: var(--bg-primary);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--border-color);
+  background: transparent;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
   display: flex;
   align-items: center;
 }
 
 .habit-detail-view[style*="--is-light: 1"] .header-section {
-  background: rgba(255, 255, 255, 0.9);
+  background: transparent;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .habit-detail-view[style*="--is-light: 0"] .header-section {
-  background: rgba(0, 0, 0, 0.7);
+  background: transparent;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .calendar-section {
