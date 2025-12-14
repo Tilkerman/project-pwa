@@ -155,6 +155,10 @@ export const useHabitsStore = defineStore('habits', () => {
   }
 
   async function updateHabit(habit: Habit): Promise<void> {
+    console.log('🔄 Обновление привычки:', habit.name, {
+      notificationEnabled: habit.notificationEnabled,
+      notificationTime: habit.notificationTime
+    })
     try {
       // Сохраняем в IndexedDB напрямую - saveHabit сам создаст сериализуемый объект
       await saveHabit(habit)
@@ -177,16 +181,24 @@ export const useHabitsStore = defineStore('habits', () => {
 
       // Планируем/очищаем уведомления асинхронно, чтобы не блокировать UI
       if (habit.notificationEnabled) {
+        console.log('📅 Планирование уведомлений для обновленной привычки:', habit.name)
         requestNotificationPermission()
           .then(async (granted) => {
+            console.log('📋 Разрешение на уведомления:', granted ? '✅ получено' : '❌ отклонено')
             if (granted) {
+              console.log('🚀 Вызов scheduleNotifications для:', habit.name)
               await scheduleNotifications(habit)
+              console.log('✅ scheduleNotifications завершен для:', habit.name)
+            } else {
+              console.warn('⚠️ Не удалось получить разрешение на уведомления для:', habit.name)
             }
           })
           .catch((error) => {
-            console.warn('⚠️ Не удалось запланировать уведомления при обновлении привычки:', error)
+            console.error('❌ Ошибка при планировании уведомлений при обновлении привычки:', error)
+            console.error('Стек ошибки:', error.stack)
           })
       } else {
+        console.log('⏸️ Уведомления отключены для привычки:', habit.name)
         clearNotifications(habit.id).catch((error) => {
           console.warn('⚠️ Не удалось очистить уведомления при обновлении привычки:', error)
         })
