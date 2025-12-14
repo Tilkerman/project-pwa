@@ -37,7 +37,8 @@
     <h1 v-if="!store.loading && store.habits.length < 3" class="main-title">{{ t('home.greeting') }}</h1>
     
     <!-- Подзаголовок - мотивационная фраза, показываем всегда -->
-    <p class="subtitle">{{ currentMotivationalQuote }}</p>
+    <p v-if="currentMotivationalQuote" class="subtitle">{{ currentMotivationalQuote }}</p>
+    <p v-else class="subtitle">{{ t('home.subtitle') }}</p>
     
     <div v-if="store.loading" class="loading">{{ t('home.loading') }}</div>
 
@@ -485,9 +486,13 @@ function closeForm() {
   font-weight: 400;
   color: var(--text-secondary);
   text-align: center;
-  margin: 0 0 2rem 0;
+  margin: 1rem 0 2rem 0;
   line-height: 1.5;
   padding: 0 1rem;
+  min-height: 1.5rem;
+  display: block;
+  visibility: visible;
+  opacity: 1;
 }
 
 
