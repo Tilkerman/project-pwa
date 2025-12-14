@@ -198,12 +198,15 @@ export async function scheduleNotifications(habit: Habit): Promise<void> {
   try {
     // Получаем chat_id для отправки на сервер
     let chatId: string | null = null
+    let chatIdSource = 'не найден'
     
     // Пытаемся получить из Telegram Mini App
     if (typeof window !== 'undefined') {
       const tg = (window as any).Telegram?.WebApp || (window as any).TelegramWebApp
       if (tg?.initDataUnsafe?.user?.id) {
         chatId = String(tg.initDataUnsafe.user.id)
+        chatIdSource = 'Telegram Mini App'
+        console.log('📱 Chat ID получен из Telegram Mini App:', chatId)
       }
     }
     
@@ -211,10 +214,17 @@ export async function scheduleNotifications(habit: Habit): Promise<void> {
     if (!chatId) {
       const { getTelegramConfig } = await import('./telegram')
       const config = getTelegramConfig()
+      console.log('🔍 Проверка настроек Telegram:', config)
       if (config?.chatId) {
         chatId = config.chatId
+        chatIdSource = 'настройки (localStorage)'
+        console.log('💾 Chat ID получен из настроек:', chatId)
+      } else {
+        console.warn('⚠️ Chat ID не найден в настройках. Config:', config)
       }
     }
+    
+    console.log('🔍 Итоговый Chat ID:', chatId ? `${chatId.substring(0, 3)}*** (${chatIdSource})` : 'НЕ НАЙДЕН')
     
     // Если есть chat_id, отправляем расписание на сервер
     if (chatId) {
