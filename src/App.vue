@@ -4,7 +4,7 @@
       <router-view />
     </main>
     <footer class="app-footer">
-      © {{ currentYear }} Трекер Привычек · October · v{{ appVersion }}
+      {{ t('footer.copyright', { year: currentYear, appName: t('app.name'), version: appVersion }) }}
     </footer>
   </div>
 </template>
@@ -14,9 +14,11 @@ import { onMounted } from 'vue'
 import { useHabitsStore } from './stores/habitsStore'
 import { useThemeStore } from './stores/themeStore'
 import { checkMissedNotifications } from './utils/notifications'
+import { useI18n } from './composables/useI18n'
 
 const store = useHabitsStore()
 const themeStore = useThemeStore()
+const { t } = useI18n()
 const currentYear = new Date().getFullYear()
 const appVersion = __APP_VERSION__ ?? '1.0.0'
 

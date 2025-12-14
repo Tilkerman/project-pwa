@@ -450,7 +450,7 @@ async function handleNotificationToggle(event: Event) {
     const hasPermission = await requestNotificationPermission()
     
     if (!hasPermission) {
-      alert('Для работы уведомлений необходимо разрешить их в настройках браузера')
+      alert(t('errors.notificationPermissionRequired'))
       return
     }
     
@@ -525,7 +525,7 @@ function handleSubmit(event?: Event) {
   
   if (!formData.value.name.trim()) {
     console.warn('⚠️ Habit name is empty')
-    alert('Введите название проекта')
+    alert(t('errors.enterHabitName'))
     return
   }
 
