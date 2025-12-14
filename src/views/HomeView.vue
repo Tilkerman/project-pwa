@@ -306,7 +306,7 @@ function closeForm() {
   width: 100%;
   max-width: 600px;
   margin: 0 auto;
-  padding: 1rem 1rem 2rem;
+  padding: 0 1rem 2rem;
   min-height: 100vh;
   overflow-x: hidden;
   box-sizing: border-box;
@@ -324,15 +324,18 @@ function closeForm() {
   position: -webkit-sticky;
   position: sticky;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 100;
   width: calc(100% + 2rem);
   max-width: calc(100% + 2rem);
   box-sizing: border-box;
-  background: var(--bg-secondary);
+  background: var(--bg-secondary) !important;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border-color);
   overflow-x: hidden;
+  will-change: transform;
 }
 
 .header-logo-container {
