@@ -31,11 +31,11 @@
       </div>
     </header>
     
-    <!-- Заголовок H1 -->
-    <h1 class="main-title">{{ t('home.greeting') }}</h1>
+    <!-- Заголовок H1 - показываем только если привычек меньше 3 -->
+    <h1 v-if="!store.loading && store.habits.length < 3" class="main-title">{{ t('home.greeting') }}</h1>
     
-    <!-- Подзаголовок -->
-    <p class="subtitle">{{ t('home.subtitle') }}</p>
+    <!-- Подзаголовок - мотивационная фраза, показываем всегда -->
+    <p class="subtitle">{{ currentMotivationalQuote }}</p>
     
     <div v-if="store.loading" class="loading">{{ t('home.loading') }}</div>
 
@@ -84,7 +84,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import HabitForm from '@/components/HabitForm.vue'
 import AppLogo from '@/components/AppLogo.vue'
@@ -103,11 +103,47 @@ const showForm = ref(false)
 const isDark = computed(() => themeStore.isDark)
 const toggleTheme = () => themeStore.toggleTheme()
 
+// Получаем мотивирующие фразы из локализации
+const motivationalQuotes = computed(() => {
+  const quotes = t('home.motivationalQuotes', { returnObjects: true })
+  return Array.isArray(quotes) ? quotes : []
+})
+
+// Текущая мотивирующая фраза
+const currentMotivationalQuote = ref('')
+
+// Функция для получения следующей фразы в цикле
+function getNextMotivationalQuote() {
+  if (motivationalQuotes.value.length === 0) {
+    return t('home.subtitle') // Fallback к старой фразе
+  }
+  
+  // Получаем индекс последней показанной фразы из localStorage
+  const lastIndexKey = 'lastMotivationalQuoteIndex'
+  const lastIndex = parseInt(localStorage.getItem(lastIndexKey) || '-1', 10)
+  
+  // Вычисляем следующий индекс (циклически)
+  const nextIndex = (lastIndex + 1) % motivationalQuotes.value.length
+  
+  // Сохраняем новый индекс
+  localStorage.setItem(lastIndexKey, nextIndex.toString())
+  
+  return motivationalQuotes.value[nextIndex]
+}
+
+// Обновляем фразу при смене языка
+watch(currentLocale, () => {
+  currentMotivationalQuote.value = getNextMotivationalQuote()
+})
+
 onMounted(async () => {
   try {
     await store.loadHabits()
+    // Устанавливаем мотивирующую фразу при монтировании
+    currentMotivationalQuote.value = getNextMotivationalQuote()
   } catch (error) {
     console.error('⚠️ Ошибка при загрузке привычек:', error)
+    currentMotivationalQuote.value = t('home.subtitle')
   }
 })
 
