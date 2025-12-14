@@ -13,7 +13,7 @@
         <h2 class="section-title">{{ t('settings.about.appName') }}</h2>
         <p class="section-text">
           {{ t('settings.about.appDescription') }} 
-          Версия {{ appVersion }}
+          {{ t('about.version') }} {{ appVersion }}
         </p>
         <p class="section-text">
           {{ t('settings.about.offlineInfo') }}
@@ -76,9 +76,9 @@
           <li>Vue 3 + TypeScript</li>
           <li>Vite</li>
           <li>Pinia</li>
-          <li>IndexedDB для локального хранения</li>
-          <li>PWA для работы офлайн</li>
-          <li>Telegram Mini App SDK</li>
+          <li>{{ t('about.techList.indexeddb') }}</li>
+          <li>{{ t('about.techList.pwa') }}</li>
+          <li>{{ t('about.techList.telegram') }}</li>
         </ul>
       </div>
     </div>
@@ -103,6 +103,7 @@ function goBack() {
   min-height: 100vh;
   background: var(--bg-primary);
   padding-bottom: 2rem;
+  padding-top: 60px;
 }
 
 .page-header {
@@ -112,9 +113,13 @@ function goBack() {
   padding: 1rem 1.5rem;
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border-color);
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 100;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .back-btn {

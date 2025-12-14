@@ -95,18 +95,21 @@ onMounted(async () => {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 1rem 2rem;
+  padding-top: 60px;
   min-height: 100vh;
 }
 
 .page-header {
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 100;
-  background: var(--bg-primary);
+  background: var(--bg-secondary);
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border-color);
   padding: 1rem 0;
-  margin: 0 -1rem 2rem;
   padding-left: 1rem;
   padding-right: 1rem;
 }

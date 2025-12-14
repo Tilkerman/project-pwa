@@ -79,6 +79,7 @@ function goToShare() {
   min-height: 100vh;
   background: var(--bg-primary);
   padding-bottom: 2rem;
+  padding-top: 60px;
 }
 
 .page-header {
@@ -88,9 +89,13 @@ function goToShare() {
   padding: 1rem 1.5rem;
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border-color);
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 100;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .back-btn {

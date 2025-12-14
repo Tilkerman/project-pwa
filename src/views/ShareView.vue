@@ -140,7 +140,7 @@ async function generateQRCode() {
         ctx.fillStyle = '#991b1b'
         ctx.font = '14px sans-serif'
         ctx.textAlign = 'center'
-        ctx.fillText('Ошибка генерации QR', size / 2, size / 2)
+        ctx.fillText(t('errors.qrGeneration'), size / 2, size / 2)
       }
     }
   }
@@ -182,6 +182,7 @@ function goBack() {
   min-height: 100vh;
   background: var(--bg-primary);
   padding-bottom: 2rem;
+  padding-top: 60px;
 }
 
 .page-header {
@@ -191,9 +192,13 @@ function goBack() {
   padding: 1rem 1.5rem;
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border-color);
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 100;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .back-btn {

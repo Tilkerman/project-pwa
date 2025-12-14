@@ -448,6 +448,7 @@ async function handleDelete() {
 
 .main-section {
   padding: 1rem 1rem 0;
+  padding-top: calc(1rem + 60px);
   text-align: center;
   width: 100%;
   max-width: 100%;
@@ -501,24 +502,27 @@ async function handleDelete() {
 }
 
 .header-section {
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 100;
   padding: 1rem;
   margin: 0;
   background: var(--bg-primary);
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border-color);
   display: flex;
   align-items: center;
 }
 
 .habit-detail-view[style*="--is-light: 1"] .header-section {
-  background: transparent;
+  background: rgba(255, 255, 255, 0.9);
 }
 
 .habit-detail-view[style*="--is-light: 0"] .header-section {
-  background: transparent;
+  background: rgba(0, 0, 0, 0.7);
 }
 
 .calendar-section {
