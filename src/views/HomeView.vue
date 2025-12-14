@@ -124,25 +124,32 @@ function getNextMotivationalQuote() {
   }
   
   try {
-    // Используем timestamp для отслеживания последнего обновления
-    // Обновляем фразу при каждом открытии страницы (если прошло больше 1 секунды)
+    // Используем sessionStorage для отслеживания текущего визита
+    // и localStorage для хранения индекса между сессиями
     const lastIndexKey = 'lastMotivationalQuoteIndex'
-    const lastUpdateKey = 'lastMotivationalQuoteUpdate'
-    const lastUpdate = parseInt(localStorage.getItem(lastUpdateKey) || '0', 10)
-    const now = Date.now()
+    const visitKey = 'motivationalQuoteVisitId'
     
-    // Если прошло меньше секунды, возвращаем текущую фразу
-    if (now - lastUpdate < 1000 && currentMotivationalQuote.value) {
-      return currentMotivationalQuote.value
+    // Генерируем уникальный ID для текущего визита
+    const currentVisitId = Date.now().toString()
+    const lastVisitId = sessionStorage.getItem(visitKey)
+    
+    // Если это тот же визит (компонент просто перерендерился), не обновляем
+    if (lastVisitId === currentVisitId) {
+      // Возвращаем текущую фразу, если она есть
+      if (currentMotivationalQuote.value) {
+        return currentMotivationalQuote.value
+      }
     }
+    
+    // Это новый визит - сохраняем ID визита
+    sessionStorage.setItem(visitKey, currentVisitId)
     
     // Получаем следующий индекс
     const lastIndex = parseInt(localStorage.getItem(lastIndexKey) || '-1', 10)
     const nextIndex = (lastIndex + 1) % motivationalQuotes.value.length
     
-    // Сохраняем индекс и время обновления
+    // Сохраняем индекс для следующего раза
     localStorage.setItem(lastIndexKey, nextIndex.toString())
-    localStorage.setItem(lastUpdateKey, now.toString())
     
     return motivationalQuotes.value[nextIndex]
   } catch (error) {
@@ -158,6 +165,8 @@ watch(currentLocale, () => {
 
 // Обновляем фразу при активации компонента (когда пользователь возвращается на страницу)
 onActivated(() => {
+  // Очищаем ID визита, чтобы при следующем вызове getNextMotivationalQuote обновилась фраза
+  sessionStorage.removeItem('motivationalQuoteVisitId')
   currentMotivationalQuote.value = getNextMotivationalQuote()
 })
 
@@ -165,6 +174,8 @@ onMounted(async () => {
   try {
     await store.loadHabits()
     // Устанавливаем мотивирующую фразу при монтировании
+    // Очищаем ID визита, чтобы гарантировать обновление
+    sessionStorage.removeItem('motivationalQuoteVisitId')
     currentMotivationalQuote.value = getNextMotivationalQuote()
   } catch (error) {
     console.error('⚠️ Ошибка при загрузке привычек:', error)
