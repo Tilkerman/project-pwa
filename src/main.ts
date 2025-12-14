@@ -6,20 +6,11 @@ import i18n from './i18n'
 import './style.css'
 import { initTelegramMiniApp, getTelegramTheme, isTelegramMiniApp } from './utils/telegramMiniApp'
 
-// Применяем фон Telegram СРАЗУ, до монтирования Vue приложения
-function applyTelegramBackgroundImmediately() {
-  if (!isTelegramMiniApp()) return
+// Функция для применения фона Telegram
+function applyTelegramBackground(bgColor: string) {
+  if (!bgColor) return
   
   try {
-    const tg = (window as any).Telegram?.WebApp || (window as any).TelegramWebApp
-    if (!tg) return
-    
-    // Инициализируем Telegram WebApp
-    tg.ready()
-    tg.expand()
-    
-    // Применяем фон сразу к body и html
-    const bgColor = tg.backgroundColor || '#ffffff'
     if (document.body) {
       document.body.style.backgroundColor = bgColor
       document.body.style.setProperty('background-color', bgColor, 'important')
@@ -28,11 +19,74 @@ function applyTelegramBackgroundImmediately() {
       document.documentElement.style.backgroundColor = bgColor
       document.documentElement.style.setProperty('background-color', bgColor, 'important')
     }
-    
-    console.log('✅ Фон Telegram применен сразу:', bgColor)
+    console.log('✅ Фон Telegram применен:', bgColor)
+    return true
   } catch (error) {
-    console.warn('⚠️ Не удалось применить фон Telegram сразу:', error)
+    console.warn('⚠️ Не удалось применить фон Telegram:', error)
+    return false
   }
+}
+
+// Применяем фон Telegram СРАЗУ, до монтирования Vue приложения
+function applyTelegramBackgroundImmediately() {
+  if (!isTelegramMiniApp()) return
+  
+  // Пробуем несколько раз с задержкой для Desktop версии
+  let attempts = 0
+  const maxAttempts = 10
+  
+  const tryApply = () => {
+    attempts++
+    
+    try {
+      const tg = (window as any).Telegram?.WebApp || (window as any).TelegramWebApp
+      
+      if (tg) {
+        // Инициализируем Telegram WebApp
+        try {
+          tg.ready()
+          tg.expand()
+        } catch (e) {
+          console.warn('⚠️ Ошибка при инициализации Telegram WebApp:', e)
+        }
+        
+        // Применяем фон сразу к body и html
+        const bgColor = tg.backgroundColor || tg.themeParams?.bg_color || '#ffffff'
+        if (bgColor && bgColor !== '#ffffff') {
+          if (applyTelegramBackground(bgColor)) {
+            return // Успешно применили
+          }
+        }
+      }
+      
+      // Если не получилось и есть попытки, пробуем еще раз
+      if (attempts < maxAttempts) {
+        setTimeout(tryApply, 100)
+      } else {
+        // Fallback: применяем светлый или темный фон в зависимости от темы
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+        const fallbackColor = prefersDark ? '#212121' : '#ffffff'
+        applyTelegramBackground(fallbackColor)
+        console.warn('⚠️ Используем fallback фон:', fallbackColor)
+      }
+    } catch (error) {
+      console.warn('⚠️ Ошибка при попытке применить фон Telegram:', error)
+      if (attempts < maxAttempts) {
+        setTimeout(tryApply, 100)
+      }
+    }
+  }
+  
+  // Начинаем попытки сразу
+  tryApply()
+  
+  // Также слушаем событие загрузки DOM
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', tryApply)
+  }
+  
+  // И событие полной загрузки
+  window.addEventListener('load', tryApply)
 }
 
 // Применяем фон ДО создания Vue приложения
@@ -45,13 +99,27 @@ if (telegramApp) {
   console.log('👤 Пользователь:', telegramApp.user)
   console.log('🎨 Тема:', telegramApp.theme)
   
-  // Применяем тему еще раз для надежности
-  const telegramTheme = getTelegramTheme()
-  if (telegramTheme && telegramTheme.backgroundColor) {
-    document.body.style.backgroundColor = telegramTheme.backgroundColor
-    document.body.style.setProperty('background-color', telegramTheme.backgroundColor, 'important')
-    document.documentElement.style.backgroundColor = telegramTheme.backgroundColor
-    document.documentElement.style.setProperty('background-color', telegramTheme.backgroundColor, 'important')
+  // Применяем тему еще раз для надежности (с задержкой для Desktop)
+  setTimeout(() => {
+    const telegramTheme = getTelegramTheme()
+    if (telegramTheme && telegramTheme.backgroundColor) {
+      applyTelegramBackground(telegramTheme.backgroundColor)
+    }
+  }, 100)
+  
+  // Также слушаем изменения темы Telegram (для Desktop)
+  try {
+    const tg = (window as any).Telegram?.WebApp || (window as any).TelegramWebApp
+    if (tg && tg.onEvent) {
+      tg.onEvent('themeChanged', () => {
+        const theme = getTelegramTheme()
+        if (theme && theme.backgroundColor) {
+          applyTelegramBackground(theme.backgroundColor)
+        }
+      })
+    }
+  } catch (error) {
+    console.warn('⚠️ Не удалось подписаться на изменения темы:', error)
   }
   
   // Автоматически сохраняем chat_id для уведомлений
