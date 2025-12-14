@@ -318,7 +318,7 @@ function closeForm() {
   max-width: 600px;
   margin: 0 auto;
   padding: 0 1rem 2rem;
-  padding-top: 80px;
+  padding-top: 100px;
   min-height: 100vh;
   overflow-x: hidden;
   box-sizing: border-box;
@@ -505,7 +505,8 @@ function closeForm() {
 
 /* Дополнительный отступ сверху, когда заголовка H1 нет */
 .subtitle-no-title {
-  margin-top: 1.5rem;
+  margin-top: 2.5rem;
+  padding-top: 0.5rem;
 }
 
 
