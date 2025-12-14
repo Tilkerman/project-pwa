@@ -161,9 +161,30 @@ app.post('/webhook', express.json(), async (req, res) => {
   }
 })
 
-// Health check endpoint
+// Health check endpoint (также используется для пробуждения Render.com)
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', time: new Date().toISOString() })
+  const schedulesCount = notificationSchedules.size
+  res.json({ 
+    status: 'ok', 
+    time: new Date().toISOString(),
+    schedulesCount: schedulesCount,
+    activeSchedules: Array.from(notificationSchedules.entries()).map(([id, s]) => ({
+      id,
+      name: s.name,
+      time: s.time,
+      enabled: s.enabled
+    }))
+  })
+})
+
+// Endpoint для пробуждения сервера (вызывается внешним cron)
+app.get('/wake', (req, res) => {
+  console.log('🔔 Сервер пробужден внешним запросом')
+  res.json({ 
+    status: 'awake', 
+    time: new Date().toISOString(),
+    message: 'Server is awake and ready'
+  })
 })
 
 // Запускаем проверку уведомлений каждую минуту
@@ -173,6 +194,36 @@ cron.schedule('* * * * *', () => {
 
 // Проверяем сразу при запуске
 checkAndSendNotifications()
+
+// Логируем количество активных расписаний каждые 5 минут
+cron.schedule('*/5 * * * *', () => {
+  const activeCount = Array.from(notificationSchedules.values()).filter(s => s.enabled).length
+  const totalCount = notificationSchedules.size
+  console.log(`📊 Активных расписаний: ${activeCount} из ${totalCount}`)
+  
+  // Выводим список всех активных расписаний для отладки
+  if (activeCount > 0) {
+    const activeSchedules = Array.from(notificationSchedules.entries())
+      .filter(([_, s]) => s.enabled)
+      .map(([id, s]) => `${s.name} (${s.time})`)
+    console.log(`📋 Активные расписания:`, activeSchedules.join(', '))
+  }
+})
+
+// Пробуждение сервера каждые 10 минут (для Render.com бесплатного тарифа)
+// Это предотвращает "засыпание" сервера
+cron.schedule('*/10 * * * *', async () => {
+  try {
+    // Делаем внутренний запрос к /health для пробуждения
+    const baseUrl = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`
+    await fetch(`${baseUrl}/health`).catch(() => {
+      // Игнорируем ошибки, это просто для пробуждения
+    })
+    console.log('🔔 Сервер пробужден (каждые 10 минут)')
+  } catch (error) {
+    // Игнорируем ошибки пробуждения
+  }
+})
 
 // Запускаем polling для бота (чтобы отвечать на команды)
 async function startBotPolling() {
