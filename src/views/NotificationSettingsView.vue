@@ -11,7 +11,7 @@
     <div class="settings-content">
       <!-- Настройки Telegram -->
       <div class="settings-section">
-        <TelegramSettings />
+        <TelegramSettings :key="locale" />
       </div>
 
       <!-- Настройки уведомлений для каждой привычки -->
@@ -31,7 +31,7 @@ import { useI18n } from '@/composables/useI18n'
 import TelegramSettings from '@/components/TelegramSettings.vue'
 
 const router = useRouter()
-const { t } = useI18n()
+const { t, locale } = useI18n()
 
 function goBack() {
   router.push('/settings')

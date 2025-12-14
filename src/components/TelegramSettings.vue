@@ -2,7 +2,7 @@
   <div class="telegram-settings">
     <h3 class="settings-title">
       <span class="telegram-icon">📱</span>
-      Telegram уведомления
+      {{ t('telegram.title') }}
     </h3>
     
     <div class="setting-item">
@@ -13,23 +13,22 @@
           class="checkbox"
           @change="updateSettings"
         />
-        Включить Telegram уведомления
+        {{ t('telegram.enable') }}
       </label>
       <p class="setting-description">
-        Получайте уведомления в Telegram даже когда приложение закрыто. 
-        Работает на всех устройствах, включая iOS!
+        {{ t('telegram.description') }}
       </p>
     </div>
 
     <div class="telegram-config">
       <div v-if="!isBotConfigured" class="bot-not-configured">
-        <p>⚠️ Telegram бот не настроен администратором. Обратитесь к разработчику.</p>
+        <p>{{ t('telegram.notConfigured') }}</p>
       </div>
 
       <div v-else class="config-section">
         <div v-if="!chatId" class="telegram-login-section">
           <p class="login-description">
-            Чтобы получать уведомления в Telegram, введите ваш Chat ID ниже:
+            {{ t('telegram.enterChatId') }}
           </p>
           <div class="alternative-input">
             <input
@@ -37,7 +36,7 @@
               v-model="telegramInput"
               type="text"
               class="config-input"
-              placeholder="Введите Chat ID (например: 123456789)"
+              :placeholder="t('telegram.chatIdPlaceholder')"
               @keyup.enter="processTelegramInput"
             />
             <button 
@@ -46,14 +45,11 @@
               @click="processTelegramInput"
               :disabled="testing"
             >
-              {{ testing ? 'Проверка...' : 'Подключить' }}
+              {{ testing ? t('telegram.checking') : t('telegram.connect') }}
             </button>
             <p class="input-hint">
-              <strong>Как узнать Chat ID?</strong><br>
-              1. Найдите вашего бота в Telegram<br>
-              2. Отправьте ему команду <code>/start</code><br>
-              3. Бот отправит вам ваш Chat ID<br>
-              4. Скопируйте Chat ID и вставьте выше
+              <strong>{{ t('telegram.howToGetChatId') }}</strong><br>
+              <span v-html="t('telegram.howToGetChatIdSteps').replace(/\n/g, '<br>')"></span>
             </p>
           </div>
         </div>
@@ -61,34 +57,36 @@
         <div v-else class="connected-section">
           <div class="connected-info">
             <span class="success-icon">✅</span>
-            <span>Telegram подключен! Chat ID: {{ chatId }}</span>
+            <span>{{ t('telegram.connected', { chatId }) }}</span>
           </div>
-          <button 
-            class="btn-test"
-            @click="testConnection"
-            :disabled="testing"
-          >
-            {{ testing ? 'Проверка...' : 'Отправить тест' }}
-          </button>
-          <button 
-            class="btn-disconnect"
-            @click="disconnectTelegram"
-          >
-            Отключить
-          </button>
+          <div class="connected-buttons">
+            <button 
+              class="btn-test"
+              @click="testConnection"
+              :disabled="testing"
+            >
+              {{ testing ? t('telegram.checking') : t('telegram.sendTest') }}
+            </button>
+            <button 
+              class="btn-disconnect"
+              @click="disconnectTelegram"
+            >
+              {{ t('telegram.disconnect') }}
+            </button>
+          </div>
         </div>
         
-        <!-- Кнопка теста всегда видна, если бот настроен -->
-        <div v-if="isBotConfigured" class="test-section">
+        <!-- Кнопка теста видна только если бот настроен, но chatId еще нет -->
+        <div v-if="isBotConfigured && !chatId" class="test-section">
           <button 
             class="btn-test"
             @click="testConnection"
             :disabled="testing"
           >
-            {{ testing ? 'Проверка...' : 'Отправить тест' }}
+            {{ testing ? t('telegram.checking') : t('telegram.sendTest') }}
           </button>
           <p class="test-hint">
-            Нажмите, чтобы проверить, работает ли отправка уведомлений в Telegram
+            {{ t('telegram.testHint') }}
           </p>
         </div>
 
@@ -99,24 +97,23 @@
       </div>
 
       <div v-if="isBotConfigured && !chatId" class="instructions">
-        <h4 class="instructions-title">Как подключить Telegram (2 простых шага):</h4>
+        <h4 class="instructions-title">{{ t('telegram.instructions.title') }}</h4>
         <ol class="instructions-list">
           <li>
-            Введите ваш <strong>username Telegram</strong> (например: <code>@ivanov</code> или просто <code>ivanov</code>) и нажмите "Подключить"
+            {{ t('telegram.instructions.step1') }}
           </li>
           <li>
-            Откройте Telegram, найдите бота <strong>@{{ botInfo?.username || 'ваш_бот' }}</strong> и отправьте ему команду <code>/start</code>
+            {{ t('telegram.instructions.step2', { botUsername: botInfo?.username || 'your_bot' }) }}
           </li>
           <li>
-            Бот отправит вам ваш <strong>Chat ID</strong> - скопируйте его и вставьте в поле выше
+            {{ t('telegram.instructions.step3') }}
           </li>
           <li>
-            Готово! Уведомления будут приходить в Telegram 🎉
+            {{ t('telegram.instructions.step4') }}
           </li>
         </ol>
         <div class="instructions-note">
-          <strong>💡 Важно:</strong> Ваши данные хранятся только в вашем браузере. 
-          Никто кроме вас не имеет к ним доступа.
+          {{ t('telegram.instructions.note') }}
         </div>
       </div>
     </div>
@@ -133,6 +130,9 @@ import {
   sendSetupMessageToUser,
 } from '@/utils/telegram'
 import { isTelegramBotConfigured } from '@/config/telegram'
+import { useI18n } from '@/composables/useI18n'
+
+const { t, locale } = useI18n()
 
 const enabled = ref(false)
 const chatId = ref('')
@@ -225,31 +225,31 @@ async function processTelegramInput() {
         result = await sendSetupMessageToUser(username)
       } catch (error) {
         console.error('Ошибка при отправке сообщения:', error)
-        result = { success: false, error: 'Не удалось отправить сообщение' }
+        result = { success: false, error: t('telegram.testError') }
       }
       
       if (result.success && result.botUsername) {
         testResult.value = {
           success: true,
-          message: `✅ Сообщение отправлено! Откройте Telegram, найдите бота @${result.botUsername} и отправьте ему команду /start. Затем вернитесь сюда и введите ваш Chat ID (бот отправит его вам).`,
+          message: t('telegram.messageSent', { botUsername: result.botUsername }),
         }
         // Сохраняем username для дальнейшего использования
         telegramInput.value = `@${username}`
       } else {
         // Если не получилось отправить, показываем инструкцию
-        const botUsername = botInfo.value?.username || result.botUsername || 'ваш_бот'
+        const botUsername = botInfo.value?.username || result.botUsername || 'your_bot'
         testResult.value = {
           success: false,
-          message: `Откройте Telegram, найдите бота @${botUsername} и отправьте ему команду /start. Бот отправит вам ваш Chat ID. Затем введите Chat ID здесь.`,
+          message: t('telegram.instructions.step2', { botUsername }) + '. ' + t('telegram.instructions.step3'),
         }
       }
     } 
     // Если это номер телефона
     else if (input.startsWith('+') || /^\d{10,15}$/.test(input)) {
-      const botUsername = botInfo.value?.username || 'ваш_бот'
+      const botUsername = botInfo.value?.username || 'your_bot'
       testResult.value = {
         success: false,
-        message: `Откройте Telegram, найдите бота @${botUsername} и отправьте ему команду /start. Бот отправит вам ваш Chat ID. Затем введите Chat ID здесь.`,
+        message: t('telegram.instructions.step2', { botUsername }) + '. ' + t('telegram.instructions.step3'),
       }
     }
     // Если это Chat ID (только цифры, длинное число)
@@ -261,18 +261,18 @@ async function processTelegramInput() {
     else {
       testResult.value = {
         success: false,
-        message: 'Введите username Telegram (например: @username или username) или Chat ID (число)',
+        message: t('telegram.enterUsernameOrChatId'),
       }
     }
-  } catch (error) {
-    testResult.value = {
-      success: false,
-      message: error instanceof Error ? error.message : 'Неизвестная ошибка',
+    } catch (error) {
+      testResult.value = {
+        success: false,
+        message: error instanceof Error ? error.message : t('telegram.unknownError'),
+      }
+    } finally {
+      testing.value = false
     }
-  } finally {
-    testing.value = false
   }
-}
 
 async function testConnection() {
   testing.value = true
@@ -368,12 +368,12 @@ async function testConnection() {
       if (isInTelegram) {
         testResult.value = {
           success: false,
-          message: 'Chat ID не найден в Telegram Mini App. Попробуйте: 1) Обновить страницу (потяните вниз), 2) Или введите ваш Chat ID вручную в поле выше. Чтобы узнать Chat ID, отправьте /start боту @ваш_бот',
+          message: t('telegram.chatIdNotFound', { botUsername: botInfo.value?.username || 'your_bot' }),
         }
       } else {
         testResult.value = {
           success: false,
-          message: 'Chat ID не найден. Откройте приложение в Telegram Mini App или введите Chat ID вручную выше.',
+          message: t('telegram.chatIdNotFoundManual'),
         }
       }
       return
@@ -384,24 +384,24 @@ async function testConnection() {
       result = await testTelegramConnection(testChatId)
     } catch (error) {
       console.error('Ошибка при проверке подключения:', error)
-      result = { success: false, error: 'Не удалось проверить подключение' }
+      result = { success: false, error: t('telegram.testError') }
     }
     if (result.success) {
       testResult.value = {
         success: true,
-        message: '✅ Тестовое сообщение отправлено! Проверьте Telegram.',
+        message: t('telegram.testSuccess'),
       }
       await updateSettings()
     } else {
       testResult.value = {
         success: false,
-        message: result.error || 'Ошибка при отправке сообщения',
+        message: result.error || t('telegram.testError'),
       }
     }
   } catch (error) {
     testResult.value = {
       success: false,
-      message: error instanceof Error ? error.message : 'Неизвестная ошибка',
+      message: error instanceof Error ? error.message : t('telegram.unknownError'),
     }
   } finally {
     testing.value = false
@@ -568,9 +568,16 @@ function disconnectTelegram() {
   font-size: 1.25rem;
 }
 
-.btn-disconnect {
+.connected-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
   margin-top: 0.5rem;
-  padding: 0.5rem 1rem;
+}
+
+.btn-disconnect {
+  padding: 0.75rem 1rem;
   background: #fee2e2;
   color: #991b1b;
   border: 1px solid #ef4444;
@@ -579,6 +586,8 @@ function disconnectTelegram() {
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s;
+  width: 100%;
+  margin: 0;
 }
 
 .btn-disconnect:hover {
@@ -596,8 +605,7 @@ function disconnectTelegram() {
 }
 
 .btn-test {
-  margin-top: 0.5rem;
-  padding: 0.5rem 1rem;
+  padding: 0.75rem 1rem;
   background: #4f46e5;
   color: white;
   border: none;
@@ -606,6 +614,12 @@ function disconnectTelegram() {
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s;
+  width: 100%;
+  margin: 0;
+}
+
+.connected-buttons .btn-test {
+  margin: 0;
 }
 
 .btn-test:hover:not(:disabled) {
