@@ -100,16 +100,34 @@ async function sendTelegramNotification(chatId, title, message) {
 // Функция для проверки и отправки уведомлений
 async function checkAndSendNotifications() {
   const now = new Date()
-  const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`
+  const currentUtcTime = `${now.getUTCHours().toString().padStart(2, '0')}:${now.getUTCMinutes().toString().padStart(2, '0')}`
   
   // Получаем время в разных часовых поясах для отладки
   const moscowTime = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Moscow' }))
   const saratovTime = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Saratov' }))
   
-  console.log(`🕐 Проверка уведомлений в ${currentTime} UTC`)
+  console.log(`🕐 Проверка уведомлений в ${currentUtcTime} UTC`)
   console.log(`🌍 Время по Москве: ${moscowTime.getHours().toString().padStart(2, '0')}:${moscowTime.getMinutes().toString().padStart(2, '0')}`)
   console.log(`🌍 Время по Саратову: ${saratovTime.getHours().toString().padStart(2, '0')}:${saratovTime.getMinutes().toString().padStart(2, '0')}`)
   console.log(`📊 Всего расписаний в памяти: ${notificationSchedules.size}`)
+
+  const getTimeInZone = (date, timeZone) => {
+    try {
+      // formatToParts не зависит от локали и не требует парсинга строк
+      const parts = new Intl.DateTimeFormat('en-US', {
+        timeZone,
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      }).formatToParts(date)
+      const hh = parts.find((p) => p.type === 'hour')?.value
+      const mm = parts.find((p) => p.type === 'minute')?.value
+      if (!hh || !mm) return null
+      return `${hh}:${mm}`
+    } catch {
+      return null
+    }
+  }
 
   let checkedCount = 0
   let sentCount = 0
@@ -134,22 +152,20 @@ async function checkAndSendNotifications() {
       continue
     }
 
-    const [scheduleHours, scheduleMinutes] = schedule.time.split(':').map(Number)
-    
-    // Проверка валидности времени
-    if (isNaN(scheduleHours) || isNaN(scheduleMinutes) || scheduleHours < 0 || scheduleHours > 23 || scheduleMinutes < 0 || scheduleMinutes > 59) {
-      console.error(`❌ Неверное время в расписании "${schedule.name}": ${schedule.time}`)
-      continue
-    }
-    
-    const scheduleTime = `${scheduleHours.toString().padStart(2, '0')}:${scheduleMinutes.toString().padStart(2, '0')}`
-    
-    console.log(`🔍 Проверка "${schedule.name}": запланировано на ${scheduleTime}, текущее время ${currentTime}`)
+    // NEW: предпочитаем localTime + timeZone (работает для всех стран + DST)
+    const scheduleLocalTime = schedule.timeLocal || null
+    const scheduleTimeZone = schedule.timeZone || null
+    const effectiveNowTime = (scheduleLocalTime && scheduleTimeZone)
+      ? (getTimeInZone(now, scheduleTimeZone) || currentUtcTime)
+      : currentUtcTime
+    const effectiveScheduleTime = scheduleLocalTime || schedule.time // legacy: schedule.time (UTC HH:mm)
+
+    console.log(`🔍 Проверка "${schedule.name}": запланировано на ${effectiveScheduleTime}${scheduleTimeZone ? ` (${scheduleTimeZone})` : ' (UTC)'}, текущее время ${effectiveNowTime}${scheduleTimeZone ? ` (${scheduleTimeZone})` : ' (UTC)'}`)
     
     // Проверяем, наступило ли время уведомления (с точностью до минуты)
-    if (scheduleTime === currentTime) {
+    if (effectiveScheduleTime === effectiveNowTime) {
       // Проверяем, не отправляли ли мы уже уведомление в эту минуту
-      const lastSentKey = `last_sent_${habitId}_${now.toDateString()}_${currentTime}`
+      const lastSentKey = `last_sent_${habitId}_${now.toISOString().slice(0, 10)}_${effectiveNowTime}_${scheduleTimeZone || 'UTC'}`
       const lastSent = schedule.lastSent?.[lastSentKey]
 
       if (!lastSent) {
@@ -209,11 +225,16 @@ app.post('/api/schedule', (req, res) => {
       return res.status(400).json({ success: false, error: 'Missing required fields' })
     }
 
-    // Проверяем валидность времени
-    if (habit.notificationTime) {
-      const [hours, minutes] = habit.notificationTime.split(':').map(Number)
+    // NEW: предпочитаем localTime+timeZone
+    const timeLocal = habit.notificationTimeLocal || null
+    const timeZone = habit.timeZone || null
+    const timeToValidate = timeLocal || habit.notificationTime
+
+    // Проверяем валидность времени (HH:mm)
+    if (timeToValidate) {
+      const [hours, minutes] = String(timeToValidate).split(':').map(Number)
       if (isNaN(hours) || isNaN(minutes) || hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
-        console.error('❌ Неверный формат времени:', habit.notificationTime)
+        console.error('❌ Неверный формат времени:', timeToValidate)
         return res.status(400).json({ success: false, error: 'Invalid time format. Use HH:mm' })
       }
     }
@@ -228,7 +249,11 @@ app.post('/api/schedule', (req, res) => {
     notificationSchedules.set(habitId, {
       id: habitId,
       name: habit.name,
+      // legacy UTC time
       time: habit.notificationTime,
+      // NEW: local time + timezone
+      timeLocal: timeLocal,
+      timeZone: timeZone,
       enabled: habit.notificationEnabled,
       customNotificationMessage: habit.customNotificationMessage,
       character: habit.character,
@@ -236,7 +261,7 @@ app.post('/api/schedule', (req, res) => {
       lastSent: {}
     })
 
-    console.log(`✅ Расписание сохранено: "${habit.name}" на ${habit.notificationTime} для chatId ${chatIdStr.substring(0, 3)}***`)
+    console.log(`✅ Расписание сохранено: "${habit.name}" на ${timeLocal ? `${timeLocal} (${timeZone || 'unknown tz'})` : `${habit.notificationTime} (UTC)`} для chatId ${chatIdStr.substring(0, 3)}***`)
     console.log(`📊 Всего расписаний в памяти: ${notificationSchedules.size}`)
     
     // Возвращаем подтверждение с деталями
@@ -274,6 +299,10 @@ app.get('/api/schedules', (req, res) => {
   const schedules = Array.from(notificationSchedules.entries()).map(([id, schedule]) => ({
     id,
     name: schedule.name,
+    // NEW preferred
+    timeLocal: schedule.timeLocal || null,
+    timeZone: schedule.timeZone || null,
+    // legacy
     time: schedule.time,
     enabled: schedule.enabled,
     chatId: schedule.chatId ? String(schedule.chatId).substring(0, 3) + '***' : null, // Частично скрываем chatId

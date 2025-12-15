@@ -83,12 +83,14 @@ export async function scheduleNotificationOnServer(
   await new Promise(resolve => setTimeout(resolve, 2000)) // 2 секунды задержки
 
   try {
-    // Конвертируем локальное время в UTC для сервера
+    // Таймзона пользователя (IANA). Нужна для корректной работы по всему миру (DST тоже).
+    const timeZone =
+      (typeof Intl !== 'undefined' && Intl.DateTimeFormat().resolvedOptions().timeZone) || 'UTC'
+
+    // Для обратной совместимости оставляем отправку UTC-времени (старые версии сервера сравнивают в UTC).
     const [localHours, localMinutes] = habit.notificationTime.split(':').map(Number)
     const localDate = new Date()
     localDate.setHours(localHours, localMinutes, 0, 0)
-    
-    // Получаем UTC время
     const utcHours = localDate.getUTCHours()
     const utcMinutes = localDate.getUTCMinutes()
     const utcTime = `${utcHours.toString().padStart(2, '0')}:${utcMinutes.toString().padStart(2, '0')}`
@@ -99,7 +101,8 @@ export async function scheduleNotificationOnServer(
       chatId: chatId ? `${chatId.substring(0, 3)}***` : 'не указан',
       name: habit.name,
       localTime: habit.notificationTime,
-      utcTime: utcTime
+      timeZone,
+      utcTime
     })
 
     // Отправляем запрос с увеличенным таймаутом (на случай, если сервер только проснулся)
@@ -113,7 +116,11 @@ export async function scheduleNotificationOnServer(
         chatId: chatId,
         habit: {
           name: habit.name,
-          notificationTime: utcTime, // Отправляем время в UTC
+          // NEW: сервер будет предпочитать localTime+timeZone.
+          notificationTimeLocal: habit.notificationTime,
+          timeZone,
+          // LEGACY: оставляем UTC на всякий случай.
+          notificationTime: utcTime,
           notificationEnabled: habit.notificationEnabled,
           customNotificationMessage: habit.customNotificationMessage,
           character: habit.character,
