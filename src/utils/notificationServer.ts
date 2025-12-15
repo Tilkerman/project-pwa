@@ -19,7 +19,7 @@ const getNotificationServerUrl = () => {
   return defaultRenderUrl
 }
 
-const NOTIFICATION_SERVER_URL = getNotificationServerUrl()
+export const NOTIFICATION_SERVER_URL = getNotificationServerUrl()
 
 interface Habit {
   id: string
