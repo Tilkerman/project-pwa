@@ -142,9 +142,10 @@ export const useHabitsStore = defineStore('habits', () => {
       // Не блокируем UI ожиданием сети/разрешений
       requestNotificationPermission()
         .then(async (granted) => {
-          if (granted) {
-            await scheduleNotifications(newHabit)
-          }
+          // ВАЖНО: Telegram-серверное расписание должно отправляться даже если браузерные уведомления запрещены.
+          // scheduleNotifications сам пропустит локальное планирование без permission, но продолжит серверную часть.
+          console.log('📋 Разрешение на уведомления (браузер):', granted ? '✅ получено' : '❌ отклонено')
+          await scheduleNotifications(newHabit)
         })
         .catch((error) => {
           console.warn('⚠️ Не удалось настроить уведомления для новой привычки:', error)
@@ -185,13 +186,10 @@ export const useHabitsStore = defineStore('habits', () => {
         requestNotificationPermission()
           .then(async (granted) => {
             console.log('📋 Разрешение на уведомления:', granted ? '✅ получено' : '❌ отклонено')
-            if (granted) {
-              console.log('🚀 Вызов scheduleNotifications для:', habit.name)
-              await scheduleNotifications(habit)
-              console.log('✅ scheduleNotifications завершен для:', habit.name)
-            } else {
-              console.warn('⚠️ Не удалось получить разрешение на уведомления для:', habit.name)
-            }
+            // ВАЖНО: даже если браузерные уведомления не разрешены, серверное Telegram-расписание всё равно должно уходить.
+            console.log('🚀 Вызов scheduleNotifications для:', habit.name)
+            await scheduleNotifications(habit)
+            console.log('✅ scheduleNotifications завершен для:', habit.name)
           })
           .catch((error) => {
             console.error('❌ Ошибка при планировании уведомлений при обновлении привычки:', error)

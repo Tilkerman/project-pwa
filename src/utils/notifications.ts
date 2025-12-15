@@ -130,13 +130,12 @@ export async function scheduleNotifications(habit: Habit): Promise<void> {
   const inTelegram = isTelegramMiniApp()
   const inTelegramUA = isTelegramUA()
 
-  // Если это Telegram Mini App — не требуем разрешение браузера, опираемся на бота
-  if (!inTelegram && !inTelegramUA) {
-    // Проверяем разрешение перед планированием для обычного браузера/PWA
-    if (!('Notification' in window) || Notification.permission !== 'granted') {
-      console.warn('⚠️ Нет разрешения на уведомления для привычки:', habit.name)
-      return
-    }
+  // ВАЖНО:
+  // - Браузерные уведомления (PWA/браузер) требуют Notification.permission === 'granted'
+  // - Telegram-уведомления через сервер/бот НЕ должны зависеть от browser permission
+  const canScheduleClientSide = inTelegram || inTelegramUA || (('Notification' in window) && Notification.permission === 'granted')
+  if (!canScheduleClientSide && !inTelegram && !inTelegramUA) {
+    console.warn('⚠️ Нет разрешения на браузерные уведомления — пропускаем локальное планирование, но продолжим отправку расписания на сервер:', habit.name)
   }
 
   // Для iOS показываем предупреждение о ограничениях
@@ -144,53 +143,57 @@ export async function scheduleNotifications(habit: Habit): Promise<void> {
     console.warn('⚠️ Для работы уведомлений на iOS необходимо установить приложение на главный экран')
   }
 
-  // Регистрируем периодическую проверку в Service Worker
-  await registerPeriodicSync()
-
   // Очищаем существующие уведомления для этой привычки
   clearNotifications(habit.id)
 
-  const [hours, minutes] = habit.notificationTime.split(':').map(Number)
-  const now = new Date()
-  const notificationTime = new Date()
-  notificationTime.setHours(hours, minutes, 0, 0)
+  // Планирование на клиенте (в браузере/PWA) делаем только если есть разрешение,
+  // иначе оно никогда не сработает. Для Telegram Mini App разрешение не нужно.
+  if (canScheduleClientSide) {
+    // Регистрируем периодическую проверку в Service Worker
+    await registerPeriodicSync()
 
-  // Если время уже прошло сегодня, планируем на завтра
-  if (notificationTime <= now) {
-    notificationTime.setDate(notificationTime.getDate() + 1)
-  }
+    const [hours, minutes] = habit.notificationTime.split(':').map(Number)
+    const now = new Date()
+    const notificationTime = new Date()
+    notificationTime.setHours(hours, minutes, 0, 0)
 
-  const timeUntilNotification = notificationTime.getTime() - now.getTime()
-  
-  console.log(`📅 Планируем уведомление для "${habit.name}" на ${notificationTime.toLocaleString('ru-RU')} (через ${Math.round(timeUntilNotification / 1000 / 60)} минут)`)
+    // Если время уже прошло сегодня, планируем на завтра
+    if (notificationTime <= now) {
+      notificationTime.setDate(notificationTime.getDate() + 1)
+    }
 
-  // Планируем уведомление для случая, когда приложение открыто
-  const timeoutId = window.setTimeout(async () => {
-    console.log(`🔔 Время уведомления для "${habit.name}"!`)
-    await showNotification(habit)
-    // Планируем повторяющееся уведомление
-    await scheduleRecurringNotification(habit)
-  }, timeUntilNotification)
+    const timeUntilNotification = notificationTime.getTime() - now.getTime()
+    
+    console.log(`📅 Планируем уведомление для "${habit.name}" на ${notificationTime.toLocaleString('ru-RU')} (через ${Math.round(timeUntilNotification / 1000 / 60)} минут)`)
 
-  notificationTimeouts.set(habit.id, timeoutId)
-  
-  // Также отправляем информацию в Service Worker для фоновой проверки
-  if ('serviceWorker' in navigator) {
-    try {
-      const registration = await navigator.serviceWorker.ready
-      registration.active?.postMessage({
-        type: 'SCHEDULE_NOTIFICATION',
-        habit: {
-          id: habit.id,
-          name: habit.name,
-          notificationTime: habit.notificationTime,
-          notificationEnabled: habit.notificationEnabled,
-          customNotificationMessage: habit.customNotificationMessage,
-          character: habit.character
-        }
-      })
-    } catch (error) {
-      console.warn('⚠️ Ошибка при отправке расписания в Service Worker:', error)
+    // Планируем уведомление для случая, когда приложение открыто
+    const timeoutId = window.setTimeout(async () => {
+      console.log(`🔔 Время уведомления для "${habit.name}"!`)
+      await showNotification(habit)
+      // Планируем повторяющееся уведомление
+      await scheduleRecurringNotification(habit)
+    }, timeUntilNotification)
+
+    notificationTimeouts.set(habit.id, timeoutId)
+    
+    // Также отправляем информацию в Service Worker для фоновой проверки
+    if ('serviceWorker' in navigator) {
+      try {
+        const registration = await navigator.serviceWorker.ready
+        registration.active?.postMessage({
+          type: 'SCHEDULE_NOTIFICATION',
+          habit: {
+            id: habit.id,
+            name: habit.name,
+            notificationTime: habit.notificationTime,
+            notificationEnabled: habit.notificationEnabled,
+            customNotificationMessage: habit.customNotificationMessage,
+            character: habit.character
+          }
+        })
+      } catch (error) {
+        console.warn('⚠️ Ошибка при отправке расписания в Service Worker:', error)
+      }
     }
   }
 
