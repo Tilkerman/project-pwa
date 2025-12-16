@@ -43,6 +43,15 @@ export const useThemeStore = defineStore('theme', () => {
     const body = document.body
     const html = document.documentElement
     
+    // Устанавливаем класс dark если тема темная
+    if (theme.colorScheme === 'dark') {
+      root.classList.add('dark')
+      console.log('✅ Класс dark установлен из applyTelegramTheme')
+    } else {
+      root.classList.remove('dark')
+      console.log('✅ Класс dark удален из applyTelegramTheme')
+    }
+    
     // Применяем фон Telegram к body и html с высоким приоритетом
     if (theme.backgroundColor) {
       root.style.setProperty('--tg-bg-color', theme.backgroundColor)

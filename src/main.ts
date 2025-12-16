@@ -13,6 +13,21 @@ function applyTelegramBackground(bgColor: string, colorScheme?: string) {
   try {
     const tg = (window as any).Telegram?.WebApp || (window as any).TelegramWebApp
     
+    // Определяем, темная ли тема (по цвету фона или colorScheme)
+    const isDarkTheme = colorScheme === 'dark' || 
+                       (bgColor && (
+                         bgColor.toLowerCase() !== '#ffffff' && 
+                         bgColor.toLowerCase() !== '#fff' &&
+                         !bgColor.toLowerCase().startsWith('#fff')
+                       ))
+    
+    // Устанавливаем класс dark на documentElement
+    if (isDarkTheme) {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+    
     // Применяем фон к body и html
     if (document.body) {
       document.body.style.backgroundColor = bgColor
@@ -21,6 +36,25 @@ function applyTelegramBackground(bgColor: string, colorScheme?: string) {
     if (document.documentElement) {
       document.documentElement.style.backgroundColor = bgColor
       document.documentElement.style.setProperty('background-color', bgColor, 'important')
+    }
+    
+    // Определяем, темная ли тема (по colorScheme или по цвету фона)
+    const isDarkTheme = colorScheme === 'dark' || 
+                       (bgColor && (
+                         bgColor.toLowerCase() !== '#ffffff' && 
+                         bgColor.toLowerCase() !== '#fff' &&
+                         !bgColor.toLowerCase().startsWith('#fff') &&
+                         bgColor.toLowerCase() !== 'rgb(255, 255, 255)' &&
+                         bgColor.toLowerCase() !== 'white'
+                       ))
+    
+    // Устанавливаем класс dark на documentElement для применения темной темы CSS
+    if (isDarkTheme) {
+      document.documentElement.classList.add('dark')
+      console.log('✅ Класс dark установлен на documentElement')
+    } else {
+      document.documentElement.classList.remove('dark')
+      console.log('✅ Класс dark удален с documentElement')
     }
     
     // Устанавливаем цвет заголовка Telegram
@@ -87,13 +121,27 @@ function applyTelegramBackgroundImmediately() {
           tg.expand()
           
           // Устанавливаем цвет заголовка сразу после ready()
-          if (tg.setHeaderColor) {
+          // Пробуем несколько способов для совместимости
+          if (typeof tg.setHeaderColor === 'function') {
             try {
+              // Способ 1: Используем ключ темы (рекомендуемый)
               tg.setHeaderColor('bg_color')
-              console.log('✅ Цвет заголовка установлен через bg_color')
+              console.log('✅ Цвет заголовка установлен через bg_color после ready()')
             } catch (e) {
               console.warn('⚠️ Не удалось установить цвет заголовка через bg_color:', e)
+              // Fallback: пробуем передать цвет напрямую
+              const bgColor = tg.backgroundColor || tg.themeParams?.bg_color
+              if (bgColor) {
+                try {
+                  tg.setHeaderColor(bgColor)
+                  console.log('✅ Цвет заголовка установлен напрямую:', bgColor)
+                } catch (e2) {
+                  console.warn('⚠️ Не удалось установить цвет заголовка напрямую:', e2)
+                }
+              }
             }
+          } else {
+            console.warn('⚠️ Метод setHeaderColor не найден в Telegram WebApp API')
           }
         } catch (e) {
           console.warn('⚠️ Ошибка при инициализации Telegram WebApp:', e)
@@ -183,6 +231,12 @@ if (telegramApp) {
     const telegramTheme = getTelegramTheme()
     if (telegramTheme && telegramTheme.backgroundColor) {
       applyTelegramBackground(telegramTheme.backgroundColor, telegramTheme.colorScheme)
+      // Также убеждаемся, что класс dark установлен правильно
+      if (telegramTheme.colorScheme === 'dark') {
+        document.documentElement.classList.add('dark')
+      } else {
+        document.documentElement.classList.remove('dark')
+      }
     }
   }, 100)
   
@@ -204,6 +258,12 @@ if (telegramApp) {
         const theme = getTelegramTheme()
         if (theme && theme.backgroundColor) {
           applyTelegramBackground(theme.backgroundColor, theme.colorScheme)
+          // Обновляем класс dark при изменении темы
+          if (theme.colorScheme === 'dark') {
+            document.documentElement.classList.add('dark')
+          } else {
+            document.documentElement.classList.remove('dark')
+          }
         }
       })
     }
