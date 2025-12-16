@@ -24,13 +24,37 @@ function applyTelegramBackground(bgColor: string, colorScheme?: string) {
     }
     
     // Устанавливаем цвет заголовка Telegram
-    if (tg && tg.setHeaderColor) {
-      try {
-        // Используем цвет фона для заголовка, чтобы он соответствовал теме
-        tg.setHeaderColor(bgColor)
-        console.log('✅ Цвет заголовка Telegram установлен:', bgColor)
-      } catch (error) {
-        console.warn('⚠️ Не удалось установить цвет заголовка:', error)
+    // Используем ключ темы 'bg_color' для автоматического соответствия теме
+    if (tg) {
+      // Проверяем наличие метода setHeaderColor
+      if (typeof tg.setHeaderColor === 'function') {
+        try {
+          // Сначала пробуем использовать ключ темы (рекомендуемый способ)
+          tg.setHeaderColor('bg_color')
+          console.log('✅ Цвет заголовка Telegram установлен через ключ темы bg_color')
+        } catch (error) {
+          console.warn('⚠️ Ошибка при установке цвета заголовка через bg_color:', error)
+          // Если не работает, пробуем передать цвет напрямую
+          try {
+            tg.setHeaderColor(bgColor)
+            console.log('✅ Цвет заголовка Telegram установлен напрямую:', bgColor)
+          } catch (error2) {
+            console.warn('⚠️ Не удалось установить цвет заголовка напрямую:', error2)
+          }
+        }
+      } else {
+        // Проверяем альтернативные варианты названия метода
+        const setHeaderColorAlt = tg.setHeaderColor || (tg as any).setHeaderColor || (tg as any).setHeaderBgColor
+        if (typeof setHeaderColorAlt === 'function') {
+          try {
+            setHeaderColorAlt('bg_color')
+            console.log('✅ Цвет заголовка установлен через альтернативный метод')
+          } catch (error) {
+            console.warn('⚠️ Ошибка при установке через альтернативный метод:', error)
+          }
+        } else {
+          console.warn('⚠️ Метод setHeaderColor недоступен. Доступные методы:', Object.keys(tg).filter(k => k.toLowerCase().includes('header') || k.toLowerCase().includes('color')))
+        }
       }
     }
     
@@ -61,6 +85,16 @@ function applyTelegramBackgroundImmediately() {
         try {
           tg.ready()
           tg.expand()
+          
+          // Устанавливаем цвет заголовка сразу после ready()
+          if (tg.setHeaderColor) {
+            try {
+              tg.setHeaderColor('bg_color')
+              console.log('✅ Цвет заголовка установлен через bg_color')
+            } catch (e) {
+              console.warn('⚠️ Не удалось установить цвет заголовка через bg_color:', e)
+            }
+          }
         } catch (e) {
           console.warn('⚠️ Ошибка при инициализации Telegram WebApp:', e)
         }
@@ -123,6 +157,27 @@ if (telegramApp) {
   console.log('👤 Пользователь:', telegramApp.user)
   console.log('🎨 Тема:', telegramApp.theme)
   
+  // Устанавливаем цвет заголовка после инициализации
+  const setupHeaderColor = () => {
+    try {
+      const tg = (window as any).Telegram?.WebApp || (window as any).TelegramWebApp
+      if (tg && tg.setHeaderColor) {
+        // Используем ключ темы 'bg_color' - это автоматически применит цвет фона
+        tg.setHeaderColor('bg_color')
+        console.log('✅ Цвет заголовка установлен через bg_color после инициализации')
+      }
+    } catch (error) {
+      console.warn('⚠️ Ошибка при установке цвета заголовка:', error)
+    }
+  }
+  
+  // Пробуем установить сразу
+  setupHeaderColor()
+  
+  // И еще раз с небольшой задержкой для надежности
+  setTimeout(setupHeaderColor, 100)
+  setTimeout(setupHeaderColor, 500)
+  
   // Применяем тему еще раз для надежности (с задержкой для Desktop)
   setTimeout(() => {
     const telegramTheme = getTelegramTheme()
@@ -136,6 +191,16 @@ if (telegramApp) {
     const tg = (window as any).Telegram?.WebApp || (window as any).TelegramWebApp
     if (tg && tg.onEvent) {
       tg.onEvent('themeChanged', () => {
+        console.log('🔄 Тема Telegram изменилась')
+        // Обновляем цвет заголовка при изменении темы
+        if (tg.setHeaderColor) {
+          try {
+            tg.setHeaderColor('bg_color')
+            console.log('✅ Цвет заголовка обновлен при изменении темы')
+          } catch (e) {
+            console.warn('⚠️ Не удалось обновить цвет заголовка:', e)
+          }
+        }
         const theme = getTelegramTheme()
         if (theme && theme.backgroundColor) {
           applyTelegramBackground(theme.backgroundColor, theme.colorScheme)

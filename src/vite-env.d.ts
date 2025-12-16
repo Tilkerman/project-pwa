@@ -55,6 +55,8 @@ interface TelegramWebApp {
   close: () => void
   showAlert: (message: string) => void
   showConfirm: (message: string, callback: (confirmed: boolean) => void) => void
+  setHeaderColor?: (color: string) => void
+  onEvent?: (event: string, callback: () => void) => void
 }
 
 interface Telegram {
