@@ -6,11 +6,14 @@ import i18n from './i18n'
 import './style.css'
 import { initTelegramMiniApp, getTelegramTheme, isTelegramMiniApp } from './utils/telegramMiniApp'
 
-// Функция для применения фона Telegram
-function applyTelegramBackground(bgColor: string) {
+// Функция для применения фона Telegram и цвета заголовка
+function applyTelegramBackground(bgColor: string, colorScheme?: string) {
   if (!bgColor) return
   
   try {
+    const tg = (window as any).Telegram?.WebApp || (window as any).TelegramWebApp
+    
+    // Применяем фон к body и html
     if (document.body) {
       document.body.style.backgroundColor = bgColor
       document.body.style.setProperty('background-color', bgColor, 'important')
@@ -19,6 +22,18 @@ function applyTelegramBackground(bgColor: string) {
       document.documentElement.style.backgroundColor = bgColor
       document.documentElement.style.setProperty('background-color', bgColor, 'important')
     }
+    
+    // Устанавливаем цвет заголовка Telegram
+    if (tg && tg.setHeaderColor) {
+      try {
+        // Используем цвет фона для заголовка, чтобы он соответствовал теме
+        tg.setHeaderColor(bgColor)
+        console.log('✅ Цвет заголовка Telegram установлен:', bgColor)
+      } catch (error) {
+        console.warn('⚠️ Не удалось установить цвет заголовка:', error)
+      }
+    }
+    
     console.log('✅ Фон Telegram применен:', bgColor)
     return true
   } catch (error) {
@@ -50,10 +65,18 @@ function applyTelegramBackgroundImmediately() {
           console.warn('⚠️ Ошибка при инициализации Telegram WebApp:', e)
         }
         
-        // Применяем фон сразу к body и html
-        const bgColor = tg.backgroundColor || tg.themeParams?.bg_color || '#ffffff'
-        if (bgColor && bgColor !== '#ffffff') {
-          if (applyTelegramBackground(bgColor)) {
+        // Получаем цвет фона и схему цветов
+        let bgColor = tg.backgroundColor || tg.themeParams?.bg_color
+        const colorScheme = tg.colorScheme || 'light'
+        
+        // Если цвет не определен, используем цвет по умолчанию в зависимости от темы
+        if (!bgColor) {
+          bgColor = colorScheme === 'dark' ? '#212121' : '#ffffff'
+        }
+        
+        // Применяем фон и цвет заголовка
+        if (bgColor) {
+          if (applyTelegramBackground(bgColor, colorScheme)) {
             return // Успешно применили
           }
         }
@@ -66,7 +89,8 @@ function applyTelegramBackgroundImmediately() {
         // Fallback: применяем светлый или темный фон в зависимости от темы
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
         const fallbackColor = prefersDark ? '#212121' : '#ffffff'
-        applyTelegramBackground(fallbackColor)
+        const fallbackScheme = prefersDark ? 'dark' : 'light'
+        applyTelegramBackground(fallbackColor, fallbackScheme)
         console.warn('⚠️ Используем fallback фон:', fallbackColor)
       }
     } catch (error) {
@@ -103,7 +127,7 @@ if (telegramApp) {
   setTimeout(() => {
     const telegramTheme = getTelegramTheme()
     if (telegramTheme && telegramTheme.backgroundColor) {
-      applyTelegramBackground(telegramTheme.backgroundColor)
+      applyTelegramBackground(telegramTheme.backgroundColor, telegramTheme.colorScheme)
     }
   }, 100)
   
@@ -114,7 +138,7 @@ if (telegramApp) {
       tg.onEvent('themeChanged', () => {
         const theme = getTelegramTheme()
         if (theme && theme.backgroundColor) {
-          applyTelegramBackground(theme.backgroundColor)
+          applyTelegramBackground(theme.backgroundColor, theme.colorScheme)
         }
       })
     }

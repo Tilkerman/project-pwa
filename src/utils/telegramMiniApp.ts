@@ -154,15 +154,22 @@ export function getTelegramTheme() {
     const tg = (window as any).Telegram?.WebApp || (window as any).TelegramWebApp
     if (!tg) return null
     
+    const colorScheme = tg.colorScheme || 'light'
+    // Если цвет фона не определен, используем цвет по умолчанию в зависимости от темы
+    let backgroundColor = tg.backgroundColor || tg.themeParams?.bg_color
+    if (!backgroundColor) {
+      backgroundColor = colorScheme === 'dark' ? '#212121' : '#ffffff'
+    }
+    
     return {
-      colorScheme: tg.colorScheme || 'light',
-      backgroundColor: tg.backgroundColor || '#ffffff',
-      textColor: tg.themeParams?.text_color || '#000000',
-      hintColor: tg.themeParams?.hint_color || '#999999',
+      colorScheme,
+      backgroundColor,
+      textColor: tg.themeParams?.text_color || (colorScheme === 'dark' ? '#ffffff' : '#000000'),
+      hintColor: tg.themeParams?.hint_color || (colorScheme === 'dark' ? '#999999' : '#666666'),
       linkColor: tg.themeParams?.link_color || '#2481cc',
       buttonColor: tg.themeParams?.button_color || '#2481cc',
       buttonTextColor: tg.themeParams?.button_text_color || '#ffffff',
-      secondaryBgColor: tg.themeParams?.secondary_bg_color || '#f1f1f1',
+      secondaryBgColor: tg.themeParams?.secondary_bg_color || (colorScheme === 'dark' ? '#1f2937' : '#f1f1f1'),
     }
   } catch (error) {
     console.warn('⚠️ Не удалось получить тему Telegram:', error)

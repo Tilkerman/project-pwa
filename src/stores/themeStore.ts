@@ -52,6 +52,17 @@ export const useThemeStore = defineStore('theme', () => {
       // Также устанавливаем напрямую для совместимости
       body.style.backgroundColor = theme.backgroundColor
       html.style.backgroundColor = theme.backgroundColor
+      
+      // Устанавливаем цвет заголовка Telegram
+      try {
+        const tg = (window as any).Telegram?.WebApp || (window as any).TelegramWebApp
+        if (tg && tg.setHeaderColor) {
+          tg.setHeaderColor(theme.backgroundColor)
+          console.log('✅ Цвет заголовка Telegram установлен из themeStore:', theme.backgroundColor)
+        }
+      } catch (error) {
+        console.warn('⚠️ Не удалось установить цвет заголовка из themeStore:', error)
+      }
     }
     
     // Применяем цвета Telegram как CSS переменные (опционально)
