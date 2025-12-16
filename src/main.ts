@@ -13,31 +13,6 @@ function applyTelegramBackground(bgColor: string, colorScheme?: string) {
   try {
     const tg = (window as any).Telegram?.WebApp || (window as any).TelegramWebApp
     
-    // Определяем, темная ли тема (по цвету фона или colorScheme)
-    const isDarkTheme = colorScheme === 'dark' || 
-                       (bgColor && (
-                         bgColor.toLowerCase() !== '#ffffff' && 
-                         bgColor.toLowerCase() !== '#fff' &&
-                         !bgColor.toLowerCase().startsWith('#fff')
-                       ))
-    
-    // Устанавливаем класс dark на documentElement
-    if (isDarkTheme) {
-      document.documentElement.classList.add('dark')
-    } else {
-      document.documentElement.classList.remove('dark')
-    }
-    
-    // Применяем фон к body и html
-    if (document.body) {
-      document.body.style.backgroundColor = bgColor
-      document.body.style.setProperty('background-color', bgColor, 'important')
-    }
-    if (document.documentElement) {
-      document.documentElement.style.backgroundColor = bgColor
-      document.documentElement.style.setProperty('background-color', bgColor, 'important')
-    }
-    
     // Определяем, темная ли тема (по colorScheme или по цвету фона)
     const isDarkTheme = colorScheme === 'dark' || 
                        (bgColor && (
@@ -56,6 +31,19 @@ function applyTelegramBackground(bgColor: string, colorScheme?: string) {
       document.documentElement.classList.remove('dark')
       console.log('✅ Класс dark удален с documentElement')
     }
+    
+    // Применяем фон к body и html
+    if (document.body) {
+      document.body.style.backgroundColor = bgColor
+      document.body.style.setProperty('background-color', bgColor, 'important')
+    }
+    if (document.documentElement) {
+      document.documentElement.style.backgroundColor = bgColor
+      document.documentElement.style.setProperty('background-color', bgColor, 'important')
+    }
+    
+    // Также устанавливаем CSS переменную для фона
+    document.documentElement.style.setProperty('--tg-bg-color', bgColor)
     
     // Устанавливаем цвет заголовка Telegram
     // Используем ключ темы 'bg_color' для автоматического соответствия теме

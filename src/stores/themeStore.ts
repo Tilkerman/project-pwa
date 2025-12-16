@@ -95,11 +95,28 @@ export const useThemeStore = defineStore('theme', () => {
 
   // Применяем тему к документу
   function applyTheme() {
+    const root = document.documentElement
+    
     if (isDark.value) {
-      document.documentElement.classList.add('dark')
+      root.classList.add('dark')
+      // Устанавливаем темный фон
+      const darkBg = '#212121'
+      root.style.setProperty('background-color', darkBg, 'important')
+      if (document.body) {
+        document.body.style.setProperty('background-color', darkBg, 'important')
+      }
+      console.log('✅ Темная тема применена')
     } else {
-      document.documentElement.classList.remove('dark')
+      root.classList.remove('dark')
+      // Устанавливаем светлый фон
+      const lightBg = '#ffffff'
+      root.style.setProperty('background-color', lightBg, 'important')
+      if (document.body) {
+        document.body.style.setProperty('background-color', lightBg, 'important')
+      }
+      console.log('✅ Светлая тема применена')
     }
+    
     localStorage.setItem('theme', isDark.value ? 'dark' : 'light')
   }
 
@@ -107,6 +124,29 @@ export const useThemeStore = defineStore('theme', () => {
   function toggleTheme() {
     isDark.value = !isDark.value
     applyTheme()
+    
+    // Если в Telegram, также обновляем фон и синхронизируем с Telegram
+    if (isTelegramMiniApp()) {
+      const telegramTheme = getTelegramTheme()
+      if (telegramTheme) {
+        // Обновляем тему Telegram в соответствии с переключением
+        const newColorScheme = isDark.value ? 'dark' : 'light'
+        // Применяем тему с обновленным colorScheme
+        applyTelegramTheme({
+          ...telegramTheme,
+          colorScheme: newColorScheme
+        })
+      } else {
+        // Если тема Telegram недоступна, применяем стандартные цвета
+        const bgColor = isDark.value ? '#212121' : '#ffffff'
+        if (document.body) {
+          document.body.style.setProperty('background-color', bgColor, 'important')
+        }
+        if (document.documentElement) {
+          document.documentElement.style.setProperty('background-color', bgColor, 'important')
+        }
+      }
+    }
   }
 
   // Устанавливаем тему явно

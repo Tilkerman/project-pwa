@@ -129,6 +129,8 @@ onMounted(async () => {
   width: 100%;
   max-width: 100%;
   overflow-x: hidden;
+  background: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 .app-footer {
