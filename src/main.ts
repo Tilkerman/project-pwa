@@ -5,6 +5,10 @@ import router from './router'
 import i18n from './i18n'
 import './style.css'
 import { initTelegramMiniApp, getTelegramTheme, isTelegramMiniApp } from './utils/telegramMiniApp'
+// Импортируем диагностику для десктопа (только в dev режиме)
+if (import.meta.env.DEV) {
+  import('./utils/desktopDiagnostics')
+}
 
 // Функция для применения фона Telegram и цвета заголовка
 function applyTelegramBackground(bgColor: string, colorScheme?: string) {

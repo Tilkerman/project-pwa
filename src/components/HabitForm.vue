@@ -154,21 +154,6 @@
       </div>
     </div>
 
-    <!-- Секция: Дополнительная мотивация -->
-    <div class="form-section">
-      <div class="section-label-row">
-        <label class="section-label">{{ t('habitForm.additionalMotivation') }}</label>
-        <label class="ios-toggle">
-          <input
-            v-model="formData.additionalMotivation"
-            type="checkbox"
-          >
-          <span class="ios-toggle-slider"></span>
-        </label>
-      </div>
-    </div>
-
-
     <!-- Секция: Цвет проекта -->
     <div class="form-section">
       <div class="section-label-row">
@@ -292,7 +277,7 @@ const formData = ref({
   color: (props.habit?.color || 'blue') as ProjectColor,
   customColor: props.habit?.customColor || '#3b82f6',
   icon: props.habit?.icon || '🚫',
-  additionalMotivation: props.habit?.additionalMotivation !== undefined ? props.habit.additionalMotivation : true
+  additionalMotivation: true // Всегда включено, но не показываем в UI
 })
 
 const showCharacterDropdown = ref(false)
@@ -377,7 +362,7 @@ watch(() => props.habit, (newHabit) => {
       color: newHabit.color || 'blue',
       customColor: newHabit.customColor || '#3b82f6',
       icon: newHabit.icon || '🚫',
-      additionalMotivation: newHabit.additionalMotivation !== undefined ? newHabit.additionalMotivation : true
+      additionalMotivation: true // Всегда включено, но не показываем в UI
     }
     if (newHabit.color === 'custom') {
       showCustomColorPicker.value = true
