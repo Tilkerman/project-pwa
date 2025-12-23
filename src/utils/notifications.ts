@@ -4,6 +4,12 @@ import { sendTelegramNotification, isTelegramEnabled, getTelegramUser } from './
 import { scheduleNotificationOnServer, removeNotificationFromServer, NOTIFICATION_SERVER_URL } from './notificationServer'
 import { isTelegramMiniApp } from './telegramMiniApp'
 
+function assetUrl(path: string): string {
+  const base = (import.meta as any).env?.BASE_URL || '/'
+  // BASE_URL обычно заканчивается на '/'
+  return `${base}${path.replace(/^\//, '')}`
+}
+
 function isTelegramUA(): boolean {
   try {
     return typeof navigator !== 'undefined' && /Telegram/i.test(navigator.userAgent)
@@ -434,16 +440,15 @@ export async function showNotification(habit: Habit): Promise<void> {
       
       const options: NotificationOptions = {
         body: message,
-        // Относительные пути, чтобы работать и в поддиректории (GitHub Pages)
-        icon: 'icons/icon-192x192.png',
-        badge: 'icons/icon-192x192.png',
+        icon: assetUrl('icons/icon-192x192.png'),
+        badge: assetUrl('icons/icon-192x192.png'),
         tag: `habit-${habit.id}`,
         requireInteraction: false,
         silent: false,
         vibrate: [200, 100, 200],
         data: {
           habitId: habit.id,
-          url: './'
+          url: `${assetUrl('')}#/`
         }
       }
 
@@ -486,8 +491,8 @@ export async function showNotification(habit: Habit): Promise<void> {
   try {
     const notificationOptions: NotificationOptions = {
       body: message,
-      icon: 'icons/icon-192x192.png',
-      badge: 'icons/icon-192x192.png',
+      icon: assetUrl('icons/icon-192x192.png'),
+      badge: assetUrl('icons/icon-192x192.png'),
       tag: `habit-${habit.id}`,
       requireInteraction: false,
       silent: false
@@ -541,8 +546,8 @@ export function testNotification(): void {
   try {
     const testNotification = new Notification('Тестовое уведомление', {
       body: 'Если вы видите это сообщение, уведомления работают правильно! 🎉',
-      icon: 'icons/icon-192x192.png',
-      badge: 'icons/icon-192x192.png',
+      icon: assetUrl('icons/icon-192x192.png'),
+      badge: assetUrl('icons/icon-192x192.png'),
       tag: 'test-notification',
       vibrate: [200, 100, 200]
     })
@@ -682,8 +687,8 @@ export function checkAndShowAchievementNotification(
   const message = getCharacterMessage(habit.character, habit, 'achievement')
   const notification = new Notification('Новое достижение!', {
     body: `${message} - ${achievementId}`,
-    icon: 'icons/icon-192x192.png',
-    badge: 'icons/icon-192x192.png',
+    icon: assetUrl('icons/icon-192x192.png'),
+    badge: assetUrl('icons/icon-192x192.png'),
     tag: `achievement-${habit.id}-${achievementId}`
   })
 

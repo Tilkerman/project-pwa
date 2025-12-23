@@ -332,7 +332,9 @@ if ('serviceWorker' in navigator) {
   // - в Telegram WebView (mobile/desktop)
   // - в установленной PWA
   try {
-    const scopeUrl = new URL('./', window.location.href)
+    // Берём BASE_URL из сборки (на GH Pages это будет /project-pwa/)
+    const base = import.meta.env.BASE_URL || '/'
+    const scopeUrl = new URL(base, window.location.origin)
     const swUrl = new URL('sw.js', scopeUrl)
     navigator.serviceWorker.register(swUrl.href, { scope: scopeUrl.pathname }).catch((e) => {
       console.warn('⚠️ Не удалось зарегистрировать Service Worker:', e)

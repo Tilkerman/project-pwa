@@ -4,13 +4,16 @@ import { VitePWA } from 'vite-plugin-pwa'
 import { resolve } from 'path'
 import packageJson from './package.json'
 
-export default defineConfig(({ command }) => ({
-  // В dev оставляем абсолютный корень (vite dev server).
-  // В production делаем относительные пути, чтобы сборка работала:
-  // - в корне домена
-  // - в поддиректории (GitHub Pages)
-  // - внутри Telegram WebView
-  base: command === 'serve' ? '/' : './',
+export default defineConfig(({ command }) => {
+  // Telegram WebView иногда открывает URL без завершающего "/"
+  // (например, https://tilkerman.github.io/project-pwa вместо .../project-pwa/).
+  // При относительных путях ./assets это ломает загрузку JS/CSS.
+  // Поэтому для GitHub Pages используем абсолютный base: /project-pwa/
+  const prodBase = '/project-pwa/'
+  const base = command === 'serve' ? '/' : prodBase
+
+  return ({
+    base,
   build: {
     outDir: 'dist'
   },
@@ -64,8 +67,8 @@ export default defineConfig(({ command }) => ({
       workbox: {
         globPatterns: ['**/*.{html,ico,png,svg,webmanifest}'],
         // Не кэшируем JS и CSS в precache, используем runtime caching
-        // Важно: относительный fallback, чтобы корректно работать в поддиректориях
-        navigateFallback: 'index.html',
+        // Fallback должен быть в пределах scope (/project-pwa/), иначе навигация в Telegram/PWA ломается
+        navigateFallback: `${prodBase}index.html`,
         navigateFallbackDenylist: [/^\/_/, /\/[^/?]+\.[^/]+$/],
         cleanupOutdatedCaches: true,
         skipWaiting: true,
@@ -107,5 +110,6 @@ export default defineConfig(({ command }) => ({
   define: {
     __APP_VERSION__: JSON.stringify(packageJson.version)
   }
-}))
+  })
+})
 
