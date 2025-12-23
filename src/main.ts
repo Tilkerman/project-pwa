@@ -190,6 +190,47 @@ function applyTelegramBackgroundImmediately() {
 // Применяем фон ДО создания Vue приложения
 applyTelegramBackgroundImmediately()
 
+// Telegram Desktop иногда залипает на старом Service Worker/кэше.
+// Даем "аварийный" способ сброса через параметр URL: ?reset=1
+async function maybeHardResetCaches() {
+  try {
+    const url = new URL(window.location.href)
+    if (!url.searchParams.has('reset')) return
+
+    console.warn('🧹 reset=1: сбрасываем Service Worker и кэши...')
+
+    // Убираем параметр reset перед финальным редиректом
+    url.searchParams.delete('reset')
+
+    if ('serviceWorker' in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations()
+      await Promise.all(regs.map((r) => r.unregister()))
+    }
+
+    if ('caches' in window) {
+      const keys = await caches.keys()
+      await Promise.all(keys.map((k) => caches.delete(k)))
+    }
+
+    // Чистим наши маркеры версии/перезагрузки
+    try {
+      localStorage.removeItem('app-cache-version')
+      sessionStorage.removeItem('app-reload-flag')
+    } catch {}
+
+    // Telegram иногда открывает без #/, принудительно ставим главную
+    if (!url.hash || url.hash === '#') {
+      url.hash = '#/'
+    }
+
+    window.location.replace(url.toString())
+  } catch (e) {
+    console.warn('⚠️ reset=1: не удалось выполнить сброс:', e)
+  }
+}
+
+maybeHardResetCaches()
+
 // Инициализация Telegram Mini App (если запущено в Telegram)
 const telegramApp = initTelegramMiniApp()
 if (telegramApp) {
