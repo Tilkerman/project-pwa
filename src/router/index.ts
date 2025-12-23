@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHashHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import HabitDetailView from '../views/HabitDetailView.vue'
 import StatsView from '../views/StatsView.vue'
@@ -9,7 +9,11 @@ import AboutView from '../views/AboutView.vue'
 import ShareView from '../views/ShareView.vue'
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
+  // Hash-роутинг работает одинаково:
+  // - на любом хосте/поддиректории (без настройки base на сервере)
+  // - в Telegram WebView (desktop/mobile)
+  // - в установленной PWA
+  history: createWebHashHistory(),
   routes: [
     {
       path: '/',

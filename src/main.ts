@@ -325,6 +325,21 @@ if ('serviceWorker' in navigator) {
   const storedVersion = localStorage.getItem(CACHE_VERSION_KEY)
   const reloadFlag = sessionStorage.getItem(RELOAD_FLAG_KEY)
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+
+  // ВАЖНО: регистрируем Service Worker сами, с корректным url и scope.
+  // Это нужно, чтобы работало одинаково:
+  // - на любом хосте и поддиректории (GitHub Pages)
+  // - в Telegram WebView (mobile/desktop)
+  // - в установленной PWA
+  try {
+    const scopeUrl = new URL('./', window.location.href)
+    const swUrl = new URL('sw.js', scopeUrl)
+    navigator.serviceWorker.register(swUrl.href, { scope: scopeUrl.pathname }).catch((e) => {
+      console.warn('⚠️ Не удалось зарегистрировать Service Worker:', e)
+    })
+  } catch (e) {
+    console.warn('⚠️ Не удалось вычислить URL для Service Worker:', e)
+  }
   
   // Очищаем кэш только если версия изменилась И мы еще не перезагружались
   if (storedVersion !== APP_VERSION && !reloadFlag) {

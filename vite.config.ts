@@ -4,13 +4,13 @@ import { VitePWA } from 'vite-plugin-pwa'
 import { resolve } from 'path'
 import packageJson from './package.json'
 
-const basePath = process.env.CI ? '/project-pwa/' : '/'
-
-export default defineConfig({
-  // Четкий base для роутера и ассетов:
-  // - локально/Render: '/'
-  // - GitHub Pages: '/project-pwa/'
-  base: basePath,
+export default defineConfig(({ command }) => ({
+  // В dev оставляем абсолютный корень (vite dev server).
+  // В production делаем относительные пути, чтобы сборка работала:
+  // - в корне домена
+  // - в поддиректории (GitHub Pages)
+  // - внутри Telegram WebView
+  base: command === 'serve' ? '/' : './',
   build: {
     outDir: 'dist'
   },
@@ -18,6 +18,9 @@ export default defineConfig({
     vue(),
     VitePWA({
       registerType: 'autoUpdate',
+      // Регистрируем SW сами (в `src/main.ts`) — так путь и scope корректны
+      // и в корне домена, и в поддиректории, и в Telegram WebView.
+      injectRegister: null,
       includeAssets: [
         'favicon.ico',
         'icon.svg',
@@ -61,7 +64,8 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{html,ico,png,svg,webmanifest}'],
         // Не кэшируем JS и CSS в precache, используем runtime caching
-        navigateFallback: '/index.html',
+        // Важно: относительный fallback, чтобы корректно работать в поддиректориях
+        navigateFallback: 'index.html',
         navigateFallbackDenylist: [/^\/_/, /\/[^/?]+\.[^/]+$/],
         cleanupOutdatedCaches: true,
         skipWaiting: true,
@@ -103,5 +107,5 @@ export default defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify(packageJson.version)
   }
-})
+}))
 

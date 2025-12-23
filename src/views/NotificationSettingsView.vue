@@ -20,21 +20,78 @@
         <p class="section-description">
           {{ t('settings.notifications.habitsNotificationsDesc') }}
         </p>
+
+        <div v-if="loading" class="loading">
+          {{ t('common.loading') }}
+        </div>
+
+        <div v-else-if="habits.length === 0" class="empty">
+          {{ t('settings.notifications.noHabits') }}
+        </div>
+
+        <div v-else class="habits-list">
+          <div v-for="habit in habits" :key="habit.id" class="habit-card">
+            <div class="habit-header">
+              <div class="habit-title">
+                <span class="habit-icon">{{ habit.icon || '🚫' }}</span>
+                <span class="habit-name">{{ habit.name }}</span>
+              </div>
+            </div>
+
+            <NotificationSettings
+              :enabled="habit.notificationEnabled"
+              :time="habit.notificationTime"
+              @update:enabled="(v) => updateHabitNotifications(habit.id, v, habit.notificationTime)"
+              @update:time="(v) => updateHabitNotifications(habit.id, true, v)"
+            />
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from '@/composables/useI18n'
 import TelegramSettings from '@/components/TelegramSettings.vue'
+import NotificationSettings from '@/components/NotificationSettings.vue'
+import { useHabitsStore } from '@/stores/habitsStore'
+import type { Habit } from '@/types'
 
 const router = useRouter()
 const { t, locale } = useI18n()
+const store = useHabitsStore()
+const loading = ref(true)
+
+const habits = computed(() => store.habits)
+
+onMounted(async () => {
+  try {
+    await store.loadHabits()
+  } finally {
+    loading.value = false
+  }
+})
 
 function goBack() {
   router.push('/settings')
+}
+
+async function updateHabitNotifications(habitId: string, enabled: boolean, time?: string) {
+  const habit = store.getHabitById(habitId)
+  if (!habit) return
+
+  const nextTime = enabled ? (time || habit.notificationTime || '09:00') : undefined
+
+  const updated: Habit = {
+    ...habit,
+    notificationEnabled: enabled,
+    notificationTime: nextTime,
+  }
+
+  await store.updateHabit(updated)
 }
 </script>
 
@@ -114,6 +171,53 @@ function goBack() {
   color: var(--text-secondary);
   margin: 0;
   line-height: 1.5;
+}
+
+.loading,
+.empty {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.habits-list {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.habit-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.habit-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.habit-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.habit-icon {
+  font-size: 1.25rem;
+}
+
+.habit-name {
+  font-weight: 600;
+  color: var(--text-primary);
 }
 </style>
 

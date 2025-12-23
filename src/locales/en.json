@@ -3,6 +3,9 @@
     "name": "Habits",
     "title": "Habit Tracker"
   },
+  "common": {
+    "loading": "Loading..."
+  },
   "home": {
     "greeting": "Hello! Let's start a new habit?",
     "subtitle": "Track your progress every day and move towards your goals",
@@ -89,7 +92,8 @@
       "title": "Notification Settings",
       "description": "Manage notifications and Telegram",
       "habitsNotifications": "Notifications for habits",
-      "habitsNotificationsDesc": "Configure notifications for each habit separately on the habit details page."
+      "habitsNotificationsDesc": "Configure notifications for each habit: enable and reminder time.",
+      "noHabits": "You don’t have any habits yet — create one on the home screen first."
     },
     "about": {
       "title": "About",

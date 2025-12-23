@@ -70,11 +70,18 @@ const copied = ref(false)
 const appUrl = ref('')
 
 onMounted(async () => {
-  // Получаем текущий URL приложения
-  const baseUrl = import.meta.env.BASE_URL || '/'
-  // Убираем завершающий слэш, если он есть
-  const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl
-  appUrl.value = window.location.origin + cleanBaseUrl
+  // Ссылка для шаринга должна быть валидной в любом окружении:
+  // - GitHub Pages (поддиректория)
+  // - Telegram WebView
+  // - PWA
+  // При hash-роутинге правильный "корень приложения" — это origin + pathname (без hash).
+  const origin = window.location.origin
+  let pathname = window.location.pathname || '/'
+  // Если вдруг попали на /index.html, нормализуем к директории
+  if (pathname.endsWith('/index.html')) {
+    pathname = pathname.slice(0, -'/index.html'.length) || '/'
+  }
+  appUrl.value = origin + pathname
   
   // Генерируем QR код
   await nextTick()
