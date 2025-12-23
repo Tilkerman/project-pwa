@@ -4,10 +4,13 @@ import { VitePWA } from 'vite-plugin-pwa'
 import { resolve } from 'path'
 import packageJson from './package.json'
 
+const basePath = process.env.CI ? '/project-pwa/' : '/'
+
 export default defineConfig({
-  // Используем относительный base, чтобы сборка корректно работала и в корне,
-  // и на поддиректориях (GitHub Pages /project-pwa/), без битых путей к манифесту/иконкам.
-  base: './',
+  // Четкий base для роутера и ассетов:
+  // - локально/Render: '/'
+  // - GitHub Pages: '/project-pwa/'
+  base: basePath,
   build: {
     outDir: 'dist'
   },
