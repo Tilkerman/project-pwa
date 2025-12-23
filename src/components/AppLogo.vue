@@ -1,15 +1,19 @@
 <template>
   <div class="app-logo" :style="{ width: size, height: size }">
     <img
-      :src="iconPath"
+      :src="currentSrc"
       alt="Логотип"
       :style="{ width: size, height: size }"
       class="logo-img"
+      loading="eager"
+      decoding="async"
+      @error="handleError"
     />
   </div>
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import iconNew from '@/assets/icon-new.png'
 
 withDefaults(defineProps<{
@@ -18,8 +22,19 @@ withDefaults(defineProps<{
   size: '64px'
 })
 
-// Используем импорт из assets, чтобы исключить проблемы с путями public
-const iconPath = iconNew
+// iOS PWA иногда залипает на старых hashed-ассетах или не загружает большой PNG.
+// Поэтому:
+// - по умолчанию пробуем PNG (красивый логотип),
+// - если не загрузился, переключаемся на стабильный /icon.svg в public.
+const base = import.meta.env.BASE_URL || '/'
+const iconSvg = `${base}icon.svg`
+
+const currentSrc = ref<string>(iconNew)
+
+function handleError() {
+  // Fallback на SVG (в пределах BASE_URL)
+  if (currentSrc.value !== iconSvg) currentSrc.value = iconSvg
+}
 </script>
 
 <style scoped>
