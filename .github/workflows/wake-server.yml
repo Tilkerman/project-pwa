@@ -2,7 +2,7 @@ name: Wake Notification Server
 
 on:
   schedule:
-    - cron: '*/10 * * * *'  # Каждые 10 минут
+    - cron: '*/5 * * * *'  # Каждые 5 минут (чтобы Render не засыпал)
   workflow_dispatch:  # Ручной запуск
 
 jobs:

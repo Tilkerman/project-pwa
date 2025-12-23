@@ -4,6 +4,8 @@
 import express from 'express'
 import cron from 'node-cron'
 import { handleUpdate, sendMessage } from './bot.js'
+import fs from 'fs/promises'
+import path from 'path'
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -14,6 +16,51 @@ const BOT_API_URL = 'https://api.telegram.org/bot'
 
 // Хранилище расписаний (в продакшене лучше использовать базу данных)
 const notificationSchedules = new Map()
+
+// Простая персистентность на файловой системе (лучше, чем терять всё при рестарте процесса).
+// Примечание: на бесплатном Render диск не гарантированно постоянный между пересозданиями инстанса,
+// но это сильно повышает стабильность при обычных рестартах/перезапусках процесса.
+const DATA_FILE = path.resolve(process.cwd(), 'schedules.json')
+
+async function loadSchedulesFromDisk() {
+  try {
+    const raw = await fs.readFile(DATA_FILE, 'utf-8')
+    const parsed = JSON.parse(raw)
+    if (!Array.isArray(parsed)) return
+    notificationSchedules.clear()
+    for (const s of parsed) {
+      if (!s?.id) continue
+      notificationSchedules.set(s.id, {
+        ...s,
+        lastSent: s.lastSent && typeof s.lastSent === 'object' ? s.lastSent : {}
+      })
+    }
+    console.log(`💾 Загружено расписаний с диска: ${notificationSchedules.size}`)
+  } catch (e) {
+    // файла может не быть — это нормально
+    console.log('ℹ️ schedules.json не найден или не удалось загрузить (это нормально при первом запуске)')
+  }
+}
+
+async function saveSchedulesToDisk() {
+  try {
+    const arr = Array.from(notificationSchedules.values()).map((s) => ({
+      id: s.id,
+      name: s.name,
+      time: s.time,
+      timeLocal: s.timeLocal || null,
+      timeZone: s.timeZone || null,
+      enabled: !!s.enabled,
+      customNotificationMessage: s.customNotificationMessage,
+      character: s.character,
+      chatId: s.chatId,
+      lastSent: s.lastSent || {}
+    }))
+    await fs.writeFile(DATA_FILE, JSON.stringify(arr, null, 2), 'utf-8')
+  } catch (e) {
+    console.warn('⚠️ Не удалось сохранить schedules.json:', e?.message || e)
+  }
+}
 
 // Middleware для парсинга JSON
 app.use(express.json())
@@ -162,10 +209,29 @@ async function checkAndSendNotifications() {
 
     console.log(`🔍 Проверка "${schedule.name}": запланировано на ${effectiveScheduleTime}${scheduleTimeZone ? ` (${scheduleTimeZone})` : ' (UTC)'}, текущее время ${effectiveNowTime}${scheduleTimeZone ? ` (${scheduleTimeZone})` : ' (UTC)'}`)
     
-    // Проверяем, наступило ли время уведомления (с точностью до минуты)
-    if (effectiveScheduleTime === effectiveNowTime) {
+    // Проверяем, наступило ли время уведомления.
+    // ВАЖНО: на free-хостингах (Render) сервер может "просыпаться" с задержкой.
+    // Поэтому используем окно догонки: если мы пропустили время на несколько минут, всё равно отправим.
+    const toMinutes = (hhmm) => {
+      if (!hhmm || typeof hhmm !== 'string') return null
+      const [h, m] = hhmm.split(':').map(Number)
+      if (Number.isNaN(h) || Number.isNaN(m)) return null
+      return h * 60 + m
+    }
+    const nowMin = toMinutes(effectiveNowTime)
+    const schedMin = toMinutes(effectiveScheduleTime)
+    const CATCHUP_MINUTES = 15
+
+    const isDue =
+      nowMin !== null &&
+      schedMin !== null &&
+      nowMin >= schedMin &&
+      (nowMin - schedMin) <= CATCHUP_MINUTES
+
+    if (isDue) {
       // Проверяем, не отправляли ли мы уже уведомление в эту минуту
-      const lastSentKey = `last_sent_${habitId}_${now.toISOString().slice(0, 10)}_${effectiveNowTime}_${scheduleTimeZone || 'UTC'}`
+      // Ключ не по минуте "сейчас", а по запланированной минуте (иначе в окне догонки может задвоить)
+      const lastSentKey = `last_sent_${habitId}_${now.toISOString().slice(0, 10)}_${effectiveScheduleTime}_${scheduleTimeZone || 'UTC'}`
       const lastSent = schedule.lastSent?.[lastSentKey]
 
       if (!lastSent) {
@@ -190,6 +256,8 @@ async function checkAndSendNotifications() {
           // Сохраняем метку о том, что уведомление отправлено
           if (!schedule.lastSent) schedule.lastSent = {}
           schedule.lastSent[lastSentKey] = true
+          // сохраняем прогресс на диск
+          await saveSchedulesToDisk()
         } else {
           console.error(`❌ Ошибка при отправке уведомления для "${schedule.name}":`, result.error)
           errorCount++
@@ -260,6 +328,8 @@ app.post('/api/schedule', (req, res) => {
       chatId: chatIdStr, // Сохраняем как строку
       lastSent: {}
     })
+    // сохраняем расписания
+    saveSchedulesToDisk()
 
     console.log(`✅ Расписание сохранено: "${habit.name}" на ${timeLocal ? `${timeLocal} (${timeZone || 'unknown tz'})` : `${habit.notificationTime} (UTC)`} для chatId ${chatIdStr.substring(0, 3)}***`)
     console.log(`📊 Всего расписаний в памяти: ${notificationSchedules.size}`)
@@ -287,6 +357,7 @@ app.delete('/api/schedule/:habitId', (req, res) => {
     const { habitId } = req.params
     notificationSchedules.delete(habitId)
     console.log(`🗑️ Расписание удалено для привычки ${habitId}`)
+    saveSchedulesToDisk()
     res.json({ success: true, message: 'Schedule deleted' })
   } catch (error) {
     console.error('Ошибка при удалении расписания:', error)
@@ -394,6 +465,7 @@ cron.schedule('* * * * *', () => {
 })
 
 // Проверяем сразу при запуске
+await loadSchedulesFromDisk()
 checkAndSendNotifications()
 
 // Логируем количество активных расписаний каждые 5 минут
