@@ -13,7 +13,9 @@ const router = createRouter({
   // - на любом хосте/поддиректории (без настройки base на сервере)
   // - в Telegram WebView (desktop/mobile)
   // - в установленной PWA
-  history: createWebHashHistory(),
+  // В Telegram WebView иногда открывается URL без "#/".
+  // base нужен, чтобы hash-history корректно работал на GitHub Pages (/project-pwa/).
+  history: createWebHashHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/',
@@ -54,6 +56,13 @@ const router = createRouter({
       path: '/settings/share',
       name: 'settings-share',
       component: ShareView
+    }
+    ,
+    // Fallback: если Telegram открыл URL “не так” или hash пустой/нестандартный,
+    // всегда уводим на главную, чтобы не получить пустой экран.
+    {
+      path: '/:pathMatch(.*)*',
+      redirect: '/'
     }
   ]
 })
