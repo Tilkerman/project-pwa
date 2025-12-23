@@ -199,13 +199,22 @@ async function checkAndSendNotifications() {
       continue
     }
 
-    // NEW: предпочитаем localTime + timeZone (работает для всех стран + DST)
+    // NEW: предпочитаем localTime + timeZone (работает для всех стран + DST),
+    // НО только если мы реально можем вычислить "сейчас" в этой таймзоне.
+    // Иначе безопасно откатываемся на UTC-режим (legacy), чтобы не было "тишины".
     const scheduleLocalTime = schedule.timeLocal || null
     const scheduleTimeZone = schedule.timeZone || null
-    const effectiveNowTime = (scheduleLocalTime && scheduleTimeZone)
-      ? (getTimeInZone(now, scheduleTimeZone) || currentUtcTime)
-      : currentUtcTime
-    const effectiveScheduleTime = scheduleLocalTime || schedule.time // legacy: schedule.time (UTC HH:mm)
+    const nowInZone =
+      scheduleLocalTime && scheduleTimeZone ? getTimeInZone(now, scheduleTimeZone) : null
+    const useLocal = !!(scheduleLocalTime && scheduleTimeZone && nowInZone)
+    const effectiveNowTime = useLocal ? nowInZone : currentUtcTime
+    const effectiveScheduleTime = useLocal ? scheduleLocalTime : schedule.time // legacy: schedule.time (UTC HH:mm)
+
+    if (scheduleLocalTime && scheduleTimeZone && !nowInZone) {
+      console.warn(
+        `⚠️ Не удалось вычислить время в TZ "${scheduleTimeZone}". Падаем обратно на UTC для "${schedule.name}".`
+      )
+    }
 
     console.log(`🔍 Проверка "${schedule.name}": запланировано на ${effectiveScheduleTime}${scheduleTimeZone ? ` (${scheduleTimeZone})` : ' (UTC)'}, текущее время ${effectiveNowTime}${scheduleTimeZone ? ` (${scheduleTimeZone})` : ' (UTC)'}`)
     
@@ -221,17 +230,25 @@ async function checkAndSendNotifications() {
     const nowMin = toMinutes(effectiveNowTime)
     const schedMin = toMinutes(effectiveScheduleTime)
     const CATCHUP_MINUTES = 15
-
-    const isDue =
-      nowMin !== null &&
-      schedMin !== null &&
-      nowMin >= schedMin &&
-      (nowMin - schedMin) <= CATCHUP_MINUTES
+    // Обрабатываем кейс после полуночи: запланировано вчера поздно, сейчас чуть позже полуночи.
+    const diffMin =
+      nowMin !== null && schedMin !== null
+        ? (nowMin >= schedMin ? nowMin - schedMin : nowMin + 1440 - schedMin)
+        : null
+    const isDue = diffMin !== null && diffMin >= 0 && diffMin <= CATCHUP_MINUTES
 
     if (isDue) {
       // Проверяем, не отправляли ли мы уже уведомление в эту минуту
       // Ключ не по минуте "сейчас", а по запланированной минуте (иначе в окне догонки может задвоить)
-      const lastSentKey = `last_sent_${habitId}_${now.toISOString().slice(0, 10)}_${effectiveScheduleTime}_${scheduleTimeZone || 'UTC'}`
+      // Если догоняем после полуночи (nowMin < schedMin), то считаем что "запланированная дата" была вчера.
+      const dateForKey = (() => {
+        if (nowMin === null || schedMin === null) return now.toISOString().slice(0, 10)
+        if (nowMin >= schedMin) return now.toISOString().slice(0, 10)
+        const d = new Date(now)
+        d.setDate(d.getDate() - 1)
+        return d.toISOString().slice(0, 10)
+      })()
+      const lastSentKey = `last_sent_${habitId}_${dateForKey}_${effectiveScheduleTime}_${useLocal ? scheduleTimeZone : 'UTC'}`
       const lastSent = schedule.lastSent?.[lastSentKey]
 
       if (!lastSent) {
@@ -293,9 +310,19 @@ app.post('/api/schedule', (req, res) => {
       return res.status(400).json({ success: false, error: 'Missing required fields' })
     }
 
-    // NEW: предпочитаем localTime+timeZone
-    const timeLocal = habit.notificationTimeLocal || null
-    const timeZone = habit.timeZone || null
+    // NEW: предпочитаем localTime+timeZone, но валидируем TZ, чтобы не ломать сравнения.
+    let timeLocal = habit.notificationTimeLocal || null
+    let timeZone = habit.timeZone || null
+    if (timeLocal && timeZone) {
+      try {
+        // Проверяем, что Intl поддерживает указанную TZ
+        new Intl.DateTimeFormat('en-US', { timeZone }).format(new Date())
+      } catch {
+        console.warn(`⚠️ Невалидная/неподдерживаемая TZ "${timeZone}". Откатываемся на UTC режим.`)
+        timeLocal = null
+        timeZone = null
+      }
+    }
     const timeToValidate = timeLocal || habit.notificationTime
 
     // Проверяем валидность времени (HH:mm)
@@ -456,6 +483,43 @@ app.get('/wake', (req, res) => {
     status: 'awake', 
     time: new Date().toISOString(),
     message: 'Server is awake and ready'
+  })
+})
+
+// Диагностика времени/таймзон (помогает понять, почему "не пришло в 16:34")
+// GET /api/time?tz=Europe/Moscow
+app.get('/api/time', (req, res) => {
+  const now = new Date()
+  const tz = typeof req.query.tz === 'string' ? req.query.tz : null
+  let nowInTz = null
+  let tzOk = null
+  if (tz) {
+    try {
+      const parts = new Intl.DateTimeFormat('en-US', {
+        timeZone: tz,
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false,
+      }).formatToParts(now)
+      const hh = parts.find((p) => p.type === 'hour')?.value
+      const mm = parts.find((p) => p.type === 'minute')?.value
+      const ss = parts.find((p) => p.type === 'second')?.value
+      nowInTz = hh && mm && ss ? `${hh}:${mm}:${ss}` : null
+      tzOk = true
+    } catch (e) {
+      tzOk = false
+      nowInTz = null
+    }
+  }
+  res.json({
+    ok: true,
+    nowIso: now.toISOString(),
+    nowUtc: `${now.getUTCHours().toString().padStart(2, '0')}:${now.getUTCMinutes().toString().padStart(2, '0')}:${now.getUTCSeconds().toString().padStart(2, '0')}`,
+    tz,
+    tzOk,
+    nowInTz,
+    node: process.version,
   })
 })
 
