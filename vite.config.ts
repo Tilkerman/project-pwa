@@ -5,7 +5,9 @@ import { resolve } from 'path'
 import packageJson from './package.json'
 
 export default defineConfig({
-  base: process.env.CI ? '/project-pwa/' : '/',
+  // Используем относительный base, чтобы сборка корректно работала и в корне,
+  // и на поддиректориях (GitHub Pages /project-pwa/), без битых путей к манифесту/иконкам.
+  base: './',
   build: {
     outDir: 'dist'
   },
